@@ -7,7 +7,6 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
     #TODO: Can we move this crap to board?
-    # (r'^a3d/', include('a3d.foo.urls')),
     url(r'^(?:home)?$', 'board.views.post.home', name = "board_post_list_home"),
     url(r'^go/post_id/(?P<post_id>\d+)$', 'django.views.generic.simple.redirect_to', {'url': '/p/%(post_id)s', 'permanent': True}, name = "board_post_view"),
     url(r'^p/(?P<post_id>\d+)$', 'board.views.post.view', name = "board_post_view"),
