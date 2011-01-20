@@ -1,0 +1,11 @@
+{% load board_tags %}
+{% do_tags_list 25 %}<ul>
+
+{% for p in tags_list  %}
+	<li><a href="{% url board_post_list_by_tag_title p.title %}" 
+	class="popularity-{% if forloop.counter <= 7 %}high
+		{% else %}{% if forloop.counter <= 14 %}medium
+		{% else %}{% if forloop.counter <= 21 %}low{% else %}very-low{% endif %}{% endif %}{% endif %}">.{{ p.title }}</a>
+	</li>
+{% endfor %}	
+</ul>

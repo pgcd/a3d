@@ -1,0 +1,12 @@
+{% if user.id > 0 %}
+	<a rel="author" class="user-link user-name-{{ user.username|slugify }} user-id-{{user.id}}" href="{% url profiles_profile_detail user.username %}">{{ user.username }}</a>
+{% else %}
+	{% if user.id = -1 %}
+	<a rel="author" class="user-link user-anonymous">{{ user.username }}</a>
+	{% else %}
+	<a rel="author" class="user-link user-anonymized">{{ user.username }}</a>
+	{% endif %}
+{% endif %}
+{% if user.username %}
+	<a rel="author" class="follow-user" data-followed-user="{{user.username|urlencode}}" href="{% url board_post_list_by_user user.username %}">[&sect;]</a>&nbsp;
+{% endif %}

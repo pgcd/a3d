@@ -1,0 +1,45 @@
+Basic tests:
+This <ins>sentence</ins> will <em>have</em> several <strong>tags</strong>.
+
+This_one_won't__have__any. This<span class="spoiler">one</span>will<em>have</em>two.
+
+<h1>This is the <em>H1</em> heading</h1>
+
+<h2>This is the <ins>H2</ins> heading</h2>
+
+<h3>This is the H3 heading</h3>
+
+<div class="text-center">This sentence is centered with some <code lang="python">code thrown in</code></div>
+
+This is &lt;&#39;&quot;&gt; *escaped*
+
+<a href="http://www.google.com">http://www.google.com</a>
+
+<img src="http://www.asphalto.org/pixies/alogo.jpg" alt="http://www.asphalto.org/pixies/alogo.jpg" />
+
+<a href="http://www.google.com">Google</a>
+
+<a href="http://www.asphalto.org"><img src="http://www.asphalto.org/pixies/alogo.jpg" alt="alogo.jpg" title="alogo.jpg" /></a>
+
+<img src="http://www.asphalto.org/pixies/alogo.jpg" alt="&quot;sangue e anime&quot;" title="&quot;sangue e anime&quot;" />
+
+<blockquote data-related-post="123" data-related-user="username">@[username] #123
+<br />first quoted line
+<blockquote>Nested quote</blockquote>
+> end quote
+</blockquote>
+
+<ul><li>This should be the first line.
+<ol>
+<li>Second Line <em>indented</em></li>
+<li>Third line <a href="http://a.link.to">http://a.link.to</a></li>
+</ol>
+</li>
+<li>fourth line back</li></ul>
+<ol>
+<li>A different list</li>
+<li>With four lines
+<ul>
+<li>And an indented ul</li>
+<li>With two lines</li></ul>
+</li></ol>

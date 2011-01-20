@@ -1,0 +1,40 @@
+{% extends base_template %}
+{% block content %}
+{% load board_tags faves %}
+{% if not request.is_ajax %}
+<h1 class="post-title">{{ profile.user }}
+{% if request.user.is_authenticated %}
+	{% if request.user|has_faved:profile.user %}
+	<span class="navigation toggle-star"><a href="{%  get_unfave_url profile.user "star" %}" class="permalink remove-star" rel="bookmark">&diams;</a></span>
+	{% else %}
+	<span class="navigation toggle-star"><a href="{%  get_fave_url profile.user "star" %}" class="permalink add-star" rel="bookmark">&loz;</a></span>
+	{% endif %}
+{% endif %}</h1>
+	<h2>Ultimi post</h2>
+	{% get_posts_by profile as post_list %}
+	{% prefetch tags for post_list %}
+	{% for p in post_list %}
+		<div id="post-id-{{p.pk}}" class="post {% if p.rating < min_rating_for_display %}hidden-by-rating{% endif %} {% class_tags p %} rating{{p.rating|font_by_rating}}">
+		<h3 class="post-title {{p.rating|font_by_rating}}">
+			{% if p.object_id > 0 %}
+				<a href="{{ p.parent_url }}?start={{p.pk}}" class="parent-link">{{ p.title }}</a>
+			{% else %}
+				<a href="{% url board_post_view p.pk %}">{{ p.title }}</a>
+			{% endif %}
+			[{{p.created}}] {% object_tags p %}
+		</h3>
+		<div class="post-text">
+			{{p.postdata.body|safe|truncatewords_html:30}}
+		</div>
+		</div>
+	{% endfor %}
+	<h2>Commenti al profilo</h2>
+{% endif %}
+{% block replies %}
+	{% get_replies for profile %}
+	{% include "board/post_list.html" %}
+	{% if not request.is_ajax %}
+		{% post_form profile %}
+	{% endif %}
+	{% endblock %}
+{% endblock %}

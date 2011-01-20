@@ -1,0 +1,88 @@
+{% load board_tags i18n faves humanize %}
+<ul class="post-info">
+  <li>{% user_link post %}</li>
+		<li>[<time pubdate="true"  datetime="{{post.updated|date:'r'}}">{% blocktrans with post.updated|naturalday as p%}{{p}}{%endblocktrans%} {{ post.updated|time }}</time>]
+			{% if post.wiki %}
+			[<i>wiki</i>]
+			{% endif %}
+		</li>
+		{% if post.replies_count %}
+		<li>
+			[{% if post.is_main_post %}<a href="#replies" title="{% trans 'Jump to first reply' %}">&darr;</a> {%endif%}
+			<a rel="first" class="post-link" title="{% trans 'First page' %}" href="{% url board_post_view post.pk %}">{{post.replies_count}} replies</a>
+			/ last: {{post.last_poster_name}}
+			
+			{% if request.user.is_authenticated and personal_settings.all_read_before < post.last_reply %}
+				{% if not post.read_last or post.read_last < post.last_reply %}
+					/ <a href="{% url board_post_view post.pk %}?start={{post.read_last}}" title="{% trans 'Last read post' %}" class="post-link">
+					{% if post.unread_replies %}
+						unread: {{post.unread_replies}}
+					{% else %}
+						&Dagger; 
+					{% endif %}
+					</a>
+				{% endif %}
+			{% endif %}
+			{% if request.user.is_authenticated %}
+				{% if post.replied_last %}
+					<a href="{% url board_post_view post.pk %}?start={{post.replied_last}}" title="{% trans 'Your last post' %}" class="post-link">*</a>
+				{% endif %}
+			{% endif %}
+			<a rel="last" class="post-link" title="{% trans 'Last page' %}" href="{% url board_post_view post.pk %}?start=last">&raquo;</a>]
+		</li>
+		{% endif %}
+		<li class="tags-on-post">
+			{% if request.user.is_authenticated %}
+			<a data-tag-target-object="{{post.pk}}" title="{% trans "Add tag" %}" href="{% url board_tag_attach %}" class="interaction tag-link-new ui-icon ui-icon-tag">tag?</a>
+			<input class="ui-autocomplete-input tag-link-new" />
+			{% endif %}
+			{% object_tags post %}
+			{% for tag in post.postdata.hashtags %}
+			<a class="hashtag-link {{tag.klass}}" data-alternate-link="{{tag.link}}" href="?tag_match={{tag.title|urlencode}}" rel="{{tag.rel}}">{{tag.title}}</a>
+			{% endfor %}
+		</li>
+	
+		{# The following will be right-floated, so reverse order is required #}
+		<li class="navigation reply-id"><a href="{% url board_post_view post.pk %}" class="permalink post-link" rel="bookmark subsection">#{{post.pk}}</a></li>
+		{% if request.user.is_authenticated %}
+			{% if post.is_starred %}
+			<li class="navigation toggle-star"><a href="{%  get_unfave_url post "star" %}" class="permalink remove-star" rel="bookmark" title="unstar">&diams;</a></li>
+			{% else %}
+			<li class="navigation toggle-star"><a href="{%  get_fave_url post "star" %}" class="permalink add-star on-request" rel="bookmark" title="star">&loz;</a></li>
+			{% endif %}
+		{% endif %}
+		<li class="navigation up-down">
+			{% if link_parent %}
+				{% if post.object_id > 0 %}
+					<a href="{{ post.parent_url }}?start={{post.pk}}" class="parent-link post-link" rel="up">[&uArr;]</a>
+				{% endif %}
+			{% else %}
+				<a href="?start={{post.pk}}" title="{% trans 'Start from here' %}" rel="bookmark" class="permalink post-link on-request">[&dArr;]</a>
+			{% endif %}
+		</li>
+		<li class="navigation follow"><a class="follow-post interaction on-request" href="?tag_match=%23{{post.pk}}" rel="subsection" data-followed-post="{{post.pk}}">segui</a></li>		
+		{% if post.can_be_rated %}
+		<li class="navigation">
+			<span class="rate-actions ui-corner-all interaction on-request">[
+				<a href="{% url board_post_rate post.pk 'down' %}?next_page={{request.path}}" rel="nofollow">-</a>
+				<span title="rating">{{post.rating}}</span>
+				<a href="{% url board_post_rate post.pk 'up' %}?next_page={{request.path}}" rel="nofollow">+</a>
+				]
+			</span>
+		</li>
+		{% endif %}
+		{% if post.can_be_edited %}
+		<li class="navigation">
+			<span class="ui-corner-all interaction on-request">
+				<a href="{% url board_post_edit post.pk %}?next_page={{request.path}}" class="post-edit-link" rel="nofollow" title="{% trans "edit" %}">&equiv;</a>
+			</span>
+		</li>
+		<li class="navigation mark-read-unread">
+			<span class="ui-corner-all interaction on-request">
+				<a href="{% url board_post_mark_as_read post.pk%}" class="mark-read" rel="bookmark" title="Mark as read">&radic;</a>
+				<a href="{% url board_post_mark_as_unread post.pk%}" class="mark-unread" rel="bookmark" title="Mark as unread">&empty;</a>
+			</span>
+		</li>
+		
+		{% endif %}
+	</ul>

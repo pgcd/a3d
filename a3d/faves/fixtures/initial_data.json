@@ -1,0 +1,18 @@
+[
+  {
+    "model" : "faves.favetype",
+    "pk" : 1,
+    "fields" : {
+      "name" : "Star",
+      "slug" : "star"
+    }
+  },
+  {
+    "model" : "faves.favetype",
+    "pk" : 2,
+    "fields" : {
+      "name" : "Ignore",
+      "slug" : "ignore"
+    }
+  }
+]

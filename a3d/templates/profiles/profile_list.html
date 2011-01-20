@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% load board_tags %}
+{% block content %}
+{% make_endless_page for object_list using filter_field=-user__date_joined %} 
+{% for p in object_list  %}
+<a href="{% url profiles_profile_detail p %}">{{ p }}</a> <br />
+{% endfor %}
+{% endblock %}

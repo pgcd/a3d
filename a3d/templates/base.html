@@ -1,0 +1,111 @@
+{% load board_tags i18n %}
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>{% block title %}asphalto.org{% endblock %}</title>
+		<meta name="description" content="Come Tempi Moderni, ma senza figa e più volgare.">
+		<meta name="keywords" content="satira,politica,recensioni,film,donne,ambientalismo,evoluzione,scienza,musica,mp3,gioia,rabbia,amore,odio,cultura,libri,cinema,prove,immagini,foto,stile,nichilismo,moderno,primitivo,disgusto,alcool,birra" />
+		<link rel="stylesheet" type="text/css" href="{{ media_url }}asphalto.css" />
+		<link rel="stylesheet" type="text/css" href="{{ media_url }}custom-theme/jquery-ui-1.8.1.custom.css" />
+		<link rel="stylesheet" type="text/css" href="{{ media_url }}js/jquery-autocomplete/jquery.ui.autocomplete.css" />
+		<!-- markItUp! skin -->
+		<link rel="stylesheet" type="text/css" href="{{ media_url }}js/markitup/markitup/skins/simple/style.css" />
+		<!--  markItUp! toolbar skin -->
+		<link rel="stylesheet" type="text/css" href="{{ media_url }}js/markitup/markitup/sets/default/style.css" />
+		<style type="text/css">
+		{% block extracss %}
+		{% endblock %}
+		</style>
+    <script type="text/javascript">
+      document.documentElement.className = 'js-enabled';
+    </script>		
+	</head>
+	<body>
+		<div id="left">
+			<a href="/home" class="home-link ui-accordion-header ui-helper-reset ui-state-default ui-corner-all">home</a>
+			<div id="menu">
+			{% block auth %}
+			<h3>user</h3>
+			<div id="auth">
+				{% if request.user.is_authenticated %}
+				<a href="{% url django.contrib.auth.views.logout %}?next={{request.path}}" rel="logout nofollow" class="logout-user-link needs-full-refresh">logout {{request.user.username}}</a>
+				
+				  {%if object_list %}
+				  {% with object_list|first as firstobj %}
+            <br />
+            <a title="{% trans 'Up to '%} {{firstobj.last_reply|default:firstobj.pk}}" href="{% url board_userprofile_all_read firstobj.last_reply|default:firstobj.pk %}?next={{request.path}}" rel="nofollow needs-full-refresh">{% trans "Mark all read" %}</a>
+				  {% endwith %}
+				  {% endif %}
+				
+				{% else %} 
+				 {% login_form %}
+				{% endif %}
+			</div>
+			{%endblock %}
+			{% if request.user.is_authenticated %}
+				<h3>mentions</h3>
+				<div id="mentions-list">
+					{% list_mentions_for request.user %}
+				</div>
+			{% endif %}
+			{% if request.user.is_authenticated %}
+			<h3>stars</h3>
+			<div id="fave-list" class="scroller">
+				{% with request.user.get_profile.favorites as faves %}
+				{% include "board/fave_list.html" %}
+				{% endwith %}
+			</div>
+			{% endif %}
+			<h3>tags</h3>
+			<div id="tags-list">
+				{% include "board/tag_list.html" %}	
+			</div>
+			</div>
+		</div>
+
+		<div id="content">
+		{% block content %}{% endblock %}
+		</div>
+		<div id="footer" class="text-center"><a href="/admin">admin</a>
+		<div id="online-users" class="text-center">Online: {% list_online_users "5" %}</div>
+			<!-- STATS: Total: %(totTime).4f Python: %(pyTime).4f DB: %(dbTime).4f Queries: %(queries)d -->
+		</div>
+	<script type="text/javascript" src="{{ media_url }}js/jquery.min.js"></script>
+	<script type="text/javascript" src="{{ media_url }}js/jquery-ui-1.8.1.custom.min.js"></script>
+	<script type="text/javascript" src="{{ media_url }}js/markitup/markitup/jquery.markitup.js"></script>
+	<!-- markItUp! toolbar settings -->
+	<script type="text/javascript" src="{{ media_url }}js/markitup/markitup/sets/default/set.js"></script>
+
+	<script type="text/javascript" src="{{media_url}}js/alm.js"></script>	
+	<script type="text/javascript">
+			var a3d = (function(){
+				var a3d = this;
+				personal_settings = {{ personal_settings|jsonify|safe }};
+				alm_available_macros = {{ alm_available_macros|jsonify|safe }}
+				selected = {};
+				own_username = "{{user.username}}"
+				url = {
+					board_fave_list: '{% url board_fave_list%}',
+					board_tags_list: '{% url board_tags_list%}',
+					board_own_mentions_list: '{% url board_own_mentions_list%}',
+					api_tags_list: "{%url api_tags_list %}",
+					api_users_list: "{%url api_users_list %}",
+					board_post_list_by_tag_title: '{%url board_post_list_by_tag_title "dummy" %}'
+				};
+				current_page = "{{request.get_full_path}}";
+				creole = new Parse.Simple.Creole( {
+			        forIE: document.all,
+			        linkFormat: ''
+			    } );
+				return a3d;
+			})();
+	</script>
+	
+	{% block javascript %}
+	{{block.super}}
+		<script type="text/javascript" src="{{media_url}}js/asphalto.base.js"></script>
+	{% endblock %}
+
+	</body>
+</html>

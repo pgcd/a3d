@@ -1,0 +1,132 @@
+DELIMITER //
+CREATE FUNCTION django_password(
+  pass VARCHAR(32)
+) RETURNS VARCHAR(128) 
+DETERMINISTIC
+BEGIN
+	DECLARE salt char(5);
+	DECLARE hash VARCHAR(40);
+	SET salt = MID(RAND(), 3, 5);
+	SET hash = SHA(CONCAT(salt, pass));
+	RETURN CONCAT('sha1$', salt, '$', hash);
+END//
+
+
+INSERT INTO board_post 
+	(`id`, `created`, `updated`, `user_id`, 
+	`content_type_id`, `object_id`, `rating`, 
+	`replies_count`, `status`, `versions_count`, `ip`, `userdata`, username, 
+	`last_poster_id`, `reverse_timestamp`, `title`, `read_only`, `no_replies`)
+SELECT i.post_id, `posted_on`, `posted_on`, `user_id`, 
+	if(d.extras NOT LIKE 'a:1:{s:12:"user_profile";i:%;}',10,11) as content_type_id, if(d.extras NOT LIKE 'a:1:{s:12:"user_profile";i:%;}',`in_reply_to`,(REPLACE(REPLACE(extras, 'a:1:{s:12:"user_profile";i:',''),';}',''))) as object_id, `rating`, 
+	`replies`, `topic_status`, `versions_count`, INET_NTOA(CAST((ip & 0xFFFFFFFF) AS UNSIGNED INTEGER)) as ip, d.`user_data`, d.`user_name`, 
+	`lastposter_id`, IF(`last_reply_ts`<>0xFFFFFFFF,last_reply_ts,0xffffffff-unix_timestamp(posted_on)) as reverse_timestamp, d.`title`, 0, 0 
+FROM a2.post_index i left outer join a2.post_data d ON (i.post_id=d.post_id);
+
+insert into temp (id, value) select object_id, max(id) as value from board_post p1 group by object_id
+update board_post p1, temp t set _last_reply_id=t.value where p1.id=t.id
+
+update `board_post` p1, board_post p2 set p2.content_type_id=11 WHERE p1.content_type_id=11 and p2.object_id=p1.id and p2.content_type_id=10
+insert into temp (id, value) SELECT u.user_id as id, min(p.id) as value FROM `board_userprofile` u, board_post p WHERE u.user_id=p.object_id and p.content_type_id=11 group by u.user_id having count(*)=1
+
+insert into board_postdata
+	(post_ptr_id, body, summary, body_markdown, signature, tagset) select i.post_id, d.text, if(d.extras NOT LIKE 'a:1:{s:12:"user_profile";i:%;}',d.extras,'') as summary
+, '' as body_markdown, '' as signature, '' as tagset
+FROM a2.post_index i left outer join a2.post_data d ON (i.post_id=d.post_id)
+
+update `board_postdata` set summary='' where summary='a:2:{s:4:"voto";s:0:"";s:13:"commento_voto";s:0:"";}'	
+
+// CORREGGERE insert into board_postdata (post_id, body, summary) select id, body, summary from board_post
+
+update board_post set is_active=0 where user_id=0 /* bisogna fare qualcosa per i post automatici tipo quelli degli user */
+update board_post set last_reply=0xffffffff-unix_timestamp(created) where last_reply=0xffffffff
+
+
+insert into temp (id, value) select tag_id, count(*) from board_tagattach group by tag_id; 
+update board_tag b, temp t set b.attach_count = t.value where b.id = t.id 
+
+INSERT INTO board_extendedattributevalue (key_id, content_type_id, object_id, value) select 3, 10, i.post_id, d.user_name from a2.post_index i, a2.post_data d WHERE i.post_id=d.post_id and i.user_id = 0 
+
+insert into board_tag (title) values ('add-me'),( 'richiesta'),( 'blog'),( 'rotten'),( 'tette'),( 'porno'),( 'link'),( 'tech'),( 'meta'),( 'obs'),( 'flame'),( 'bug'),( 'cut-n-paste'),( 'politica'),( 'sport'),( 'importante'),( 'rido'),( 'tedio'),( 'media'),( 'presto'),( 'chat'),( 'scienza'),( 'meet'),( 'attwhore')
+
+insert ignore into board_tagattach (`tag_id`, `post_id`, obj_update) select t.id, post_id, least(posted_on_ts,last_reply_ts) from a2.post_index p left join a2.categories c on c.category_id = p.category_id left join a3d.board_tag t on convert(t.title using latin1) = convert(c.category_name using latin1) where p.topic_status>=3 or p.rating>=3;
+insert ignore into board_tagattach (`tag_id`, `post_id`, obj_update) select t.id, post_id, least(posted_on_ts,last_reply_ts) from board_post b left join a2.post_index p on b.id = p.post_id left join board_tag t on convert(t.title using latin1) = convert(p.subcat using latin1) where p.subcat<>'none' and p.subcat<>'' and (p.topic_status>=3 AND p.rating > -2) or p.rating>=3;
+
+insert into auth_user (`id`, `username`, `first_name`, `last_name`, `email`, `password`, `is_staff`, `is_active`, `is_superuser`, `last_login`, `date_joined`) select
+u.user_id, `user_name`, "", "", `email`, django_password(`password`), 0, not flags & 1, 0, `last_login`, registered_on from a2.users u, a2.users_extras e
+where u.user_id<>77 and u.user_id=e.user_id
+
+insert ignore into `board_userprofile` (`user_id`, `hidden_status`, `hidden_email`, `rating_total`, `signature`, `secret_question`,
+	 `secret_answer`, `short_desc`, `long_desc`, `custom_nick_display`, 
+	 `mod_denied`, `can_set_nick_color`, `can_change_short_desc`,
+         auto_login, back_to_topic, auto_quote, link_source_post, always_preview,
+         can_modify_profile_own, show_ruler, save_password, 
+	 `contributor`, `is_alias`, `post_per_page`, `min_rating`, `mana`, `last_post_id`, `posts_count`) 
+SELECT u1.`user_id`, 0, 1, 0, sig, '', 
+	'', `short_desc`, long_desc, IF(nick_color<>'', CONCAT('color:',nick_color,';'),'') as custom_nick_display,
+	find_in_set('mod_denied', flags)>0 ,find_in_set('can_set_nick_color', flags)>0, find_in_set('can_change_short_desc', flags)>0, find_in_set('always_preview', flags)>0, 
+        find_in_set('can_modify_profile_own', flags)>0, find_in_set('show_ruler', flags)>0, find_in_set('save_password', flags)>0, 
+        find_in_set('auto_login', flags)>0,find_in_set('back_to_topic', flags)>0, find_in_set('auto_quote', flags)>0, find_in_set('link_source_post', flags)>0, 
+	find_in_set('contributor', flags)>0,find_in_set('is_alias', flags)>0, least(`post_per_page`,50), `min_rating`, `mana`, `last_post_id`, `posts`
+	from a2.users u1 left join a2.users_extras u2 on u1.user_id=u2.user_id
+
+
+// qui dobbiamo convertire le risposte ai post "user_profile" - e questo NON VA BENE!
+insert into temp (id, user_profile) select post_id, t.user_profile from (select post_id, REPLACE(REPLACE(extras, 'a:1:{s:12:"user_profile";i:',''),';}','') as user_profile from a2.post_data) t where t.user_profile > 0
+update board_post p, temp t set p.content_type_id=11, p.object_id=t.user_profile where p.object_id = t.id
+
+
+
+
+// CUSTOM SQL - Non so dove debba essere eseguito
+ALTER TABLE `board_tagattach` DROP INDEX `board_tagattach_tag_id`, ADD INDEX `board_tagattach_tag_id` (`tag_id`,`obj_update`)
+ALTER TABLE `board_postdata` ADD FULLTEXT(`body`)
+ALTER TABLE `a3d`.`board_post` DROP INDEX `last_reply`, ADD INDEX `last_reply` (`last_reply`, `object_id`, `replies_count`)
+ALTER TABLE `a3d`.`board_post` ADD INDEX `username` (`username`, `reverse_timestamp`)
+ALTER TABLE  `a3d`.`board_post` DROP INDEX  `board_post_user_id` , ADD INDEX  `board_post_user_id` (  `user_id` ,  `updated` )
+
+
+// ESEGUIRE PRIMA DI PYTHON
+UPDATE `a3d`.`board_tag` SET `title` = concat('.',title)
+
+
+
+
+//python code to adjust tags
+from board.models import PostData
+import re, time
+def replsum(s):
+	f = s.group(1).partition(':')
+	return f[2][1:int(f[0])+1]
+
+stop = False
+stt = time.clock()
+s1 = 1188545
+v1 = 0
+lft = PostData.objects.filter(pk__gt=s1).count()
+for st in range(s1, 2000000, 5000):
+	if stop:
+		break
+	ap = PostData.objects.filter(pk__gt=st)[0:5000]
+	v = 0
+for p in ap.iterator():
+	pbx = re.split(r'(?s)<div class="signature">(.*)</div>$', p.body)
+	if len(pbx)>=2:
+		p.body = pbx[0]
+		p.signature = pbx[1]
+		p.summary = re.sub(r'(?s).*summary";s:(\d+:".*");}$',replsum,p.summary)
+		tl = re.findall(r'/go/post_id/(\d+)',p.body) + re.findall(r'\?post_id=(\d+)',p.body)
+		ul = re.findall('blockquote>\[(.+?)(?:::<|])',p.body)
+		p.tagset = ';'.join(list(set(['@['+i+']' for i in ul] + ['#'+i for i in tl])))
+		p.save()
+		v = v + 1
+		if v % 10 == 0:
+			print "%i: %i" % (v, p.pk)
+		if v % 100 == 0:
+			crt = time.clock()
+			v2 = v1 + v
+			print "Time elapsed %.2f (remaining %.2f for %i)" % (crt, (lft-v2) * crt/v2, lft-v2)
+	v1 = v1 + v
+	if v < 5000:
+		stop = True
+

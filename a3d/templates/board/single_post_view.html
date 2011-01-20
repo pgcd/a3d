@@ -1,0 +1,28 @@
+{% extends base_template %}
+{% load board_tags faves %}
+{% block title %}{{ post.title }}{% endblock %}
+
+	{% block extracss %}
+		{% with post.user.get_profile as p %}
+			{% if p.custom_nick_display %}
+				a.user-id-{{p.id}} {
+					{{p.custom_nick_display|safe|escapecss }}
+				}
+			{% endif %}
+		{% endwith %}
+	{% endblock extracss %}
+	
+{% block content %}
+	{% block post_body %}
+		{% if not request.GET.skip_text %}
+		<article class="post parent-post" id="post-id-{{post.pk}}">
+			<h1 class="post-title">{{ post.title }}</h1>
+			{% post_info post "link_parent" %}
+			<div class="post-text">{{ post.postdata.body|safe }}</div>
+			<div class="signature">{{ post.postdata.signature|safe }}</div>
+		</article>
+		{% endif %}
+	{% endblock %}
+	{% block replies %}
+	{% endblock %}
+{% endblock %}
