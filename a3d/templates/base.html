@@ -80,9 +80,8 @@
 	<script type="text/javascript" src="{{media_url}}js/alm.js"></script>	
 	<script type="text/javascript">
 			var a3d = (function(){
-				var a3d = this;
 				personal_settings = {{ personal_settings|jsonify|safe }};
-				alm_available_macros = {{ alm_available_macros|jsonify|safe }}
+				alm_available_macros = {{ alm_available_macros|jsonify|safe }};
 				selected = {};
 				own_username = "{{user.username}}"
 				url = {
@@ -98,7 +97,7 @@
 			        forIE: document.all,
 			        linkFormat: ''
 			    } );
-				return a3d;
+				return this;
 			})();
 	</script>
 	

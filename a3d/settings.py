@@ -148,4 +148,8 @@ A3D_BASE_SETTINGS = {
     'threshold_high_rating':4,
     'post_per_page':10,
     'base_rating':1,
+    'tags_fetch_interval': 180200,
+    'mentions_fetch_interval': 71000,
+    'favorites_fetch_interval': 60500,
+    'new_content_fetch_interval': 30300,
 }

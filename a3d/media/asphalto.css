@@ -450,6 +450,18 @@ a.direct-message:before {
 	width: 8em;
 }
 
+#tags-list ul li {
+	position: relative;
+}
+#tags-list ul li time {
+	display: block;
+	position: absolute;
+	right: 0;
+	top: 0;
+	font-size: smaller;
+	color: #666;
+}
+
 #fave-list.fave-droppable-active ul {
 	background-color: #ffe88a;
 	border:2px #ff8040 solid;

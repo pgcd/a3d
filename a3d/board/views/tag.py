@@ -78,7 +78,7 @@ def attach(request, **kwargs):
         rel = TagAttach(tag = tag, post = post, reverse_timestamp = post.reverse_timestamp)
         try:
             rel.save()
-        except IntegrityError:
+        except IntegrityError: #The idea is that we don't care for duplicates
             pass
     return list_on_post(request, post_id)
 

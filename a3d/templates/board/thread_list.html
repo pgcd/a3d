@@ -29,7 +29,7 @@
 		{% endif %}
 	{% include "board/thread_body.html" %}
 	{% empty %}
-		<a id="new-content" data-attach-method="before"></a>
+		<a id="new-content" data-attach-method="before" href="?start=-0"></a>
 	{% endfor %} 
 {% if more_up %}
 	<a href="?start={{more_up}}" class="endless-paginator" rel="prev">older</a>

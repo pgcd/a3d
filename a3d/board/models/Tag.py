@@ -25,6 +25,7 @@ class TagAttach(models.Model):
             self.reverse_timestamp = self.post.reverse_timestamp
         t = self.tag
         t.attach_count = t.tagattach_set.count()
+        t.last_attach = datetime.datetime.fromtimestamp(0xFFFFFFFF - self.reverse_timestamp).strftime("%Y-%m-%d %H:%M:%S")
         t.reverse_timestamp = self.reverse_timestamp
         t.save()
         super(TagAttach, self).save(*args, **kwargs)
@@ -38,6 +39,7 @@ class Tag(Auditable, ExtendedAttributesManager):
     title = models.SlugField(unique = True)
     #I removed this, as it should be dealt with in CSS
     reverse_timestamp = models.PositiveIntegerField(blank = True, default = 0)
+    last_attach = models.DateTimeField(default = datetime.datetime.now)
     icon = models.FileField(upload_to = 'tag', blank = True, default = '')
     attach_count = models.PositiveIntegerField(default = 0)
     template = models.ForeignKey('Template', null = True, blank = True) #TODO: Make this have some meaning?

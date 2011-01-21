@@ -1,14 +1,11 @@
-$(document).ready(function(){
-	a3d.altPreview = function () {
-		alert("h");
-	};
+jQuery(document).ready(function($){ // Makes me feel safer
 	a3d.htmlToAlm = function($$) {
 		$$.find('blockquote').each(function(i, e) {
 			var $this = $(this);
 			var text = a3d.htmlToAlm($this).replace(/^|\n/g, '\n> ');
 			//text = '> @['+$this.attr('data-related-user')+'] #'+$this.attr('data-related-post')+'\n'+text;
 			$this.replaceWith(text+'\n');
-		})
+		});
 		return $$.text();
 	};
 
@@ -19,7 +16,7 @@ $(document).ready(function(){
 		} else {
 			return url + '?' + arg;
 		}
-	}
+	};
 	
 	a3d.toggleNonMatchingPosts = function(s){
 		if(s) {
@@ -29,10 +26,12 @@ $(document).ready(function(){
 			} else {
 				s1 = a3d.selected[ls] = Math.ceil(Math.random()*10000000);
 			}
-			$('article.post').not(s.parents('article.post')).toggleClass('hidden-for-'+s1)
+			$('article.post').not(s.parents('article.post')).toggleClass('hidden-for-'+s1);
 		} else {
 			for (sel in a3d.selected) {
-				$('article.post').not($(sel).addClass('selected').parents('article.post')).addClass('hidden-for-'+a3d.selected[sel])
+				$('article.post')
+					.not($(sel).addClass('selected').parents('article.post'))
+					.addClass('hidden-for-'+a3d.selected[sel]);
 			}
 		}
 		
@@ -60,7 +59,7 @@ $(document).ready(function(){
 					macroMenu.dropMenu = dropMenu;
 					almSettings.markupSet.push(macroMenu);
 					// almSettings.markupSet.push({separator:'',className:'clear-li'});		
-	})()				
+	})();
 
 	$.fn.extend({
 		removeDuplicate: function() {
@@ -76,7 +75,7 @@ $(document).ready(function(){
 		childrenWidth: function(){
 			var w=0;
 			$(this).children().each(function() {
-				w+=this.clientWidth
+				w+=this.clientWidth;
 			});
 			return w;
 		},
@@ -130,7 +129,7 @@ $(document).ready(function(){
 							w = p.width()-padding;
 						
 						p.animate({scrollTop:t * p[0].scrollHeight},100);
-					})
+					});
 	
 			});
 			return this;
@@ -173,7 +172,7 @@ $(document).ready(function(){
                     }
                     if (errors) {
                         for (error in errors) {
-                            $('#id_' + error).after(' <span class="error">' + errors[error] + '</span>')
+                            $('#id_' + error).after(' <span class="error">' + errors[error] + '</span>');
                         }
                     }
                     else {
@@ -256,7 +255,7 @@ $(document).ready(function(){
         };
         $that.siblings('input').show().focus().autocomplete({
             source: function(req, add){
-                $.getJSON(a3d.url["api_tags_list"] + "?callback=?", req, function(data){
+                $.getJSON(a3d.url.api_tags_list + "?callback=?", req, function(data){
                     //create array for response objects  
                     var suggestions = [];
                     //process response  
@@ -265,7 +264,7 @@ $(document).ready(function(){
                     });
                     //pass array to callback  
                     add(suggestions);
-                })
+                });
             },
             select: function(e, ui){
                 that.attachTag(ui.item.value);
@@ -278,7 +277,7 @@ $(document).ready(function(){
             if ((ev.keyCode == 10 || ev.keyCode == 13)) {
                 $(this).siblings('a')[0].attachTag($(this).val());
             }
-        })
+        });
 	
     $('ul.post-info .tags-on-post')
 		.addMore()
@@ -296,10 +295,10 @@ $(document).ready(function(){
     $('.tag-link-container').live('hover', function(event){
 		var $this = $(this);
         if (event.type == 'mouseover') {
-            $this.find('a.tag-link-detach').fadeIn('fast')
+            $this.find('a.tag-link-detach').fadeIn('fast');
         }
         else {
-			$this.find('a.tag-link-detach').hide()				
+			$this.find('a.tag-link-detach').hide();			
         }
     });
     
@@ -317,8 +316,7 @@ $(document).ready(function(){
             $('#post-id-' + target_post_id+' .tags-on-post')
 				.find('.tag-link:not(.hashtag-link)').remove()
 				.end()
-				.prepend(responseText)
-
+				.prepend(responseText);
         });
         return false;
     });
@@ -366,15 +364,15 @@ $(document).ready(function(){
 					if(oldel.length) {
 						// oldel.replaceWith(e);
 						oldel.remove();
-						$(e).addClass('updated')
+						$(e).addClass('updated');
 					} 
 				}
-			})
+			});
 			$(that).before($tmp).remove();
 			
             $('#post-form').find('input[name=next_item]').val($('#new-content').attr('data-next-item'));
 			a3d.toggleNonMatchingPosts(); //Update the filtered posts
-        })
+        });
         return false;
     });
 	
@@ -384,7 +382,7 @@ $(document).ready(function(){
 	$('div.previewtext').live('dragstart', function(ev) {
 		$('#preview-anchor-right, #preview-anchor-bottom').show('fast');
 	}).live('dragstop', function(ev) {
-		$('#preview-anchor-right, #preview-anchor-bottom').hide()
+		$('#preview-anchor-right, #preview-anchor-bottom').hide();
 	});
 
 	$('#preview-anchor-right, #preview-anchor-bottom').droppable({
@@ -476,8 +474,8 @@ $(document).ready(function(){
 		}
 		
 		var t = '',
-			lq = $("#linked_quote"),
-			lq = (lq.length)?lq:$('<a id="linked_quote" class="interaction">&#8220;&#8221;</a>');
+			lq = $("#linked_quote");
+		lq = (lq.length)?lq:$('<a id="linked_quote" class="interaction">&#8220;&#8221;</a>');
 		// A different take on retrieving the selection; this one would actually allow to also copy ALM tags.
 		s = window.getSelection?window.getSelection():document.selection.createRange(); 
 		try {
@@ -512,7 +510,9 @@ $(document).ready(function(){
 	});
 
     $('article.post ul.post-info span.rate-actions a').live('click', function(ev){
-        var $this = $(this), $target = $this.parents('article.post'), href = $this.attr('href').replace(/([\?&]next_page=)[^&]+/, '$1' + location.pathname)
+        var $this = $(this), 
+			$target = $this.parents('article.post'), 
+			href = $this.attr('href').replace(/([\?&]next_page=)[^&]+/, '$1' + location.pathname);
         $.get(href + '&as_reply=' + $target.hasClass('reply'), function(data, request){
             $target.replaceWith(data);
         });
@@ -538,10 +538,10 @@ $(document).ready(function(){
         source: function(req, add){
 			var url; 
 			if(req.term[0]=='@') {
-				url = a3d.url["api_users_list"]
+				url = a3d.url.api_users_list;
 				req.term = req.term.substr(1);
 			} else {
-				url = a3d.url["api_tags_list"]
+				url = a3d.url.api_tags_list;
 				req.term = req.term.substr(req.term.lastIndexOf('[')+1);
 			}
             $.getJSON(url, req, function(data){
@@ -574,7 +574,7 @@ $(document).ready(function(){
 			.attr('title','cancel').html('&ne;') //TODO: Cleaner solution required
 			.click(function(ev) {
 				$this.parents('.post-form-container').replaceWith($this.data('revert'));
-				$this.attr('title','edit').html('&equiv;').parent().addClass('on-request')
+				$this.attr('title','edit').html('&equiv;').parent().addClass('on-request');
 				return false;
 			})
 			.parent().removeClass('on-request')
@@ -611,60 +611,59 @@ $(document).ready(function(){
 		autoHeight: false,
 		collapsible: false,
 		active: (function() {
-			if ($('#auth a.logout-user-link').length==0) {
+			if ($('#auth a.logout-user-link').length===0) {
 				return 0;
 			} else if ($('#mentions-list ul li a.fresh-content').length>0) {
 				return 1;
 			} else if ($('#fave-list ul li').length>0) {
 				return 2;
 			}
-			return $('#tags-list').index('#menu div')
+			return $('#tags-list').index('#menu div');
 		})()
 	});
 	
-	$('<input/>', {id:'tags-lookup', size: '10'})
+	$('#tags-list input#tags-lookup')
 		.autocomplete({
             source: function(req, add){
-                $.getJSON(a3d.url["api_tags_list"], req, function(data){
+                $.getJSON(a3d.url.api_tags_list, req, function(data){ //FIXME: This shouldn't come from API, I think.
                     var suggestions = [];
                     $.each(data, function(i, val){
                         suggestions.push(val.title);
                     });
                     add(suggestions);
-                })
+                });
             },
             select: function(e, ui){
-                location.href = a3d.url['board_post_list_by_tag_title'].replace('dummy',ui.item.value);
+                location.href = a3d.url.board_post_list_by_tag_title.replace('dummy',ui.item.value);
             }
-        })
-		.appendTo('#tags-list');
+        });
 	
-	updateTagsList = function() {
-		$.get(a3d.url['board_tags_list'], function(data, req) {
-			var oc = $('#tags-list ul'), $i = $('#tags-list input');
-			$i.css('position','fixed');
-			$(data).hide().prependTo('#tags-list').slideDown(function() {
-				oc.remove();
-				$i.css('position','static');
-			});
-		});
-	}
+//	updateTagsList = function() {
+//		$.get(a3d.url.board_tags_list, function(data, req) {
+//			var oc = $('#tags-list ul li');
+//			$(data).find('ul li').append('#tags-list ul');
+//		});
+//	};
+
+	updateTagsList = function() { // I don't like this version very much but whatever.
+		$('#tags-list ul').load(a3d.url.board_tags_list + ' ul');
+	};
 	
 	updateMentionsList = function() {
 		var oc = $('#mentions-list ul');
 		if (!oc.length) {
 			return;
 		}
-		$.get(a3d.url['board_own_mentions_list']+'?after='+oc.attr('data-latest-mention'), function(data, result, req) {
+		$.get(a3d.url.board_own_mentions_list+'?after='+oc.attr('data-latest-mention'), function(data, result, req) {
 			if (result == 'success') {
 				var $d = $(data),
 					latest = $d.attr('data-latest-mention');
 				oc.attr('data-latest-mention',latest);				
 				$d.children('li').prependTo(oc);
-				$('#menu').accordion('activate',$('#mentions-list').index('#menu div'))
+				$('#menu').accordion('activate',$('#mentions-list').index('#menu div'));
 			}
 		});
-	}
+	};
 
 
 	
@@ -676,12 +675,12 @@ $(document).ready(function(){
 			// l.height('auto').css({overflow:'visible'});
 		});*/
 		$('#fave-list ul').replaceWith(data); // Simpler, and I think I actually like it more - if anybody comes up with a different transition we'll talk.
-	}
+	};
 	updateFaveList = function() {
-		$.get(a3d.url['board_fave_list'], function(data, req) {
+		$.get(a3d.url.board_fave_list, function(data, req) {
 			redrawFaveList(data);
 		});
-	}
+	};
 	
 	//FIXME: This still doesn't really work with click and move (as opposed to click and drag)
 	$('a.post-link, a.user-link, a.tag-link').draggable({  
@@ -772,16 +771,18 @@ $(document).ready(function(){
 	
 	/* Tags list */
 	window.setInterval(function(){
-		if($('#tags-list').is(':visible'))
-		updateTagsList();
-	}, 180000); // probably even more
+		if($('#tags-list').is(':visible')) {
+			updateTagsList();			
+		}
+	}, a3d.personal_settings.tags_fetch_interval);
 	window.setInterval(function(){
-		if($('#fave-list').is(':visible'))
-		updateFaveList();
-	}, 119500); // probably even more
+		if($('#fave-list').is(':visible')) {
+			updateFaveList();			
+		}
+	}, a3d.personal_settings.favorites_fetch_interval);
 	window.setInterval(
 		updateMentionsList
-	, 59500); // probably even more
+	, a3d.personal_settings.mentions_fetch_interval);
 
 
 //Content updating
@@ -792,25 +793,22 @@ $(document).ready(function(){
 		
         $.get(a3d.updateQS(href, 'count=true'), function(data, status, request){
 			if(status == 'success') {
-				var paginator = $('<div>').append(data).find('.endless-paginator')
+				var paginator = $('<div>').append(data).find('.endless-paginator');
 				var old_paginator = $('.endless-paginator[rel='+paginator.attr('rel')+']');
 				
 				if(old_paginator.length) {
-					old_paginator.replaceWith(paginator)
+					old_paginator.replaceWith(paginator);
 				} else {
 					$('#new-content').before(paginator);					
 				}
 				
 			}
 		});
-	}
+	};
 
 //TODO: Riattivare
 
-//	window.setInterval(function(){
-//		updateContent();		
-//	},30300);
-
-
-	
+	window.setInterval(function(){
+		updateContent();		
+	},a3d.personal_settings.new_content_fetch_interval);
 });
