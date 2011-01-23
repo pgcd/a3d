@@ -19,10 +19,13 @@
 		</style>
     <script type="text/javascript">
       document.documentElement.className = 'js-enabled';
-    </script>		
+    </script>
+    <!--[if IE]>
+      <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->		
 	</head>
 	<body>
-		<div id="left">
+		<nav id="left">
 			<a href="/home" class="home-link ui-accordion-header ui-helper-reset ui-state-default ui-corner-all">home</a>
 			<div id="menu">
 			{% block auth %}
@@ -62,15 +65,15 @@
 				{% include "board/tag_list.html" %}	
 			</div>
 			</div>
-		</div>
+		</nav>
 
 		<div id="content">
 		{% block content %}{% endblock %}
 		</div>
-		<div id="footer" class="text-center"><a href="/admin">admin</a>
+		<footer id="main-footer" class="text-center"><a href="/admin">admin</a>
 		<div id="online-users" class="text-center">Online: {% list_online_users "5" %}</div>
 			<!-- STATS: Total: %(totTime).4f Python: %(pyTime).4f DB: %(dbTime).4f Queries: %(queries)d -->
-		</div>
+		</footer>
 	<script type="text/javascript" src="{{ media_url }}js/jquery.min.js"></script>
 	<script type="text/javascript" src="{{ media_url }}js/jquery-ui-1.8.1.custom.min.js"></script>
 	<script type="text/javascript" src="{{ media_url }}js/markitup/markitup/jquery.markitup.js"></script>

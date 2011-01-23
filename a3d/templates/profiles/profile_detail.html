@@ -10,24 +10,27 @@
 	<span class="navigation toggle-star"><a href="{%  get_fave_url profile.user "star" %}" class="permalink add-star" rel="bookmark">&loz;</a></span>
 	{% endif %}
 {% endif %}</h1>
+<section>
 	<h2>Ultimi post</h2>
 	{% get_posts_by profile as post_list %}
 	{% prefetch tags for post_list %}
 	{% for p in post_list %}
-		<div id="post-id-{{p.pk}}" class="post {% if p.rating < min_rating_for_display %}hidden-by-rating{% endif %} {% class_tags p %} rating{{p.rating|font_by_rating}}">
-		<h3 class="post-title {{p.rating|font_by_rating}}">
+		<article id="post-id-{{p.pk}}" class="post {% if p.rating < min_rating_for_display %}hidden-by-rating{% endif %} {% class_tags p %} rating{{p.rating|font_by_rating}}">
+		<header><h3 class="post-title rating{{p.rating|font_by_rating}}">
 			{% if p.object_id > 0 %}
 				<a href="{{ p.parent_url }}?start={{p.pk}}" class="parent-link">{{ p.title }}</a>
 			{% else %}
 				<a href="{% url board_post_view p.pk %}">{{ p.title }}</a>
 			{% endif %}
 			[{{p.created}}] {% object_tags p %}
-		</h3>
+		</h3></header>
 		<div class="post-text">
 			{{p.postdata.body|safe|truncatewords_html:30}}
 		</div>
-		</div>
+		</article>
 	{% endfor %}
+</section>
+<section>
 	<h2>Commenti al profilo</h2>
 {% endif %}
 {% block replies %}
@@ -38,3 +41,4 @@
 	{% endif %}
 	{% endblock %}
 {% endblock %}
+</section>

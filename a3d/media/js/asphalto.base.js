@@ -434,7 +434,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
 	
     $('article.post').live('hover', function(event){
         var that = this, 
-			$i = $(this).children('ul.post-info'),
+			$i = $(this).children('ul.post-info'), // Only the first child needs to be updated, I think.
 		    $items = $i.find('.on-request');
         if (event.type == 'mouseover') {
 			window.setTimeout(function() {
@@ -587,7 +587,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
 				body_markup_input_original = $form.find('#id_edit-body_markup'),
 			    body_markup_input = body_markup_input_original.clone(); 
 			$form.revert = post_div.clone().hide();
-			post_div.children('.post-title').replaceWith(title_input);
+			post_div.find('.post-title').replaceWith(title_input);
 			if(post_div.children('.post-text').length) {
 				post_div.children('.post-text').replaceWith(body_markup_input);
 			} else {

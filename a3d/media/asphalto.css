@@ -316,15 +316,30 @@ label {
 
 
 /* where it begins */
+
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {  display:block; }
+
+
 body {
     background-color: #666;
     color: #cccccc;
     font-family: Verdana, Arial, sans-serif;
-    font-size: 80%;
     margin: 0;
     padding: 0;
     border: none;
-	height:100%;
+	  height:100%;
+	  line-height: 1.2;
+	  font-size: 80%;
 }
 
 .ajaxInProgress * {
@@ -533,7 +548,8 @@ div.scroll-button-down {
 	height:0px;	
 }
 
-#footer {
+#main-footer {
+  display:block;
 	float:left;
 	clear:both;
 	width:100%;
@@ -576,14 +592,17 @@ article.post {
     position: relative;
 }
 
-.post h3 a {
-    color: #f10; width: 100%; display: block;
+.post .post-title a {
+    color: #f10; 
+    width: 100%; 
+    display: block;
 }
-.post h3 a:hover {
+
+.post .post-title a:hover {
 	background-color: #111;
 }
 
-.reply h3 a {
+.reply .post-title a {
     color: #ffcc33
 }
 
@@ -819,7 +838,7 @@ a#linked_quote {
 /*
  * Rating related crap
  */
-.high-rating h3 {
+.high-rating header.post-title {
     font-size: 120%;
 }
 

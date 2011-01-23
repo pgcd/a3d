@@ -1,7 +1,9 @@
 {% extends "board/single_post_view.html" %}
 {% load board_tags %}
 {% block replies %}{# I don't like the div#replies thingy but I see no other solution now. #}
-{% if not request.is_ajax %} <div id="replies"> {% endif %}
+{% if not request.is_ajax %}
+<div id="replies">
+{% endif %}
 	{% get_replies for post %}
 	{% prefetch profiles for object_list as user_profiles %}
 	<style type="text/css" scoped="true"> {# TODO: This clearly needs to be optimized and moved to a tag #}
@@ -17,7 +19,9 @@
 	{% if not request.is_ajax %}
 		{% post_form post %}
 	{% endif %}
-{% if not request.is_ajax %} </div> {% endif %}
+{% if not request.is_ajax %}
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extracss %}
