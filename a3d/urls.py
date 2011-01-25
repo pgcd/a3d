@@ -2,7 +2,6 @@ from django.conf.urls.defaults import url, patterns, include
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 import profiles.views as profile_views #@UnresolvedImport
-import sys
 admin.autodiscover()
 
 urlpatterns = patterns('',
@@ -10,6 +9,7 @@ urlpatterns = patterns('',
     url(r'^(?:home)?$', 'board.views.post.home', name = "board_post_list_home"),
     url(r'^go/post_id/(?P<post_id>\d+)$', 'django.views.generic.simple.redirect_to', {'url': '/p/%(post_id)s', 'permanent': True}, name = "board_post_view"),
     url(r'^p/(?P<post_id>\d+)$', 'board.views.post.view', name = "board_post_view"),
+    #url(r'^p/(?P<post_id>\d+)/replies$', 'board.views.post.list_replies', name = "board_post_view_replies"),
     url(r'^p/(?P<post_id>\d+)/info$', 'board.views.post.view', {'info_only':True}, name = "board_post_view_info"),
     url(r'^p/(?P<post_id>\d+)/edit$', 'board.views.post.edit', name = "board_post_edit"),
     url(r'^p/(?P<post_id>\d+)/mark_read$', 'board.views.post.mark_as', {'action':'read'}, name = "board_post_mark_as_read"),

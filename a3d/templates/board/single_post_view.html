@@ -13,16 +13,20 @@
 	{% endblock extracss %}
 	
 {% block content %}
-	{% block post_body %}
-		{% if not request.GET.skip_text %}
-		<article class="post parent-post" id="post-id-{{post.pk}}">
-			<header><h2 class="post-title">{{ post.title }}</h2></header>
-			{% post_info post "link_parent" %}
-			<div class="post-text">{{ post.postdata.body|safe }}</div>
-			<div class="signature">{{ post.postdata.signature|safe }}</div>
+  {% if not request.GET.skip_text %}
+    <article class="post parent-post" id="post-id-{{post.pk}}">
+    {% block post_body %}
+        <header><h2 class="post-title">{{ post.title }}</h2></header>
+        {% post_info post "link_parent" %}
+        <div class="post-text">{{ post.postdata.body|safe }}</div>
+        <div class="signature">{{ post.postdata.signature|safe }}</div>
+    {% endblock %}
+  {% endif %}  
+    {% block replies %}
+    {% endblock %}
+  {% if not request.GET.skip_text %}
     </article>
-		{% endif %}
-	{% endblock %}
-	{% block replies %}
-	{% endblock %}
+
+  {% endif %}
+
 {% endblock %}

@@ -2,20 +2,22 @@
 {% prefetch tags for object_list %}
 {% prefetch post_interactions for object_list %}
 {% inject_faves_to object_list by request.user of type star as is_starred %}
+<ol>
 {% if more_down %}
-	<a href="?start=-{{more_down}}" class="endless-paginator" rel="prev">previous</a>
+	<li><a href="?start=-{{more_down}}" class="endless-paginator" rel="prev">previous</a></li>
 {% endif %}
 
 {% for post in object_list  %}
 {% block reply_body %}
-	{% include "board/post_body.html" %}
+	<li>{% include "board/post_body.html" %}</li>
 {% endblock %}
 {% if forloop.last %}
 	{% if more_up %}
-		<a href="?start={{more_up}}" class="endless-paginator" rel="next">{{items_left}} more</a>
+		<li><a href="?start={{more_up}}" class="endless-paginator" rel="next">{{items_left}} more</a></li>
 	{% endif %}
-	<a id="new-content" data-attach-method="after" data-next-item="{{post.pk|add:"1"}}" href="{{post.pk|add:"1"}}"></a>
+	<li><a id="new-content" data-attach-method="after" data-next-item="{{post.pk|add:"1"}}" href="{{post.pk|add:"1"}}"></a></li>
 {% endif %}
 {% empty %}
-	<a id="new-content" data-attach-method="after"></a>
+	<li><a id="new-content" data-attach-method="after"></a></li>
 {% endfor %}
+</ol>

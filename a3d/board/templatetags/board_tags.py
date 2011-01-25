@@ -195,6 +195,8 @@ def list_mentions_for(context, user):
 
 
 class RepliesToken(template.Node):
+    """
+    """
     def __init__(self, obj, var_name = "object_list"):
         self.obj = template.Variable(obj)
         self.var_name = var_name
@@ -219,9 +221,7 @@ class RepliesToken(template.Node):
                })
         context.update(_d)
         last_item = "%s;%s" % (_d['last_item'] or obj.pk, obj.replies_count - _d['items_left'])
-#        last_item = ";".join([str(_d['last_item'] or obj.pk), str(obj.replies_count)])
         board_signals.post_read.send(sender = obj.__class__, obj_id = obj.pk, last_item = last_item, user = context["request"].user)
-        #return render_to_string("board/post_list.html", {}, context_instance=context)
         return ''
 parsingTag(RepliesToken, "get_replies", required = 1)
 

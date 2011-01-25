@@ -151,6 +151,35 @@ def view(request, post_id, template_name = 'board/post_view.html',
                                 'extend': post_obj.extended_attributes
                               },
                               context_instance = context)
+
+def list_replies(request, post_id, context_instance=None, template_name='board/post_list.html', data_only=False):
+    """
+    This view is used for replies to posts only; for comments to user profiles we'll do something different.
+    """
+    user = request.user
+    context_instance = context_instance if context_instance else RequestContext(request)
+    limit = context_instance['personal_settings']['post_per_page']
+    post = get_object_or_404(Post,pk=post_id)
+    qs = post.replies.public(user) #Only public and user-specific replies
+    follow = request.GET.get('tag_match') #TODO: Expand this to account for usernames as well
+    if follow:
+        qs = qs.filter(postdata__body__contains = follow)
+    
+    _d = EndlessPage(qs, limit).page(context_instance, list_name = 'object_list') #FIXME: I'd rather call this "post_list"
+    _d.update({
+            'next_item':_d['last_item'] + 1,
+            'next_item_direction':'down',
+           })
+    context_instance.update(_d)
+    last_item = "%s;%s" % (_d['last_item'] or post_id, post.replies_count - _d['items_left'])
+#        last_item = ";".join([str(_d['last_item'] or obj.pk), str(obj.replies_count)])
+    board_signals.post_read.send(sender = Post, obj_id = post_id, last_item = last_item, user = request.user)
+    return render_to_response(template_name,
+            _d,
+            context_instance = context_instance)
+    
+
+    
     
     
 def list_by_user(request, username, **kwargs): #TODO: Ehm.
