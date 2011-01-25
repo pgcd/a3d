@@ -123,11 +123,11 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
             context_instance = context_instance)
 
 
-def view(request, post_id, template_name = 'board/post_view.html',
+def view(request, post_id, template_name = 'board/single_post_view.html',
                 info_only = False, extra_context = None):
     """
     ``template_name`` keyword argument or
-    :template:`board/post_view.html`.
+    :template:`board/single_post_view.html`.
     
     """
     if info_only:
@@ -152,23 +152,21 @@ def view(request, post_id, template_name = 'board/post_view.html',
                               },
                               context_instance = context)
 
-def list_replies(request, post_id, context_instance=None, template_name='board/post_list.html', data_only=False):
+def list_replies(request, post_id, context_instance = None, template_name = 'board/post_list.html', data_only = False):
     """
     This view is used for replies to posts only; for comments to user profiles we'll do something different.
     """
     user = request.user
     context_instance = context_instance if context_instance else RequestContext(request)
     limit = context_instance['personal_settings']['post_per_page']
-    post = get_object_or_404(Post,pk=post_id)
-    qs = post.replies.public(user) #Only public and user-specific replies
-    follow = request.GET.get('tag_match') #TODO: Expand this to account for usernames as well
-    if follow:
-        qs = qs.filter(postdata__body__contains = follow)
+    post = get_object_or_404(Post, pk = post_id)
+    qs = post.replies.public(user).tag_match(context_instance["request"]) #Only public and user-specific replies
     
-    _d = EndlessPage(qs, limit).page(context_instance, list_name = 'object_list') #FIXME: I'd rather call this "post_list"
+    _d = EndlessPage(qs, limit).page(context_instance, list_name = 'post_list')
     _d.update({
             'next_item':_d['last_item'] + 1,
             'next_item_direction':'down',
+            'post':post,
            })
     context_instance.update(_d)
     last_item = "%s;%s" % (_d['last_item'] or post_id, post.replies_count - _d['items_left'])

@@ -1,23 +1,35 @@
 {% load board_tags faves %}
-{% prefetch tags for object_list %}
-{% prefetch post_interactions for object_list %}
-{% inject_faves_to object_list by request.user of type star as is_starred %}
-<ol>
-{% if more_down %}
-	<li><a href="?start=-{{more_down}}" class="endless-paginator" rel="prev">previous</a></li>
-{% endif %}
-
-{% for post in object_list  %}
-{% block reply_body %}
-	<li>{% include "board/post_body.html" %}</li>
-{% endblock %}
-{% if forloop.last %}
-	{% if more_up %}
-		<li><a href="?start={{more_up}}" class="endless-paginator" rel="next">{{items_left}} more</a></li>
+{% get_replies for post as post_list %}
+{% prefetch tags for post_list %}
+{% prefetch post_interactions for post_list %}
+{% inject_faves_to post_list by request.user of type star as is_starred %}
+<ol id="replies">
+	<style type="text/css" scoped="scoped">
+		{% prefetch profiles for post_list as user_profiles %}
+		{% for pp in user_profiles %}
+			{% if pp.custom_nick_display %}
+			a.user-id-{{pp.user_id}} {
+				{{pp.custom_nick_display|safe|escapecss }}
+			}
+			{% endif %}
+		{% endfor %}
+	</style>
+{% with post as parent_post %}
+	{% if more_down %}
+		<li><a href="{% url board.views.post.list_replies parent_post.pk %}?start=-{{more_down}}" class="endless-paginator" rel="prev">previous</a></li>
 	{% endif %}
-	<li><a id="new-content" data-attach-method="after" data-next-item="{{post.pk|add:"1"}}" href="{{post.pk|add:"1"}}"></a></li>
-{% endif %}
-{% empty %}
-	<li><a id="new-content" data-attach-method="after"></a></li>
-{% endfor %}
+	{% for post in post_list  %}
+	{% block reply_body %}
+		<li id="post-id-{{post.pk}}">{% include "board/post_body.html" %}</li>
+	{% endblock %}
+	{% if forloop.last %}
+		{% if more_up %}
+			<li><a href="{% url board.views.post.list_replies parent_post.pk %}?start={{more_up}}" class="endless-paginator" rel="next">{{items_left}} more</a></li>
+		{% endif %}
+		<li><a id="new-content" data-attach-method="after" data-next-item="{{post.pk|add:"1"}}" href="{{post.pk|add:"1"}}"></a></li>
+	{% endif %}
+	{% empty %}
+		<li><a id="new-content" data-attach-method="after"></a></li>
+	{% endfor %}
+{% endwith %}
 </ol>

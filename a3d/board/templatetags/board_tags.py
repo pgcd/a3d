@@ -209,10 +209,7 @@ class RepliesToken(template.Node):
         
         user = context["request"].user
         limit = context['personal_settings']['post_per_page']
-        qs = obj.replies.public(user) #Only public and user-specific replies
-        follow = context['request'].GET.get('tag_match') #TODO: Expand this to account for usernames as well
-        if follow:
-            qs = qs.filter(postdata__body__contains = follow)
+        qs = obj.replies.public(user).tag_match(context["request"]) #Only public and user-specific replies
         
         _d = EndlessPage(qs, limit).page(context, list_name = self.var_name)
         _d.update({

@@ -1,32 +1,29 @@
 {% extends base_template %}
 {% load board_tags faves %}
-{% block title %}{{ post.title }}{% endblock %}
+{% block title %}{{ post.title }}::asphalto.org{% endblock %}
+{% block extracss %}
+	{% with post.user.get_profile as p %}
+		{% if p.custom_nick_display %}
+			a.user-id-{{p.id}} {
+				{{p.custom_nick_display|safe|escapecss }}
+			}
+		{% endif %}
+	{% endwith %}
+	{{ block.super }}
+{% endblock extracss %}
 
-	{% block extracss %}
-		{% with post.user.get_profile as p %}
-			{% if p.custom_nick_display %}
-				a.user-id-{{p.id}} {
-					{{p.custom_nick_display|safe|escapecss }}
-				}
-			{% endif %}
-		{% endwith %}
-	{% endblock extracss %}
 	
 {% block content %}
-  {% if not request.GET.skip_text %}
     <article class="post parent-post" id="post-id-{{post.pk}}">
-    {% block post_body %}
-        <header><h2 class="post-title">{{ post.title }}</h2></header>
-        {% post_info post "link_parent" %}
-        <div class="post-text">{{ post.postdata.body|safe }}</div>
-        <div class="signature">{{ post.postdata.signature|safe }}</div>
-    {% endblock %}
-  {% endif %}  
-    {% block replies %}
-    {% endblock %}
-  {% if not request.GET.skip_text %}
+	    {% block post_body %}
+	        <header><h1 class="post-title">{{ post.title }}</h1></header>
+	        {% post_info post "link_parent" %}
+	        <div class="post-text">{{ post.postdata.body|safe }}</div>
+	        <div class="signature">{{ post.postdata.signature|safe }}</div>
+	    {% endblock %}
+		{% include "board/post_list.html" %}
     </article>
-
-  {% endif %}
-
-{% endblock %}
+	{% if not request.is_ajax %}
+		{% post_form post %}
+	{% endif %}
+{% endblock content %}

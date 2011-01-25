@@ -356,8 +356,8 @@ jQuery(document).ready(function($){ // Makes me feel safer
         var that = this;
         var paginate_type = this.href.match("start=-") ? 'down' : 'up';
         $.get(this.href + '&skip_text=true&' + paginate_type + '=true', function(data){
-			var $tmp = $('<div>').append(data);
-			$.each($tmp.children(), function(i, e) {
+			var $items = $(data).children('li');
+			$.each($items, function(i, e) {
 				var id = e.id;
 				if(id) {
 					var oldel = $('#'+id);
@@ -368,7 +368,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
 					} 
 				}
 			});
-			$(that).before($tmp).remove();
+			$(that).before($items).remove();
 			
             $('#post-form').find('input[name=next_item]').val($('#new-content').attr('data-next-item'));
 			a3d.toggleNonMatchingPosts(); //Update the filtered posts
@@ -414,7 +414,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
 	
 	$('article.parent-post')
 	.mouseenter(function() {
-		var $this = $(this), ht = {}, $storage = $('<p>');
+		var $this = $(this).children('ul.post-info'), ht = {}, $storage = $('<p>');
 		$('.hashtag-link').each(function(i,e) {
 			var t = $(e).text();
 			if(!ht[t]) {
@@ -581,13 +581,13 @@ jQuery(document).ready(function($){ // Makes me feel safer
 			;
 		$.get(this.href, function(data, req) {
 			var $form=$(data),
-			 	post_div=$('#'+$form.attr('data-replace-element')),
+			 	post_div=$('#'+$form.attr('data-replace-element')), //FIXME: No support for nested articles right now!
 				title_input_original = $form.find('#id_edit-title'),
 				title_input = title_input_original.clone(),
 				body_markup_input_original = $form.find('#id_edit-body_markup'),
 			    body_markup_input = body_markup_input_original.clone(); 
-			$form.revert = post_div.clone().hide();
-			post_div.find('.post-title').replaceWith(title_input);
+			$form.revert = post_div.clone().hide(); // This hides everything, in theory?
+			post_div.children('header').find('.post-title').replaceWith(title_input); //TODO: Should we allow users to add a title when editing?
 			if(post_div.children('.post-text').length) {
 				post_div.children('.post-text').replaceWith(body_markup_input);
 			} else {

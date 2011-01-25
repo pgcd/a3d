@@ -87,6 +87,7 @@ select {
     font-family: Arial, sans-serif
 }
 
+/*
 .post_text {
     background-color: #333333;
     font-size: 10pt;
@@ -94,6 +95,7 @@ select {
     overflow: hidden
 }
 
+*/
 .link_list {
     color: #999999;
     font-size: 8pt;
@@ -568,25 +570,40 @@ blockquote {
     color: #66CCFF
 }
 
+ol#threads {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+ol#threads > li {
+	margin: 0.3em 0;
+}
+
+.post {
+    background-color: #333333;
+    width: 100%;
+}
+
+.post-text {
+    overflow: hidden;
+    padding: 4px;
+    border: 1px #666 solid;
+	display: block;
+	clear: both;
+}
+
 .post-text blockquote {
     color: #CCCCCC;
     margin: 0.5em;
     border: 1px #990000 solid;
-    padding: 0.2em
+    padding: 0.2em;
 }
 
 /* .post .post-text {
 	clear: both;
 } */
 
-
-.post {
-    background-color: #333333;
-    width: 100%;
-    overflow: hidden;
-    padding: 2px;
-    border: 1px #666 solid
-}
 
 article.post {
     position: relative;
@@ -602,17 +619,6 @@ article.post {
 	background-color: #111;
 }
 
-.reply .post-title a {
-    color: #ffcc33
-}
-
-.reply {
-    border: 1px #000000 solid;
-    margin-top: 3px;
-    color: #99ccff;
-}
-
-
 .signature {
     border-top: 1px #CCCCCC solid;
     color: #999;
@@ -625,16 +631,38 @@ article.post {
     display: none
 }
 
+
+ol#replies {
+	list-style: none;
+	background-color: #666;
+	margin:0;
+	padding:0;
+	clear: both;
+}
+
+.reply .post-title a {
+    color: #ffcc33
+}
+
+.reply .post-text {
+    border: 1px #000000 solid;
+    color: #99ccff;
+}
+
 .hidden-by-rating {
-    opacity: 0.5;
+/*    opacity: 0.5;
     height: 2.5em;
-    font-size: 75%
+    font-size: 75% */
+}
+
+.hidden-by-rating .signature {
+	display: none;
 }
 
 .hidden-by-rating.unhide {
-    opacity: 1;
+/*    opacity: 1;
     height: auto;
-    font-size: 100%
+    font-size: 100% */
 }
 
 
@@ -688,6 +716,7 @@ a.endless-paginator:hover {
 	padding-left:0.1em;
 	float: left;
 	width: 100%;
+	position: relative;
 /*	position: absolute;
 	bottom: 0; */
 }
@@ -962,11 +991,4 @@ a#linked_quote {
 
 code {
 	white-space: pre;
-}
-
-/*
- * TODO: Use a reset.css for these
- */
-article {
-  display: block;
 }

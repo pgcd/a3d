@@ -1,18 +1,18 @@
 {% load board_tags %}
 {# TODO: I don't like this layout at all, let's find something nicer #}
-	<article id="post-id-{{post.pk}}" class="post reply{% if post.rating < personal_settings.min_rating_for_display %} hidden-by-rating{% endif %} {% class_tags post %} rating{{post.rating|font_by_rating}} {% if not post.postdata.body %}no-text{%endif%}">
-		<header><h3 class="post-title">
+	<article id="article-id-{{post.pk}}" class="post reply{% if post.rating < personal_settings.min_rating_for_display %} hidden-by-rating{% endif %} {% class_tags post %} rating{{post.rating|font_by_rating}} {% if not post.postdata.body %}no-text{%endif%}">
+		<header><h1 class="post-title">
 			<a class="post-link" href="{% url board_post_view post.pk %}">{{ post.title_as_reply }}</a>
-		</h3></header>
+		</h1></header>
 		{% post_info post %}
 		{% if post.postdata.body %}
-			<div class="post-text">
-				{{ post.postdata.body|safe }}
-			</div>
-			{% if post.postdata.signature %}
-				<div class="signature">
-					{{ post.postdata.signature|safe }}
-				</div>
-			{% endif %}
+		<div class="post-text">
+			{{ post.postdata.body|safe }}
+		</div>
+		{% if post.postdata.signature %}
+		<div class="signature">
+			{{ post.postdata.signature|safe }}
+		</div>
+		{% endif %}
 		{% endif %}
 	</article>

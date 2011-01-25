@@ -6,7 +6,7 @@
 {% endif %}
 	{% get_replies for post %}
 	{% prefetch profiles for object_list as user_profiles %}
-	<style type="text/css" scoped="true"> {# TODO: This clearly needs to be optimized and moved to a tag #}
+	<style type="text/css" scoped="scoped"> {# TODO: This clearly needs to be optimized and moved to a tag #}
 		{% for pp in user_profiles %}
 			{% if pp.custom_nick_display %}
 			a.user-id-{{pp.user_id}} {
@@ -22,7 +22,4 @@
 {% if not request.is_ajax %}
 </div>
 {% endif %}
-{% endblock %}
-
-{% block extracss %}
 {% endblock %}

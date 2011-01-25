@@ -29,6 +29,12 @@ class PostMixin(object):
             q = q | models.Q(user = user)
         return self.filter(q)
     
+    def tag_match(self, request):
+        follow = request.GET.get('tag_match') #TODO: Expand this to account for usernames as well
+        if follow:
+            return self.filter(postdata__body__contains = follow)
+        else:
+            return self
 
 class PostQuerySet(QuerySet, PostMixin):
     pass
@@ -162,7 +168,7 @@ class Post(Auditable, ExtendedAttributesManager):
 
     @property
     def replies(self):
-        return self._replies.filter(is_active = True).select_related('postdata')
+        return self._replies.filter(is_active = True).order_by('pk').select_related('postdata')
 
     @property
     def unread_replies(self):

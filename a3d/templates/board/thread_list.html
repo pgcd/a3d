@@ -4,7 +4,8 @@
 	{% if basetag %}{{ basetag.title }}{% endif %} {{block.super }}
 {% endblock %} 
 
-{% block extracss %}{{block.super}}
+{% block extracss %}
+{{block.super}}
 {% prefetch profiles for object_list as user_profiles %}
 	{% for p in user_profiles %}
 		{% if p.custom_nick_display %}
@@ -19,21 +20,25 @@
 {% block content %}
 	{% prefetch tags for object_list %}
 	{% prefetch post_interactions for object_list %}
-	{% inject_faves_to object_list by request.user of type star as is_starred %} 
-{% if more_down %}
-	<a href="?start=-{{more_down}}" class="endless-paginator" rel="next">{{how_many_more}} fresher</a>
-{% endif %}
-	{% for post in object_list  %}
-		{% if forloop.first %}
-		<a id="new-content" data-attach-method="before" data-next-item="-{{post.reverse_timestamp|add:"-1"}}" href="?start=-{{post.reverse_timestamp|add:"-1"}}"></a>
-		{% endif %}
-	{% include "board/thread_body.html" %}
-	{% empty %}
-		<a id="new-content" data-attach-method="before" href="?start=-0"></a>
-	{% endfor %} 
-{% if more_up %}
-	<a href="?start={{more_up}}" class="endless-paginator" rel="prev">older</a>
-{% endif %}
+	{% inject_faves_to object_list by request.user of type star as is_starred %}
+	<ol id="threads">
+	{% if more_down %}
+		<li><a href="?start=-{{more_down}}" class="endless-paginator" rel="next">{{how_many_more}} fresher</a></li>
+	{% endif %}
+		{% for post in object_list  %}
+			{% if forloop.first %}
+			<li><a id="new-content" data-attach-method="before" data-next-item="-{{post.reverse_timestamp|add:"-1"}}" href="?start=-{{post.reverse_timestamp|add:"-1"}}"></a></li>
+			{% endif %}
+			<li id="post-id-{{post.pk}}">
+				{% include "board/thread_body.html" %}
+			</li>
+		{% empty %}
+			<li><a id="new-content" data-attach-method="before" href="?start=-0"></a></li>
+		{% endfor %} 
+	{% if more_up %}
+		<li><a href="?start={{more_up}}" class="endless-paginator" rel="prev">older</a></li>
+	{% endif %}		
+	</ol> 
 {% if not request.is_ajax %}
 	{% post_form %}
 {% endif %}
