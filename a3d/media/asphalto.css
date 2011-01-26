@@ -576,8 +576,9 @@ ol#threads {
 	list-style: none;
 }
 
-ol#threads > li {
-	margin: 0.3em 0;
+ol#threads > li, ol#replies > li {
+	margin-bottom: 0.3em;
+	clear: both;
 }
 
 .post {
@@ -698,7 +699,6 @@ a.endless-paginator:hover {
   margin: 0;
   list-style: none;
   padding-left:0.1em;
-  float: left;
   position: absolute;
   left: 0;
   height: 100%;
@@ -714,9 +714,10 @@ a.endless-paginator:hover {
     margin: 0;
 	list-style: none;
 	padding-left:0.1em;
-	float: left;
 	width: 100%;
 	position: relative;
+/*  float: left; */
+
 /*	position: absolute;
 	bottom: 0; */
 }

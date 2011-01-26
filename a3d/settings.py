@@ -143,8 +143,8 @@ DEBUG_TOOLBAR_CONFIG = {
 A3D_BASE_SETTINGS = {
     'min_rating_for_home':5,
     'min_rating_for_summary':6,
-    'min_rating_for_display':1,
-    'threshold_low_rating':0,
+    'min_rating_for_display':0,
+    'threshold_low_rating':-1,
     'threshold_high_rating':4,
     'post_per_page':10,
     'base_rating':1,
