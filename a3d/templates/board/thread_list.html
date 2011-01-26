@@ -29,7 +29,7 @@
 			{% if forloop.first %}
 			<li><a id="new-content" data-attach-method="before" data-next-item="-{{post.reverse_timestamp|add:"-1"}}" href="?start=-{{post.reverse_timestamp|add:"-1"}}"></a></li>
 			{% endif %}
-			<li id="post-id-{{post.pk}}">
+			<li id="post-id-{{post.pk}}-container">
 				{% include "board/thread_body.html" %}
 			</li>
 		{% empty %}

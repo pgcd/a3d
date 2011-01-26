@@ -299,8 +299,8 @@ ol#threads {
 	list-style: none;
 }
 
-ol#threads > li, ol#replies > li {
-	margin-bottom: 0.3em;
+ol#threads > li, ol.replies-list > li {
+	margin-bottom: 1em;
 	clear: both;
 }
 
@@ -355,14 +355,18 @@ article.post {
     display: none
 }
 
-
-ol#replies {
+ol.replies-list {
 	list-style: none;
 	background-color: #666;
-	margin:0;
+	margin:0.5em 0;
 	padding:0;
 	clear: both;
+    border-top: 1em solid #666666;
 }
+.editing ol.replies-list {
+    display: none;
+}
+
 
 .reply .post-title a {
     color: #ffcc33
@@ -449,19 +453,21 @@ a.endless-paginator:hover {
 	height: 1.5em;
 }
 
-.post ul.post-info li {
-	display: inline-block;
+.post ul.post-info > li {
+	background: inherit;
+	display: inline;
 	zoom:1;
 	float: left;
 	margin-right:0.3em;
 	position:relative;
+	height: 100%;
 }
 
 .js-enabled .on-request {
     display: none;
 }
 
-.post ul.post-info li.navigation {
+.post ul.post-info > li.navigation {
 	float:right;
 }
 
@@ -525,15 +531,9 @@ a#linked_quote {
 }
 
 .autoWidth {
-	max-width: none !IMPORTANT;
-	max-width: intrinsic !IMPORTANT;
-	max-width: -moz-max-content !IMPORTANT;
-}
-
-.more:before {
-	content:'\2026';
-	float:right;
-	display:block;
+	max-width: none !important;
+	max-width: intrinsic !important;
+	max-width: -moz-max-content !important;
 }
 
 .autoWidth .more {
@@ -548,15 +548,27 @@ a#linked_quote {
     color: #c2833d;
     display: block;
 	overflow: hidden;
-	width: 30%;
 	height: 100%;
+	width: 30em; /* TODO: Improve on this */
 	line-height: 1.5em;
 	border-left: 2px #000 solid;
+	margin: 0;
+	padding: 0;
+	background: inherit;
+}
+
+.tags-on-post li {
+	padding: 0;
+	margin: 0;
+	display: inline;
+	list-style-type: none;
 }
 
 .tags-on-post .tag-link-new {
 	float: left;
 }
+
+
 .tags-on-post input.tag-link-new {
     display: none;
     font-size: 80%;
@@ -570,10 +582,21 @@ a#linked_quote {
 .tags-on-post.show-all {
 	height: auto;
 	background: inherit;
-	position: absolute;
+	/*position: absolute;*/
 	border: 2px #c2833d double;
 	border-top: none;
 }
+
+.more:before {
+	content:'\2026';
+	float:right;
+	display:block;
+}
+
+.tags-on-post.show-all.more:before {
+	display:none;
+}
+
 
 /*
 .parent-post ul.post-info li div.tags-on-post ul.dropdown {

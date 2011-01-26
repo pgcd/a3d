@@ -81,14 +81,8 @@ jQuery(document).ready(function($){ // Makes me feel safer
 		},
 		addMore: function(){
 			$.each(this, function(i, e) {
-				var $e = $(e),
-					m = $e.find('span.more');
-				if($e.childrenWidth()>$e.width() || e.scrollHeight>$e.height()) {
-					m = m.length?m:$('<span class="more" />').prependTo($e); 
-					m.show();
-				} else {
-					m.hide();
-				}
+				var $e = $(e);
+				$e.toggleClass('more', ($e.childrenWidth()>$e.width() || e.scrollHeight>$e.height()));
 			});
 			return this;
 		},
@@ -153,6 +147,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
 		return false;
 	});
 
+    //The form type used to post new items.
     $('form.append-to-target').submit(function(){
         var $form = $(this), $target = $('#' + $form.attr("data-attach-element"));
         if ($target) {
@@ -213,6 +208,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
         }
         
     });
+    
     
 	$('form.replace-target').live('submit', function(ev){
 		var url = this.action, $this = $(this);
@@ -280,7 +276,6 @@ jQuery(document).ready(function($){ // Makes me feel safer
         });
 	
     $('ul.post-info .tags-on-post')
-		.addMore()
 		.live('hover', function(event){
 			$t = $(this);
 	        if (event.type == 'mouseover') {
@@ -289,7 +284,8 @@ jQuery(document).ready(function($){ // Makes me feel safer
 	        else {
 	            $t.removeClass('show-all').addMore();
 	        }
-   		 });
+   		 })
+		.parent().addMore();
 
 
     $('.tag-link-container').live('hover', function(event){
@@ -412,6 +408,9 @@ jQuery(document).ready(function($){ // Makes me feel safer
 		
 	});
 	
+	/**
+	 * Add replies' hashtags to parent article 
+	 */
 	$('article.parent-post')
 	.mouseenter(function() {
 		var $this = $(this).children('ul.post-info'), ht = {}, $storage = $('<p>');
@@ -423,9 +422,9 @@ jQuery(document).ready(function($){ // Makes me feel safer
 				$storage.html($storage.html() + ' ');
 			}
 		});
-
+		$storage.children('a.hashtag-link').wrap('<li />');
 		$this
-			.find('.tags-on-post .hashtag-link').remove()
+			.find('.tags-on-post li:has(.hashtag-link)').remove()
 		.end()
 			.find('.tags-on-post').append($storage.html());
 	})
@@ -564,16 +563,18 @@ jQuery(document).ready(function($){ // Makes me feel safer
         }
     });
 	
+	
+	//In-place editing
 	$('a.post-edit-link').live('click', function(ev) {
 		// Retrieve the form and use it to replace the relevant bits
-		$('a.edit-revert').click();
+		$('a.edit-revert').click(); //this is supposed to revert everything, right?
 		var $this = $(this);
 		$this
-			.data('revert', $this.parents('.post').clone(true))
+			.data('revert', $this.closest('.post').clone(true))
 			.addClass('edit-revert')
 			.attr('title','cancel').html('&ne;') //TODO: Cleaner solution required
 			.click(function(ev) {
-				$this.parents('.post-form-container').replaceWith($this.data('revert'));
+				$this.closest('.post-form-container').replaceWith($this.data('revert'));
 				$this.attr('title','edit').html('&equiv;').parent().addClass('on-request');
 				return false;
 			})
@@ -586,19 +587,17 @@ jQuery(document).ready(function($){ // Makes me feel safer
 				title_input = title_input_original.clone(),
 				body_markup_input_original = $form.find('#id_edit-body_markup'),
 			    body_markup_input = body_markup_input_original.clone(); 
-			$form.revert = post_div.clone().hide(); // This hides everything, in theory?
 			post_div.children('header').find('.post-title').replaceWith(title_input); //TODO: Should we allow users to add a title when editing?
 			if(post_div.children('.post-text').length) {
 				post_div.children('.post-text').replaceWith(body_markup_input);
 			} else {
 				post_div.append(body_markup_input);
 			}
-			
+            post_div.addClass('editing');
 			post_div.before($form);
 			$form.children('input[type=submit]').hide();
 			$form.find('.replace-with-content').replaceWith(post_div);
 			$form.find('textarea').MIUSetup();
-
 		});
 		return false;
 	});

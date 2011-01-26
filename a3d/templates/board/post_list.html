@@ -3,7 +3,7 @@
 {% prefetch tags for post_list %}
 {% prefetch post_interactions for post_list %}
 {% inject_faves_to post_list by request.user of type star as is_starred %}
-<ol id="replies">
+<ol id="replies-{{post.pk}}" class="replies-list">
 	<style type="text/css" scoped="scoped">
 		{% prefetch profiles for post_list as user_profiles %}
 		{% for pp in user_profiles %}
@@ -20,7 +20,7 @@
 	{% endif %}
 	{% for post in post_list  %}
 	{% block reply_body %}
-		<li id="post-id-{{post.pk}}">{% include "board/post_body.html" %}</li>
+		<li id="post-id-{{post.pk}}-container">{% include "board/post_body.html" %}</li>
 	{% endblock %}
 	{% if forloop.last %}
 		{% if more_up %}

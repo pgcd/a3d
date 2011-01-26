@@ -8,7 +8,7 @@
 		</li>
 		{% if post.replies_count %}
 		<li>
-			[{% if post.is_main_post %}<a href="#replies" title="{% trans 'Jump to first reply' %}">&darr;</a> {%endif%}
+			[{% if post.is_main_post %}<a href="#replies-{{post.pk}}" title="{% trans 'Jump to first reply' %}">&darr;</a> {%endif%}
 			<a rel="first" class="post-link" title="{% trans 'First page' %}" href="{% url board_post_view post.pk %}">{{post.replies_count}} replies</a>
 			/ last: {{post.last_poster_name}}
 			
@@ -31,15 +31,19 @@
 			<a rel="last" class="post-link" title="{% trans 'Last page' %}" href="{% url board_post_view post.pk %}?start=last">&raquo;</a>]
 		</li>
 		{% endif %}
-		<li class="tags-on-post">
-			{% if request.user.is_authenticated %}
-			<a data-tag-target-object="{{post.pk}}" title="{% trans "Add tag" %}" href="{% url board_tag_attach %}" class="interaction tag-link-new ui-icon ui-icon-tag">tag?</a>
-			<input class="ui-autocomplete-input tag-link-new" />
-			{% endif %}
-			{% object_tags post %}
-			{% for tag in post.postdata.hashtags %}
-			<a class="hashtag-link {{tag.klass}}" data-alternate-link="{{tag.link}}" href="?tag_match={{tag.title|urlencode}}" rel="{{tag.rel}}">{{tag.title}}</a>
-			{% endfor %}
+		<li>
+			<ol class="tags-on-post">
+				<li>
+				{% if request.user.is_authenticated %}
+					<a data-tag-target-object="{{post.pk}}" title="{% trans "Add tag" %}" href="{% url board_tag_attach %}" class="interaction tag-link-new ui-icon ui-icon-tag">tag?</a>
+					<input class="ui-autocomplete-input tag-link-new" />
+				{% endif %}
+				</li>
+					<li>{% object_tags post %}</li>
+				{% for tag in post.postdata.hashtags %}
+				<li><a class="hashtag-link {{tag.klass}}" data-alternate-link="{{tag.link}}" href="?tag_match={{tag.title|urlencode}}" rel="{{tag.rel}}">{{tag.title}}</a></li>
+				{% endfor %}
+			</ol>
 		</li>
 	
 		{# The following will be right-floated, so reverse order is required #}
