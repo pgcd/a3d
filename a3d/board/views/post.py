@@ -21,7 +21,7 @@ from board.utils import EndlessPage, tripcode
 from board.forms import PostDataForm, PostDataEditForm
 from board import signals as board_signals
 from django.utils import simplejson
-import sys
+#import sys
 from django.db.models.signals import pre_save
 import re
 from django.contrib.auth.models import User
@@ -122,25 +122,32 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
             _d,
             context_instance = context_instance)
 
+def _set_extra_attributes(request, post_obj):
+    #TODO: Check if there's a better way to do this
+    #TODO: Move this to a different module
+    setattr(post_obj, 'tag_set', post_obj.tags.all())
+    setattr(post_obj, 'can_be_rated', post_obj._can_be_rated(request))
+    setattr(post_obj, 'is_starred', has_faved(request.user, post_obj) if request.user.is_authenticated() else False)
+    if post_obj.user_id > 0:
+        post_obj.userprofile = UserProfile.objects.get(user = post_obj.user_id)
+    return post_obj;
 
-def view(request, post_id, template_name = 'board/single_post_view.html',
+def view(request, post_id, template_name = 'board/post_view.html',
                 info_only = False, extra_context = None):
     """
     ``template_name`` keyword argument or
-    :template:`board/single_post_view.html`.
+    :template:`board/post_view.html`.
     
     """
     if info_only:
         template_name = 'board/post_info.html'
+    if request.GET.get('is_reply'):
+        template_name = 'board/post_body.html'
     user = request.user
     post_obj = get_object_or_404(Post.objects.public(user).select_related('postdata'), pk = post_id).with_interactions(request)
-    #TODO: Check if there's a better way to do this
-    setattr(post_obj, 'tag_set', post_obj.tags.all())
-    setattr(post_obj, 'can_be_rated', post_obj._can_be_rated(request))
-    setattr(post_obj, 'is_starred', has_faved(request.user, post_obj) if request.user.is_authenticated() else False)
+
+    post_obj = _set_extra_attributes(request, post_obj)    
     setattr(post_obj, 'is_main_post', not info_only) #TODO: a more elaborate logic to ascertain if it actually is the main post or not
-    if post_obj.user_id > 0:
-        post_obj.userprofile = UserProfile.objects.get(user = post_obj.user_id)
     if extra_context is None:
         extra_context = {}
     context = RequestContext(request, extra_context)
@@ -223,7 +230,7 @@ def rate(request, post_id, action):
         elif request.GET.get('as_reply') == 'true':
             template_name = 'board/post_body.html'
         else:
-            template_name = 'board/single_post_view.html'
+            template_name = 'board/post_view.html'
         return render_to_response(template_name, {'post':post}, context_instance = context_instance)
     else:
         return HttpResponseRedirect(next_page) #TODO: Remove hardcode
@@ -269,8 +276,12 @@ def edit(request, post_id):
             p.body_markup = form.cleaned_data['body_markup']
             p._title = form.cleaned_data['title']
             p.save()
-            template_name = 'board/post_body.html' if request.GET.get('is_reply') else 'board/single_post_view.html'
-            return render_to_response(template_name, {'post':p}, context_instance = context_instance)
+            p = _set_extra_attributes(request, p)
+            template_name = 'board/post_body.html' if request.GET.get('is_reply') else 'board/post_view.html'
+            return render_to_response(template_name,
+                                      {'post':p.post_ptr, #Note: this is so that the template can retrieve all the replies; might be changed later. 
+                                       'extend': p.extended_attributes},
+                                      context_instance = context_instance)
         else:
             p = PostData(body = "DID NOT WORK", title = "DID NOT WORK")
 
@@ -335,13 +346,24 @@ def create(request, is_editing = False):
                     pass
             board_signals.postdata_created.send(sender = p.__class__, request = request, instance = p)
         if request.is_ajax():
+            #===================================================================
+            # We need to be able to return: 
+            # - post_view if it's a new topic
+            # - post_body if it's a reply 
+            #===================================================================
             view, args, kwargs = urlresolvers.resolve(next_page)
+            is_reply = request.POST.get('is_reply', '')
+            if is_reply:
+                kwargs['post_id'] = p.pk #We change the post id to return if it's a reply
             new_req = HttpRequest()
             new_req.META['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
             new_req.user = request.user
             new_req.GET = request.GET.copy()
-            new_req.GET.update({'start': request.POST.get('next_item', ''), 'skip_text':True, 'down':True, 'up': True})
-#            print "In %s \nCalling view \"%s\" with parameters %s"%(__name__, view.__name__, new_req.GET)
+            new_req.GET.update({'start': request.POST.get('next_item', ''),
+                                'skip_text':True,
+                                'is_reply':is_reply,
+                                'down':True,
+                                'up': True})
             return view(new_req, *args, **kwargs)
         else:
             return HttpResponseRedirect(next_page) #TODO: Remove hardcode

@@ -21,6 +21,7 @@ from django.utils import simplejson
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 import sys
+import re
 
 register = template.import_library("board.decorators")
 
@@ -310,3 +311,13 @@ def is_direct(title, user):
 @register.filter
 def clean_mention(title, user):
     return title.replace('@[%s]' % user.username.lower(), '')
+
+@register.filter
+def replies_for_path(path):
+    '''
+    Add /replies to path if required. Not really useful, anyway.
+    '''
+    path = path.split('?')
+    if not path[0].endswith('replies'):
+        path[0] += '/replies'
+    return '?'.join(path)

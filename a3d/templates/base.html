@@ -36,10 +36,13 @@
 				
 				  {%if object_list %}
 				  {% with object_list|first as firstobj %}
-            <br />
-            <a title="{% trans 'Up to '%} {{firstobj.last_reply|default:firstobj.pk}}" href="{% url board_userprofile_all_read firstobj.last_reply|default:firstobj.pk %}?next={{request.path}}" rel="nofollow needs-full-refresh">{% trans "Mark all read" %}</a>
+	            <br />
+	            <a title="{% trans 'Up to '%} {{firstobj.last_reply|default:firstobj.pk}}" href="{% url board_userprofile_all_read firstobj.last_reply|default:firstobj.pk %}?next={{request.path}}" rel="nofollow needs-full-refresh">{% trans "Mark all read" %}</a>
 				  {% endwith %}
 				  {% endif %}
+
+				<br />
+				<input type="checkbox" id="stop-updates" checked="checked"/><label for="stop-updates">Stop updates</label>
 				
 				{% else %} 
 				 {% login_form %}
@@ -83,6 +86,7 @@
 	<script type="text/javascript" src="{{media_url}}js/alm.js"></script>	
 	<script type="text/javascript">
 			var a3d = (function(){
+				stop_updates = true; // TODO: Move this to settings
 				personal_settings = {{ personal_settings|jsonify|safe }};
 				alm_available_macros = {{ alm_available_macros|jsonify|safe }};
 				selected = {};
