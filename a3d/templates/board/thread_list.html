@@ -22,23 +22,21 @@
 	{% prefetch post_interactions for object_list %}
 	{% inject_faves_to object_list by request.user of type star as is_starred %}
 	{% if more_down %}
-	<a href="?start=-{{more_down}}" class="endless-paginator" rel="next">{{how_many_more}} fresher</a>
+	<a href="?start=-{{more_down}}" class="endless-paginator" rel="next" data-attach-method="prepend">{{how_many_more}} fresher</a>
 	{% endif %}
 	{%if object_list|length %}
 	{% with object_list|first as f %}
-	<ol id="threads" class="new-content" data-attach-method="prepend" data-source-href="?start=-{{f.reverse_timestamp|add:'-1'}}" data-next-item="{{f.reverse_timestamp|add:'-1'}}">
+	<ol id="threads" class="new-content threads-list" data-source-href="?start=-{{f.reverse_timestamp|add:'-1'}}" data-next-item="{{f.reverse_timestamp|add:'-1'}}">
 	{% endwith %}
 	{% else %}
-	<ol id="threads" class="new-content" data-attach-method="prepend" data-source-href="?start=-0">
+	<ol id="threads" class="new-content threads-list" data-source-href="?start=-0">
 	{%endif%}		
 		{% for post in object_list  %}
-			<li id="post-id-{{post.pk}}-container">
 				{% include "board/thread_body.html" %}
-			</li>
 		{% endfor %} 
 	</ol> 
 	{% if more_up %}
-	<a href="?start={{more_up}}" class="endless-paginator" rel="prev">older</a>
+	<a href="?start={{more_up}}" class="endless-paginator" data-attach-method="append" rel="prev">older</a>
 	{% endif %}		
 
 {% if not request.is_ajax %}

@@ -17,7 +17,7 @@
     <article class="post parent-post" id="post-id-{{post.pk}}">
 	    {% block post_body %}
 	        <header><h1 class="post-title">{{ post.title }}</h1></header>
-	        {% post_info post "link_parent" %}
+	        {% include "board/post_info.html" %}
 	        <div class="post-text">{{ post.postdata.body|safe }}</div>
 	        <div class="signature">{{ post.postdata.signature|safe }}</div>
 	    {% endblock %}

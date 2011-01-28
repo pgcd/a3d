@@ -183,11 +183,11 @@ def post_form(context, obj = None):
 
 
 @register.inclusion_tag("board/post_info.html", takes_context = True)
-def post_info(context, p, link_parent = False):
+def post_info(context, p, *args, **kwargs):
     '''
     
     '''
-    return {'post':p, 'link_parent':link_parent, 'request':context['request'], 'personal_settings':context['personal_settings'], }
+    return {'post':p, 'link_parent':kwargs.get('link_parent', False), 'request':context['request'], 'personal_settings':context['personal_settings'], }
 
 @register.inclusion_tag('board/mention_list.html', takes_context = True)
 def list_mentions_for(context, user):

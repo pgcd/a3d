@@ -1,6 +1,15 @@
-{% load board_tags i18n %}
+{% load board_tags i18n dumper %}
 <div id="post-form" class="post-form-container">
-<form action="{% url board_post_create %}" method="POST" class="append-to-target quick-submit markitup" data-attach-element="new-content">{% csrf_token %}
+<form action="{% url board_post_create %}" method="POST"
+	{% if form.is_reply %}
+	data-attach-element=".replies-list.new-content"
+	data-attach-method="append"
+	{% else %}
+	data-attach-method="prepend"
+	data-attach-element=".threads-list.new-content"
+	{% endif %}
+	class="append-to-target quick-submit markitup">	
+	{% csrf_token %}
 	{% if hide_auth %}
 	 <a title="{% trans "click to post with a different username" %}" href="{{request.path|updateurl:"auth=show"}}" class="auth-hidden">{% trans "logged in as " %}<b>{{request.user.username}}</b></a>
 	{% endif %}

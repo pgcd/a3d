@@ -300,7 +300,7 @@ ol#threads {
 }
 
 ol#threads > li, ol.replies-list > li {
-	margin-bottom: 1em;
+	margin-bottom: 0.5em;
 	clear: both;
 }
 
@@ -347,7 +347,7 @@ article.post {
     border-top: 1px #CCCCCC solid;
     color: #999;
     padding: 0.5em;
-    font-size: 80%;
+	font-size: 80%;
     margin-top: 1em;
 }
 
@@ -420,6 +420,10 @@ a.endless-paginator:hover {
     background-color: #111;
 }
 
+.editing a.endless-paginator {
+	display: none;
+}
+
 .reply ul.user-info {
   background-color: #000000;
   color: #999999;
@@ -488,7 +492,8 @@ a.endless-paginator:hover {
     color: #CC0000;
     background-color: #000000;
     font-weight: bold;
-    margin: 0
+    margin: 0;
+	font-size: 1.5em;
 }
 
 .popularity-high {

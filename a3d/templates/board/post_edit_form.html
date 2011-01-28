@@ -1,13 +1,16 @@
-<div id="edit-post-form-{{post_id}}" class="post-form-container post-form-editor" data-replace-element="post-id-{{post_id}}">
-<form action="{% url board_post_edit post_id %}" method="POST" class="quick-submit markitup replace-target">{% csrf_token %}
+<form id="edit-post-form-{{post_id}}"
+	action="{% url board_post_edit post_id %}"
+	method="POST" 
+	class="quick-submit markitup replace-target" 
+	data-replace-element="#post-id-{{post_id}}">
+{% csrf_token %}
 	<ul style="margin: 0 auto;" class="replace-with-content">
 		<li>{{ form.title.label_tag }}{{ form.title }}</li>
 		<li>{{ form.body_markup.label_tag }}{{ form.body_markup }}</li>
 	</ul>
 	<input type="hidden" name="next_page" value="{{ request.path }}" />
+	<input type="hidden" name="is_reply" value="{{ is_reply }}" />
 	<input type="submit" value="Submit" />
 	<div id="preview-anchor-right"></div>
 	<div id="preview-anchor-bottom"></div>
 </form>
-</div>
-<div class="clear"></div>

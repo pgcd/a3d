@@ -1,10 +1,13 @@
 {% load board_tags %}
 {# TODO: I don't like this layout at all, let's find something nicer #}
+<li id="post-id-{{post.pk}}-container">
 	<article id="post-id-{{post.pk}}" class="post reply{% if post.rating < personal_settings.min_rating_for_display %} hidden-by-rating{% endif %} {% class_tags post %} rating{{post.rating|font_by_rating}} {% if not post.postdata.body %}no-text{%endif%}">
 		<header><h1 class="post-title">
 			<a class="post-link" href="{% url board_post_view post.pk %}">{{ post.title_as_reply }}</a>
 		</h1></header>
-		{% post_info post %}
+		{% with 1 as is_reply %}
+		{% include "board/post_info.html" %}
+		{% endwith %}
 		{% if post.postdata.body %}
 		<div class="post-text">
 			{{ post.postdata.body|safe }}
@@ -16,3 +19,4 @@
 		{% endif %}
 		{% endif %}
 	</article>
+</li>

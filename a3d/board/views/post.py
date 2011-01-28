@@ -260,7 +260,10 @@ def edit(request, post_id):
                    'object_id':data.object_id,
                    }
         form = PostDataEditForm(initial = initial, prefix = "edit")
-        return render_to_response('board/post_edit_form.html', {'form':form, 'post_id':post_id, }, RequestContext(request))
+        return render_to_response('board/post_edit_form.html', {'form':form,
+                                                                'post_id':post_id,
+                                                                'is_reply':request.GET.get('is_reply', False),
+                                                                }, RequestContext(request))
     else:
         #POST, so we need to save the stuff
         #TODO: Somehow we should require auth and use the password.
@@ -275,8 +278,8 @@ def edit(request, post_id):
             p.body_markup = form.cleaned_data['body_markup']
             p._title = form.cleaned_data['title']
             p.save()
-            p = _set_extra_attributes(request, p)
-            template_name = 'board/post_body.html' if request.GET.get('is_reply') else 'board/post_view.html'
+            p = _set_extra_attributes(request, p) #FIXME: can_be_edited doesn't seem to get passed 
+            template_name = 'board/post_body.html' if request.REQUEST.get('is_reply') else 'board/post_view.html'
             return render_to_response(template_name,
                                       {'post':p.post_ptr, #Note: this is so that the template can retrieve all the replies; might be changed later. 
                                        'extend': p.extended_attributes},

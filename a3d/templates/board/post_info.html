@@ -6,6 +6,7 @@
 			[<i>wiki</i>]
 			{% endif %}
 		</li>
+		
 		{% if post.replies_count %}
 		<li>
 			[{% if post.is_main_post %}<a href="#replies-{{post.pk}}" title="{% trans 'Jump to first reply' %}">&darr;</a> {%endif%}
@@ -56,7 +57,7 @@
 			{% endif %}
 		{% endif %}
 		<li class="navigation up-down">
-			{% if link_parent %}
+			{% if not is_reply %}
 				{% if post.object_id > 0 %}
 					<a href="{{ post.parent_url }}?start={{post.pk}}" class="parent-link post-link" rel="up">[&uArr;]</a>
 				{% endif %}
@@ -78,7 +79,7 @@
 		{% if post.can_be_edited %}
 		<li class="navigation">
 			<span class="ui-corner-all interaction on-request">
-				<a href="{% url board_post_edit post.pk %}?next_page={{request.path}}" class="post-edit-link" rel="nofollow" title="{% trans "edit" %}">&equiv;</a>
+				<a href="{% url board_post_edit post.pk %}?next_page={{request.path}}&is_reply={{is_reply}}" class="post-edit-link" rel="nofollow" title="{% trans "edit" %}">&equiv;</a>
 			</span>
 		</li>
 		<li class="navigation mark-read-unread">

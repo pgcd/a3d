@@ -19,9 +19,9 @@ class PostDataForm(forms.ModelForm):
         self.target_object = target_object
         self.request = request
         if self.target_object is None:
-            self.attach_to_target = "prepend"
+            self.is_reply = False
         else: 
-            self.attach_to_target = "append"
+            self.is_reply = True
 
         if initial is None:
             initial = {}

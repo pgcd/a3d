@@ -143,7 +143,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
     
     //The form type used to post new items.
     $('form.append-to-target').submit(function(){
-        var $form = $(this), $target = $('#' + $form.attr("data-attach-element")), postData = $form.serializeArray();
+        var $form = $(this), $target = $($form.attr("data-attach-element")), postData = $form.serializeArray();
         postData.push({
             name: 'is_reply',
             value: $('.parent-post').length > 0
@@ -169,7 +169,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
                         }
                     }
                     else {
-                        $target[$target.attr('data-attach-method')](data).remove();
+                        $target[$form.attr('data-attach-method')](data);
                         // reset all fields
                         $form[0].reset();
                         $form.siblings('.previewtext').empty().hide();
@@ -330,7 +330,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
                 }
             });
 			var $target = $('.new-content'); // Might be useful to further specify?
-            $target[$target.attr('data-attach-method')]($items);
+            $target[$(that).attr('data-attach-method')]($items);
             $('#post-form').find('input[name=next_item]').val($('#new-content').attr('data-next-item'));
 			// Replace the current paginators.
 			$(that).replaceWith($('<p/>').html(data).find('a.endless-paginator[rel='+that.rel+']'));
@@ -549,19 +549,26 @@ jQuery(document).ready(function($){ // Makes me feel safer
         // Retrieve the form and use it to replace the relevant bits
         $('a.edit-revert').click(); //this is supposed to revert everything, right?
         var $this = $(this);
-        $this.data('revert', $this.closest('.post').clone(true)).addClass('edit-revert').attr('title', 'cancel').html('&ne;') //TODO: Cleaner solution required
-.click(function(ev){
-            $this.closest('.post-form-container').replaceWith($this.data('revert'));
-            $this.attr('title', 'edit').html('&equiv;').parent().addClass('on-request');
-            return false;
-        }).parent().removeClass('on-request');
+        $this.data('revert', $this.closest('.post').clone(true))
+			.addClass('edit-revert')
+			.attr('title', 'cancel')
+			.html('&ne;') //TODO: Cleaner solution required
+			.click(function(ev){
+	            $this.closest('form').replaceWith($this.data('revert'));
+	            $this.attr('title', 'edit').html('&equiv;').parent().addClass('on-request');
+	            return false;
+	        }).parent().removeClass('on-request');
         $.get(this.href, function(data, req){
             /*
              * This function sets up the form for the in-place editing.
              */
-            var $form = $(data), post_div = $('#' + $form.attr('data-replace-element')), //FIXME: No support for nested articles right now!
- title_input_original = $form.find('#id_edit-title'), title_input = title_input_original.clone(), body_markup_input_original = $form.find('#id_edit-body_markup'), body_markup_input = body_markup_input_original.clone();
-            post_div.children('header').find('.post-title').replaceWith(title_input); //TODO: Should we allow users to add a title when editing?
+            var $form = $(data),
+				post_div = $($form.attr('data-replace-element')),
+				title_input_original = $form.find('#id_edit-title'), 
+				title_input = title_input_original.clone(), 
+				body_markup_input_original = $form.find('#id_edit-body_markup'), 
+				body_markup_input = body_markup_input_original.clone();
+			post_div.children('header').find('.post-title').replaceWith(title_input); //TODO: Should we allow users to add a title when editing?
             if (post_div.children('.post-text').length) {
                 post_div.children('.post-text').replaceWith(body_markup_input);
             }
@@ -579,15 +586,17 @@ jQuery(document).ready(function($){ // Makes me feel safer
     
     $('form.replace-target').live('submit', function(ev){
         var url = this.action, $this = $(this);
-        if ($('#' + $this.parent().attr('data-replace-element')).hasClass('reply')) {
-            url += url.indexOf('?') >= 0 ? '&' : '?';
-            url += 'is_reply=true';
-        }
         $.ajax({
             url: url,
             data: $this.serializeArray(),
             success: function(data, req){
-                $this.parent().replaceWith(data);
+				var $target = $('#'+$(data).attr('id'));
+				if($target.find('form.replace-target').length > 0) {
+					$target.replaceWith(data); //Replies					
+				} else {
+					$this.replaceWith(data); //Main posts
+				}
+				
             },
             context: $this,
             type: 'POST'
