@@ -113,7 +113,6 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
 
     _d = EndlessPage(queryset.select_related('user', 'postdata'), paginate_by, filter_field = 'reverse_timestamp').page(context_instance)
     _d.update({'next_item':'-%s' % ((_d['first_item'] or 0xFFFFFFFF) - 1), 'next_item_direction':'up', 'tag':tag})
-
     if tag:
         board_signals.tag_read.send(Tag, tag_id = tag.pk, last_item = _d["last_item"], user = request.user)
     else:

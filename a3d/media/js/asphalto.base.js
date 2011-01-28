@@ -329,8 +329,12 @@ jQuery(document).ready(function($){ // Makes me feel safer
                     }
                 }
             });
-            $(that).parent().before($items).remove();
+			var $target = $('.new-content'); // Might be useful to further specify?
+            $target[$target.attr('data-attach-method')]($items);
             $('#post-form').find('input[name=next_item]').val($('#new-content').attr('data-next-item'));
+			// Replace the current paginators.
+			$(that).replaceWith($('<p/>').html(data).find('a.endless-paginator[rel='+that.rel+']'));
+			
             a3d.toggleNonMatchingPosts(); //Update the filtered posts
         });
         return false;
