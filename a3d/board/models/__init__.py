@@ -41,16 +41,11 @@ def post_read_handler(sender, user = None, obj_id = None, last_item = None, **kw
     i = Interaction.objects.prepare(sender, user, 'read', object_id = obj_id)
     if not bool(i):
         return False
-    try:
-        last_item_id, last_item_count = last_item.split(';')
-    except ValueError: #Very uncertain about these.
-        last_item_id, last_item_count = ['0', '0']
-    try:
-        previous_id, _ = i.value.split(';')
-    except ValueError: #Unable to unpack
-        previous_id, _ = ['0', '0']
-    if not previous_id.isdigit() or previous_id < last_item_id:
-        i.value = "%s;%s" % (last_item_id, int(last_item_count))
+    last_item = last_item.split(';')
+    previous_item = i.value.split(';')
+    if not previous_item[0].isdigit() or int(previous_item[0]) < int(last_item[0]):
+        read_count = max(int(last_item[1] if len(last_item) > 1 else 0), int(previous_item[1] if len(previous_item) > 1 else 0))
+        i.value = "%s;%s" % (last_item[0], read_count)
         i.save()
         return True
     return False

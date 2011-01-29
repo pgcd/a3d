@@ -27,6 +27,7 @@ import re
 from django.contrib.auth.models import User
 from faves.templatetags.faves import has_faved
 from django.contrib.contenttypes.models import ContentType
+import sys
 
 
 #from django.contrib.contenttypes.models import ContentType
@@ -176,7 +177,6 @@ def list_replies(request, post_id, context_instance = None, template_name = 'boa
            })
     context_instance.update(_d)
     last_item = "%s;%s" % (_d['last_item'] or post_id, post.replies_count - _d['items_left'])
-#        last_item = ";".join([str(_d['last_item'] or obj.pk), str(obj.replies_count)])
     board_signals.post_read.send(sender = Post, obj_id = post_id, last_item = last_item, user = request.user)
     return render_to_response(template_name,
             _d,
