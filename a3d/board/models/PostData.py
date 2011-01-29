@@ -92,6 +92,7 @@ class Post(Auditable, ExtendedAttributesManager):
     last_poster = models.ForeignKey(User, blank = True, null = True)
     last_poster_name = models.CharField(max_length = 30, blank = True, default = '') #denormalization
     reverse_timestamp = models.PositiveIntegerField(db_index = True)
+    timeshift = models.IntegerField(default=0) #Mostly used for bookkeeping, but might be useful later
     _title = models.CharField(max_length = 255, blank = True)
     read_only = models.BooleanField()
     no_replies = models.BooleanField()

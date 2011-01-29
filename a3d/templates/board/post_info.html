@@ -68,13 +68,20 @@
 		<li class="navigation follow"><a class="follow-post interaction on-request" href="?tag_match=%23{{post.pk}}" rel="subsection" data-followed-post="{{post.pk}}">segui</a></li>		
 		{% if post.can_be_rated %}
 		<li class="navigation">
-			<span class="rate-actions ui-corner-all interaction on-request">[
-				<a href="{% url board_post_rate post.pk 'down' %}?next_page={{request.path}}" rel="nofollow">-</a>
+			<span class="rate-actions ui-corner-all interaction on-request">
+				[<a href="{% url board_post_rate post.pk 'down' %}?next_page={{request.path}}" rel="nofollow">-</a>
 				<span title="rating">{{post.rating}}</span>
-				<a href="{% url board_post_rate post.pk 'up' %}?next_page={{request.path}}" rel="nofollow">+</a>
+				<a href="{% url board_post_rate post.pk 'up' %}?next_page={{request.path}}" rel="nofollow">+</a>]
+			</span>
+		</li>
+		{% else %}
+		<li class="navigation">
+			<span class="rate-actions ui-corner-all interaction on-request">[
+				<span title="rating">{{post.rating}}</span>
 				]
 			</span>
 		</li>
+		
 		{% endif %}
 		{% if post.can_be_edited %}
 		<li class="navigation">
@@ -82,12 +89,16 @@
 				<a href="{% url board_post_edit post.pk %}?next_page={{request.path}}&is_reply={{is_reply}}" class="post-edit-link" rel="nofollow" title="{% trans "edit" %}">&equiv;</a>
 			</span>
 		</li>
+		{% endif %}
+		{% if request.user.is_authenticated and post.replies_count > 0 %}				
 		<li class="navigation mark-read-unread">
 			<span class="ui-corner-all interaction on-request">
+				{% if post.unread_replies > 0 %}
 				<a href="{% url board_post_mark_as_read post.pk%}" class="mark-read" rel="bookmark" title="Mark as read">&radic;</a>
+				{% else %}
 				<a href="{% url board_post_mark_as_unread post.pk%}" class="mark-unread" rel="bookmark" title="Mark as unread">&empty;</a>
+				{% endif %}
 			</span>
 		</li>
-		
 		{% endif %}
 	</ul>

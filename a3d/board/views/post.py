@@ -10,7 +10,7 @@ Created on 31/mar/2010
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpResponse, HttpRequest, \
-    HttpResponseNotModified, HttpResponseServerError
+    HttpResponseNotModified, HttpResponseServerError, HttpResponseForbidden
 from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.csrf import csrf_protect
 from django.core import urlresolvers
@@ -197,7 +197,6 @@ def list_by_user(request, username, **kwargs): #TODO: Ehm.
 
 
 @login_required(redirect_field_name = 'next_page')
-@user_passes_test(lambda u: u.has_perm('board.timeshift_post') or u.has_perm('board.rate_post'))
 @require_GET
 def rate(request, post_id, action):
     #first we require some kind of check
@@ -211,31 +210,35 @@ def rate(request, post_id, action):
             signal_action = 'rate'
             post.rating = post.rating + {'down':-1, 'up':+1}[action]
         timeshift = {'down':1000, 'up':-1000}[action] #TODO: Figure out some realistic value/algorithm
+        parent_timeshift = timeshift / max(5, post.replies_count/5) #TODO: As above
         if post.object_id: #This post has a parent, so any timeshift should be applied to the parent as well. 
             parent = post.in_reply_to
-            parent.reverse_timestamp = parent.reverse_timestamp + timeshift
+            parent.reverse_timestamp = parent.reverse_timestamp + parent_timeshift
+            parent.timeshift = parent.timeshift + parent_timeshift 
             if board_signals.interaction_event.send(Post, request = request, user = request.user, object_id = parent.pk, value = action, interaction_type = 'timeshift'):
                 parent.save(no_update = True) 
         post.reverse_timestamp = post.reverse_timestamp + timeshift
+        post.timeshift = post.timeshift + timeshift 
         if board_signals.interaction_event.send(Post, request = request, user = request.user, object_id = post.pk, value = action, interaction_type = signal_action):
             post.save(no_update = True)
         
-    setattr(post, 'tag_set', post.tags.all())
-    if request.is_ajax():
-        #======================================================================= 
-        # view, args, kwargs = urlresolvers.resolve(next_page) #@UnusedVariable
-        # if view.__name__.find('list') > -1:
-        #    template_name = 'board/thread_body.html'
-        # elif request.GET.get('as_reply') == 'true':
-        #    template_name = 'board/post_body.html'
-        # else:
-        #    template_name = 'board/post_view.html'
-        # return render_to_response(template_name, {'post':post}, context_instance = context_instance)
-        #=======================================================================
-        return view(request, post_id, info_only=True)
-    else:
-        return HttpResponseRedirect(next_page) #TODO: Remove hardcode
-
+        setattr(post, 'tag_set', post.tags.all())
+        if request.is_ajax():
+            #======================================================================= 
+            # view, args, kwargs = urlresolvers.resolve(next_page) #@UnusedVariable
+            # if view.__name__.find('list') > -1:
+            #    template_name = 'board/thread_body.html'
+            # elif request.GET.get('as_reply') == 'true':
+            #    template_name = 'board/post_body.html'
+            # else:
+            #    template_name = 'board/post_view.html'
+            # return render_to_response(template_name, {'post':post}, context_instance = context_instance)
+            #=======================================================================
+            return view(request, post_id, info_only=True)
+        else:
+            return HttpResponseRedirect(next_page) #TODO: Remove hardcode
+    else: #No auth
+        return HttpResponseForbidden()
 
 
 @csrf_protect

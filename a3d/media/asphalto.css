@@ -263,12 +263,10 @@ div.scroll-button-down {
 }
 
 .clear {
-	float:left;
 	clear:both;
 }
 
 .clear-li {
-	float:left;
 	clear:both;
 	height:0px;	
 }

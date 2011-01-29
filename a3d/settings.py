@@ -140,7 +140,6 @@ DEBUG_TOOLBAR_CONFIG = {
 }
 
 #BOARD SPECIFIC SETTINGS
-#TODO: Move to own file
 A3D_BASE_SETTINGS = {
     'min_rating_for_home':5,
     'min_rating_for_summary':6,

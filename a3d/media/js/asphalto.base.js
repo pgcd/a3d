@@ -133,7 +133,10 @@ jQuery(document).ready(function($){ // Makes me feel safer
         complete: function(req, code){
             $('body').removeClass('ajaxInProgress');
             return arguments;
-        }
+        },
+//		error: function(XMLHttpRequest, textStatus, errorThrown) {
+//			
+//		},
     });
     
     $('a.auth-hidden').live('click', function(ev){
@@ -496,10 +499,11 @@ jQuery(document).ready(function($){ // Makes me feel safer
     });
     
     $('article.post>ul.post-info span.rate-actions a').live('click', function(ev){
-        var $this = $(this);
+        var $this = $(this); 
 		var $target = $this.closest('article.post');
 		var href = $this.attr('href').replace(/([\?&]next_page=)[^&]+/, '$1' + location.pathname);
         $.get(href + '&as_reply=' + $target.hasClass('reply'), function(data, request){
+			//TODO: Deal with 403 Forbidden!
             $target.children('.post-info')
 				.replaceWith(data)
 				.mouseenter(); //Nice way of dealing with navigation issues.
@@ -633,7 +637,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
                     return 1;
                 }
                 else 
-                    if ($('#fave-list ul li').length > 0) {
+                    if ($('#fave-list ul li a.fresh-content').length > 0) {
                         return 2;
                     }
             return $('#tags-list').index('#menu div');
