@@ -73,7 +73,7 @@
 		<div id="content">
 		{% block content %}{% endblock %}
 		</div>
-		<footer id="main-footer" class="text-center"><a href="/admin">admin</a>
+		<footer id="main-footer" class="text-center"><a href="/admin">admin</a><br />{{request.META.REMOTE_ADDR}}
 		<div id="online-users" class="text-center">Online: {% list_online_users "5" %}</div>
 			<!-- STATS: Total: %(totTime).4f Python: %(pyTime).4f DB: %(dbTime).4f Queries: %(queries)d -->
 		</footer>

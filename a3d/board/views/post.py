@@ -202,7 +202,6 @@ def list_by_user(request, username, **kwargs): #TODO: Ehm.
 def rate(request, post_id, action):
     #first we require some kind of check
     next_page = request.GET.get('next_page')
-    context_instance = RequestContext(request, {})
     post = get_object_or_404(Post.objects.select_related(), pk = post_id).with_interactions(request)
    
     if post._can_be_rated(request) and request.user.has_perm('board.timeshift_post'):
@@ -223,14 +222,17 @@ def rate(request, post_id, action):
         
     setattr(post, 'tag_set', post.tags.all())
     if request.is_ajax():
-        view, args, kwargs = urlresolvers.resolve(next_page) #@UnusedVariable
-        if view.__name__.find('list') > -1:
-            template_name = 'board/thread_body.html'
-        elif request.GET.get('as_reply') == 'true':
-            template_name = 'board/post_body.html'
-        else:
-            template_name = 'board/post_view.html'
-        return render_to_response(template_name, {'post':post}, context_instance = context_instance)
+        #======================================================================= 
+        # view, args, kwargs = urlresolvers.resolve(next_page) #@UnusedVariable
+        # if view.__name__.find('list') > -1:
+        #    template_name = 'board/thread_body.html'
+        # elif request.GET.get('as_reply') == 'true':
+        #    template_name = 'board/post_body.html'
+        # else:
+        #    template_name = 'board/post_view.html'
+        # return render_to_response(template_name, {'post':post}, context_instance = context_instance)
+        #=======================================================================
+        return view(request, post_id, info_only=True)
     else:
         return HttpResponseRedirect(next_page) #TODO: Remove hardcode
 

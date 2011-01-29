@@ -7,7 +7,7 @@
 	class="popularity-{% if forloop.counter <= 7 %}high{% else %}{% if forloop.counter <= 14 %}medium{% else %}{% if forloop.counter <= 21 %}low{% else %}very-low{% endif %}{% endif %}{% endif %}">
 		.{{ p.title }}
 		</a>
-		<time datetime="{{p.last_attach|date:"r"}}">{{p.last_attach|naturalday:"d/m/y"}} {{p.last_attach|date:"H:i:s"}}</time>
+		<time datetime="{{p.last_attach|date:"r"}}">{{p.last_attach|sensibletime:"d/m/y"}}</time>
 	</li>
 {% endfor %}	
 </ul>

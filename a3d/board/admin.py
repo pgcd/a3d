@@ -28,7 +28,7 @@ class UserProfileInline(admin.StackedInline):
     model = UserProfile
 
 class UserAdmin(admin.ModelAdmin):
-    inlines = [UserProfileInline, ExtendedValueInline, FaveInline, MentionInline]
+    inlines = [UserProfileInline, ExtendedValueInline, FaveInline,]
     list_display = ('username', 'email',)
     search_fields = ['username', 'email', ]
 
@@ -56,6 +56,7 @@ admin.site.register(Template)
 admin.site.register(UserProfile)
 admin.site.register(Tag, TagAdmin)
 admin.site.register(InteractionType)
+admin.site.register(Interaction)
 admin.site.register(ExtendedAttribute)
 admin.site.register(ExtendedAttributeValue)
     

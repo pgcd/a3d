@@ -22,6 +22,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 import sys
 import re
+from django.template import defaultfilters
+from django.contrib.humanize.templatetags import humanize
+from django.utils.translation import ugettext
 
 register = template.import_library("board.decorators")
 
@@ -191,7 +194,9 @@ def post_info(context, p, *args, **kwargs):
 
 @register.inclusion_tag('board/mention_list.html', takes_context = True)
 def list_mentions_for(context, user):
-    mentions = user.mentions.public(user).order_by('-id')[:10] # TODO: remove hardcoding
+    # TODO: remove hardcoded limit
+    # TODO: Check if ordering by mention_id makes any sense 
+    mentions = user.mentions.public(user).order_by('-mention__id')[:10]
     return {'mentions':mentions, 'request':context['request']}
 
 
@@ -321,3 +326,22 @@ def replies_for_path(path):
     if not path[0].endswith('replies'):
         path[0] += '/replies'
     return '?'.join(path)
+
+@register.filter
+def sensibletime(value, arg=None):
+    """
+    If it's today, show the time, otherwise show the date. Might be improved later on.
+    """
+    try: 
+        p_value = datetime.date(value.year, value.month, value.day)
+    except AttributeError:
+        # Passed value wasn't a date object
+        return value
+    except ValueError:
+        # Date arguments out of range
+        return value
+    
+    delta = p_value - datetime.date.today()
+    if delta.days == 0:
+        return value.strftime('%H:%M:%S') #TODO: Remove hardcoding
+    return humanize.naturalday(value, arg)

@@ -12,7 +12,7 @@ def mentions_list(request, limit = 10, offset = 0):
     u = request.user
     after = request.GET.get('after', 0)
     if u.is_authenticated():
-        mentions = list(u.mentions.public(u).filter(pk__gt = after).order_by('-id')[:limit])
+        mentions = list(u.mentions.public(u).filter(pk__gt = after).order_by('-id')[:limit]) #TODO: Check if we actually need this to be ordered by post_id
     else:
         mentions = []
     if len(mentions) == 0:

@@ -136,6 +136,7 @@ DEBUG_TOOLBAR_PANELS = (
 )
 DEBUG_TOOLBAR_CONFIG = {
      'INTERCEPT_REDIRECTS': False,
+     'SHOW_TOOLBAR_CALLBACK': lambda req: DEBUG and req.session.get('_auth_user_id',0) == 77 #FIXME: Horrible hack!
 }
 
 #BOARD SPECIFIC SETTINGS

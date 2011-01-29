@@ -218,7 +218,13 @@ jQuery(document).ready(function($){ // Makes me feel safer
             };
             // Now we POST the new association to the view
             $.post(target_url, data, function(responseText, textStatus, XMLHttpRequest){
-                $('#post-id-' + target_post_id + ' .tags-on-post').find('.tag-link:not(.hashtag-link)').remove().end().prepend(responseText).find('input.tag-link-new').hide('fast');
+                $('#post-id-' + target_post_id + '>.post-info .tags-on-post') //Sensible pattern, isn't it? This way only the relevant post is updated even when nested 
+					.find('.tag-link:not(.hashtag-link)')
+					.remove()
+					.end()
+					.prepend(responseText)
+					.find('input.tag-link-new')
+					.hide('fast');
             });
         };
         $that.siblings('input').show().focus().autocomplete({
@@ -276,7 +282,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
         };
         // Now we POST the new association to the view
         $.post(target_url, data, function(responseText, textStatus, XMLHttpRequest){
-            $('#post-id-' + target_post_id + ' .tags-on-post').find('.tag-link:not(.hashtag-link)').remove().end().prepend(responseText);
+            $('#post-id-' + target_post_id + '>.post-info .tags-on-post').find('.tag-link:not(.hashtag-link)').remove().end().prepend(responseText);
         });
         return false;
     });
@@ -292,7 +298,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
             }
         }
         var followedPost = $this.attr('data-followed-post') || $this.text().replace(/^#/, '');
-        a3d.toggleNonMatchingPosts($('#post-id-' + followedPost + ' .post-info .follow a, a.post-link:contains(#' + followedPost + ')'));
+        a3d.toggleNonMatchingPosts($('#post-id-' + followedPost + '>.post-info .follow a, a.post-link:contains(#' + followedPost + ')'));
         return false;
     });
     $('a.follow-tag').live('click', function(){
@@ -313,12 +319,11 @@ jQuery(document).ready(function($){ // Makes me feel safer
     });
     
     $('a.endless-paginator').live('click', function(){
-		//FIXME: The OL/LI structure doesn't really work with this (the #new-content part).
         var that = this;
         var paginate_type = this.href.match("start=-") ? 'down' : 'up';
         $.get(this.href + '&skip_text=true&' + paginate_type + '=true', function(data){
             var $items = $(data).children('li');
-            $.each($items, function(i, e){
+            $.each($items, function(i, e){ //TODO: Update this to reflect changes in structure
                 var id = e.id;
                 if (id) {
                     var oldel = $('#' + id);
@@ -429,7 +434,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
             return;
         }
         if ($t.is('div.post-text, div.post-text *')) {
-            a3d.clicked_on_post = $t.parents('article.post');
+            a3d.clicked_on_post = $t.closest('article.post');
         }
         else {
             a3d.clicked_on_post = false;
@@ -458,7 +463,11 @@ jQuery(document).ready(function($){ // Makes me feel safer
         }
         
         if (t.length && a3d.clicked_on_post) {
-            var $tg = $(this), xy = $tg.prepend(lq).offset(), left = Math.min(Math.max(ev.pageX - xy.left, 0), $tg.width() - lq.width()), top = Math.min(Math.max(ev.pageY - xy.top, 0), $tg.height() - lq.height());
+			//FIXME: Doesn't work when clicked_on_post is the parent and the mouseover is on a child.
+            var $tg = $(this);
+			var xy = $tg.prepend(lq).offset(); 
+			var left = Math.min(Math.max(ev.pageX - xy.left, 0), $tg.width() - lq.width()); 
+			var top = Math.min(Math.max(ev.pageY - xy.top, 0), $tg.height() - lq.height());
             lq.css({
                 'left': left,
                 'top': top,
@@ -471,12 +480,12 @@ jQuery(document).ready(function($){ // Makes me feel safer
     });
     
     $("#linked_quote").live('click', function(ev){
-        var quote = '> @[' + $(a3d.clicked_on_post).find('.post-info .user-link[rel=author]').text() +
+        var quote = '> @[' + $(a3d.clicked_on_post).children('.post-info').find('.user-link[rel=author]').text() +
         '] #' +
         a3d.clicked_on_post.attr('id').replace('post-id-', '') +
         '\n' +
         $(this).data('quoted_text').replace(/(^|\n)/g, '$1> ') +
-        '\n\n';
+        '\n\n'; //TODO: Improve this to also copy some/all markup
         $.markItUp({
             target: '#post-form form textarea',
             replaceWith: quote
@@ -486,10 +495,14 @@ jQuery(document).ready(function($){ // Makes me feel safer
         return false;
     });
     
-    $('article.post ul.post-info span.rate-actions a').live('click', function(ev){
-        var $this = $(this), $target = $this.parents('article.post'), href = $this.attr('href').replace(/([\?&]next_page=)[^&]+/, '$1' + location.pathname);
+    $('article.post>ul.post-info span.rate-actions a').live('click', function(ev){
+        var $this = $(this);
+		var $target = $this.closest('article.post');
+		var href = $this.attr('href').replace(/([\?&]next_page=)[^&]+/, '$1' + location.pathname);
         $.get(href + '&as_reply=' + $target.hasClass('reply'), function(data, request){
-            $target.replaceWith(data);
+            $target.children('.post-info')
+				.replaceWith(data)
+				.mouseenter(); //Nice way of dealing with navigation issues.
         });
         return false;
     });
@@ -497,7 +510,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
     $('a.mark-read,a.mark-unread').live('click', function(ev){
         var $this = $(this);
         $.get($this.attr('href'), function(data, request){
-            $this.parents('ul.post-info').replaceWith(data);
+            $this.parents('ul.post-info').replaceWith(data).closest('.post').mouseenter();
         });
         return false;
     });

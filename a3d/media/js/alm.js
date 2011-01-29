@@ -275,7 +275,15 @@ Parse.Simple.Creole = function(options) {
         hashtag: { regex: /(?=^|(?!\b|_))(?:@|#)((?:\[[^\]]+\]|[-\w]+))(?=\W|$)/,
                 build: function(node, r, options) {
                     var link = document.createElement('a');
+					var val = r[0].substr(1);
                    	link.appendChild(document.createTextNode(r[0]));
+					if(r[0].charAt(0)=='@') {
+						link.title="User link: "+val.replace(/^\[|]$/g,'');
+					} else if(parseInt(val).toString() == val) {
+						link.title="Post link: "+val;						
+					} else {
+						link.title="Hashtag link: "+val;
+					}
                     node.appendChild(link);
                 	}
                 },
