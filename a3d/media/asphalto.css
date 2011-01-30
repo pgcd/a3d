@@ -302,6 +302,20 @@ ol#threads > li, ol.replies-list > li {
 	clear: both;
 }
 
+ol.brief {
+	margin: 0;
+	padding: 0;
+	border: 2px #ccc inset;
+}
+ol.brief > li {
+	margin: 0;
+	padding: 2px;
+	border-bottom: 1px #333 solid;
+	font-weight:bold;	
+}
+ol.brief > li header {
+	font-weight:normal;	
+}
 .post {
     background-color: #333333;
     width: 100%;

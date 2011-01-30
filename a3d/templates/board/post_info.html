@@ -29,7 +29,9 @@
 					<a href="{% url board_post_view post.pk %}?start={{post.replied_last}}" title="{% trans 'Your last post' %}" class="post-link">*</a>
 				{% endif %}
 			{% endif %}
-			<a rel="last" class="post-link" title="{% trans 'Last page' %}" href="{% url board_post_view post.pk %}?start=last">&raquo;</a>]
+			<a rel="last" class="post-link brief-available" title="{% trans 'Last page' %}"
+			data-brief-href="{% url board_post_view_replies post.pk %}?start=last&info_only=True" 
+			href="{% url board_post_view post.pk %}?start=last">&raquo;</a>]
 		</li>
 		{% endif %}
 		<li>

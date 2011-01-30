@@ -35,7 +35,6 @@ urlpatterns = patterns('',
     url(r'^t/$', 'board.views.tag.list', name = "board_tags_list"),
     url(r'^t/(?P<tag_title>[-_\w]+)$', 'board.views.post.list_by_tag_title', name = "board_post_list_by_tag_title"),
     
-
 #    url(r'^f/create$', 'board.views.fave.create', name="board_fave_create"),
 #    url(r'^f/delete/(?P<content_type)\w+)/(?P<object_id>\w+)$', 'board.views.favorite.delete', name="board_favorite_delete"),
 #    url(r'^f/(?P<content_type)\w+)/(?P<object_id>\w+)$', 'board.views.favorite.delete', name="board_favorite_delete"),

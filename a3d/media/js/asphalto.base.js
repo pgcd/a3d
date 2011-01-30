@@ -560,6 +560,32 @@ jQuery(document).ready(function($){ // Makes me feel safer
         }
     });
     
+	/*
+	 * Show the few last elements of a list in a floating window
+	 */
+	$('a.brief-available').live('hover', function(ev){
+		var $this=$(this);
+		var timeout = $this.data('timeout');
+		var $floater = $('ol.brief');
+		if(timeout) {
+			window.clearTimeout($this.data('timeout'));	
+		}
+		if(ev.type=='mouseover') {
+			timeout = window.setTimeout(function() {
+				$.get($this.attr('data-brief-href'), function(data) {
+					$('.ajaxInProgress').removeClass('ajaxInProgress');
+					$floater = $(data).appendTo('body');
+					$floater.css({position:'absolute',left:ev.clientX, top:ev.clientY})
+				})				
+			},250);
+			$this.data('timeout', timeout);
+		} else {
+			if($floater.length) {
+				$floater.remove();	
+			}
+		}
+	});
+	
     
     //In-place editing
     $('a.post-edit-link').live('click', function(ev){
@@ -803,11 +829,14 @@ jQuery(document).ready(function($){ // Makes me feel safer
     
     //Content updating
     updateContent = function(){
+		/*
+		 * TODO: Update this to work for ALL .new-content elements with the correct tags.
+		 */
         //        var paginate_type = href.match("start=-") ? 'down' : 'up';
         if (a3d.stop_updates) {
             return;
         }
-        var href = $('#new-content').attr('href');
+        var href = $('.new-content').attr('href');
         $.get(a3d.updateQS(href, 'count=true'), function(data, status, request){
             if (status == 'success') {
                 var paginator = $('<div>').append(data).find('.endless-paginator');
