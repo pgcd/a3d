@@ -63,12 +63,10 @@ jQuery(document).ready(function($){ // Makes me feel safer
     $.fn.extend({
         removeDuplicate: function(){
             // Find another object with the same #id - this should be applied before attaching $this to the document
-            
             var id = this.id;
             if (!id) {
                 return this;
             }
-            
             return this;
         },
         childrenWidth: function(){
@@ -133,10 +131,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
         complete: function(req, code){
             $('body').removeClass('ajaxInProgress');
             return arguments;
-        },
-//		error: function(XMLHttpRequest, textStatus, errorThrown) {
-//			
-//		},
+        }
     });
     
     $('a.auth-hidden').live('click', function(ev){
@@ -188,7 +183,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
                 },
                 complete: function(xhrequest){
                     xhrequest.active_form.slideDown('fast');
-                    location.hash = $form.attr("data-attach-element");
+//                    location.hash = $form.attr("data-attach-element");
                     $('document').trigger('postsAppended');
                     return xhrequest;
                 }
@@ -339,6 +334,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
             });
 			var $target = $('.new-content'); // Might be useful to further specify?
             $target[$(that).attr('data-attach-method')]($items);
+			$target.attr('data-items-left', $(that).attr('data-items-left'));
             $('#post-form').find('input[name=next_item]').val($('#new-content').attr('data-next-item'));
 			// Replace the current paginators.
 			$(that).replaceWith($('<p/>').html(data).find('a.endless-paginator[rel='+that.rel+']'));
@@ -832,29 +828,29 @@ jQuery(document).ready(function($){ // Makes me feel safer
 		/*
 		 * TODO: All very nice but as soon as the first 200 OK, we need to change the HREF, otherwise it's all gonna
 		 * be 200 OK even if it's actually a 304 wrt the first 200.
-		 * 
-		 * TODO: Change the current implementation to an event (setpager?) of the container.
 		 */
 		var new_content_interval = a3d.personal_settings.new_content_fetch_interval;
 		$('.new-content').each(function(i,el) {
 			var $this = $(this);
 			var href = $this.attr('data-source-href');
+			var items_left = 
 			$this.data('contentUpdateTimer', window.setInterval(function() {
-				$.get(a3d.updateQS(href, 'count=true'), function(data, status, request){
+				$.get(a3d.updateQS(href, 'count='+$this.attr('data-items-left')||''), function(data, status, request){
 		            if (status == 'success') {
 		                var paginator = $('<div>').append(data).find('.endless-paginator');
+						$this.attr('data-items-left', paginator.attr('data-items-left'));
 		                var old_paginator = $('.endless-paginator[rel=' + paginator.attr('rel') + ']');
-		                
 		                if (old_paginator.length) {
 		                    old_paginator.replaceWith(paginator);
 		                }
 		                else {
-		                    $this.before(paginator);
+		                    $this.parent()[paginator.attr('data-attach-method')](paginator);
 		                }
 		            }
 		        });
-			}, $this.data('data-content-update-interval') || new_content_interval));
+			}, $this.attr('data-content-update-interval')*1000 || new_content_interval));
 		});
+		return this; //TODO: Make this return a more sensible value?
 	};
 	
 	

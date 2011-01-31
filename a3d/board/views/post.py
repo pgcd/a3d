@@ -99,12 +99,12 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     if lastcount:
         #this is only a count request - result should only be a number
         c = EndlessPage(queryset, 30, filter_field = 'reverse_timestamp').page(context_instance, count_only = True)
-        if c == 0:
+        if c == 0 or c == int(lastcount):
             return HttpResponseNotModified()
         else:
-            _d = {'object_list':[], 
-                  'more_down':'%s' % (request.GET.get('start', '').lstrip('-')), 
-                  'next_item_direction':'up', 
+            _d = {'object_list':[],
+                  'more_down':'%s' % (request.GET.get('start', '').lstrip('-')),
+                  'next_item_direction':'up',
                   'tag':tag, 'items_left': c}
             return render_to_response(template_name,
                 _d,
@@ -112,7 +112,7 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
 
     if request.GET.get('info_only', False): 
         #We use this for the brief - might require some tweaking later on
-        _d =  EndlessPage(queryset, 10, filter_field = 'reverse_timestamp').page(context_instance, list_name='post_list')
+        _d = EndlessPage(queryset, 10, filter_field = 'reverse_timestamp').page(context_instance, list_name = 'post_list')
         return render_to_response('board/post_list_brief.html',
                 _d,
                 context_instance = context_instance)
@@ -169,6 +169,7 @@ def view(request, post_id, template_name = 'board/post_view.html',
                               },
                               context_instance = context)
 
+
 def list_replies(request, post_id, context_instance = None, template_name = 'board/post_list.html', data_only = False):
     """
     This view is used for replies to posts only; for comments to user profiles we'll do something different.
@@ -178,18 +179,33 @@ def list_replies(request, post_id, context_instance = None, template_name = 'boa
     limit = context_instance['personal_settings']['post_per_page']
     post = get_object_or_404(Post, pk = post_id)
     qs = post.replies.public(user).tag_match(context_instance["request"]) #Only public and user-specific replies
+    lastcount = request.GET.get('count', False)
+    if lastcount:
+        #this is only a count request - result should only be a number
+        c = EndlessPage(qs, 30).page(context_instance, count_only = True)
+        if c == 0 or c == int(lastcount):
+            return HttpResponseNotModified()
+        else:
+            _d = {'post_list':[],
+                  'more_up':'%s' % (request.GET.get('start', '').lstrip('-')),
+                  'next_item_direction':'up',
+                  'parent_post':post, 'items_left': c}
+            return render_to_response(template_name,
+                _d,
+                context_instance = context_instance)
+    
     
     _d = EndlessPage(qs, limit).page(context_instance, list_name = 'post_list')
     _d.update({
             'next_item':_d['last_item'] + 1,
             'next_item_direction':'down',
-            'post':post,
+            'parent_post':post,
            })
     context_instance.update(_d)
     
     if request.GET.get('info_only', False):
         return render_to_response('board/post_list_brief.html',
-                _d,
+                {},
                 context_instance = context_instance)
     last_item = "%s;%s" % (_d['last_item'] or post_id, post.replies_count - _d['items_left'])
     board_signals.post_read.send(sender = Post, obj_id = post_id, last_item = last_item, user = request.user)
@@ -225,7 +241,7 @@ def rate(request, post_id, action):
             signal_action = 'rate'
             post.rating = post.rating + {'down':-1, 'up':+1}[action]
         timeshift = {'down':1000, 'up':-1000}[action] #TODO: Figure out some realistic value/algorithm
-        parent_timeshift = timeshift / max(5, post.replies_count/5) #TODO: As above
+        parent_timeshift = timeshift / max(5, post.replies_count / 5) #TODO: As above
         if post.object_id: #This post has a parent, so any timeshift should be applied to the parent as well. 
             parent = post.in_reply_to
             parent.reverse_timestamp = parent.reverse_timestamp + parent_timeshift
@@ -249,7 +265,7 @@ def rate(request, post_id, action):
             #    template_name = 'board/post_view.html'
             # return render_to_response(template_name, {'post':post}, context_instance = context_instance)
             #=======================================================================
-            return view(request, post_id, info_only=True)
+            return view(request, post_id, info_only = True)
         else:
             return HttpResponseRedirect(next_page) #TODO: Remove hardcode
     else: #No auth

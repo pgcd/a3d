@@ -44,11 +44,8 @@ class PostManager(models.Manager, PostMixin):
     def get_query_set(self):
         return PostQuerySet(Post, using = self._db)
             
-    def get_replies(self, pk, ct, search = None, user = None):
-        if search is None:
-            return self.public(user).filter(object_id = pk, content_type = ct, is_active = True)
-        else:
-            return self.public(user).filter(object_id = pk, content_type = ct, is_active = True, postdata__body__search = search)
+    def get_replies(self, pk, ct, user = None):
+        return self.public(user).filter(object_id = pk, content_type = ct, is_active = True).order_by('pk')
     
     def get_highest_rated(self, limit = 5, tag_id = None, user = None):
         queryset = self.public(user).order_by('reverse_timestamp')
@@ -92,7 +89,7 @@ class Post(Auditable, ExtendedAttributesManager):
     last_poster = models.ForeignKey(User, blank = True, null = True)
     last_poster_name = models.CharField(max_length = 30, blank = True, default = '') #denormalization
     reverse_timestamp = models.PositiveIntegerField(db_index = True)
-    timeshift = models.IntegerField(default=0) #Mostly used for bookkeeping, but might be useful later
+    timeshift = models.IntegerField(default = 0) #Mostly used for bookkeeping, but might be useful later
     _title = models.CharField(max_length = 255, blank = True)
     read_only = models.BooleanField()
     no_replies = models.BooleanField()

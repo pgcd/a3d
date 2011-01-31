@@ -1,23 +1,25 @@
 {% load board_tags faves %}
-{% get_replies for post as post_list %}
 {% prefetch tags for post_list %}
 {% prefetch post_interactions for post_list %}
 {% inject_faves_to post_list by request.user of type star as is_starred %}
 
-{% with post as parent_post %}
 {% if more_down %}
 	<a href="{% url board.views.post.list_replies parent_post.pk %}?start=-{{more_down}}" class="endless-paginator" rel="prev" data-attach-method="prepend">previous</a>
 {% endif %}
 
 
 {% if post_list|length %}
-{% with post_list|last as l %}
-<ol id="replies-{{post.pk}}" class="replies-list new-content" data-next-item="{{l.pk|add:'1'}}" href="{{l.pk|add:'1'}}">
-{% endwith %}
+	{% with post_list|last as l %}
+	<ol id="replies-{{post.pk}}"
+		class="replies-list new-content"
+		data-next-item="{{l.pk|add:'1'}}"
+		data-source-href="{% url board.views.post.list_replies parent_post.pk %}?start={{l.pk|add:'1'}}"
+		data-items-left="{{items_left}}" 
+		data-content-update-interval="120">
+	{% endwith %}
 {% else %}
-<ol id="replies-{{post.pk}}" class="replies-list new-content">
+	<ol id="replies-{{post.pk}}" class="replies-list new-content" data-items-left="">
 {% endif %}
-
 	<style type="text/css" scoped="scoped">
 		{% prefetch profiles for post_list as user_profiles %}
 		{% for pp in user_profiles %}
@@ -37,4 +39,3 @@
 {% if more_up %}
 	<a href="{% url board.views.post.list_replies parent_post.pk %}?start={{more_up}}" class="endless-paginator" rel="next" data-attach-method="append" data-items-left="{{items_left}}">{{items_left}} more</a>
 {% endif %}
-{% endwith %}

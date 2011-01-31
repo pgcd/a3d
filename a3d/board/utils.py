@@ -73,18 +73,22 @@ class EndlessPage(object):
         start = context['request'].GET.get('start', kwargs.get('start', None))
 
         if start == 'last': #We want to select the last per_page items
-            qs = self.queryset_or_list.order_by(self.filter_field).reverse()[0:self.per_page + 1]
+            qs = self.queryset_or_list.order_by(self.filter_field).reverse()
             if count_only:
                 return qs.count()
+            else:
+                qs = qs[0:self.per_page + 1]
             object_list = list(qs)
             object_list.reverse()
             if len(object_list) > self.per_page:
                 more_down = getattr(object_list.pop(0), self.filter_field)
             result['items_left'] = 0 #Sensible approach as long as we use items_left
         elif not bool(start):
-            qs = self.queryset_or_list[0:self.per_page + 1]
+            qs = self.queryset_or_list
             if count_only:
                 return qs.count()
+            else:
+                qs = qs[0:self.per_page + 1]
             object_list = list(qs)
             if len(object_list) > self.per_page:
                 more_up = getattr(object_list.pop(), self.filter_field)
@@ -94,9 +98,11 @@ class EndlessPage(object):
                 start = int(start)
                 if start < 0: #We're trying to retrieve the last per_page items up to :start
                     self.queryset_or_list = self.queryset_or_list.filter(**{"%s__lte" % self.filter_field: abs(start)})
-                    qs = self.queryset_or_list.order_by(self.filter_field).reverse()[0:self.per_page + 1]
+                    qs = self.queryset_or_list.order_by(self.filter_field).reverse()
                     if count_only:
                         return qs.count()
+                    else:
+                        qs = qs[0:self.per_page + 1]
                     object_list = list(qs)
                     object_list.reverse()
                     if len(object_list) > self.per_page:
@@ -104,9 +110,11 @@ class EndlessPage(object):
                     more_up = abs(start) + 1
                 else: # Regular :start, so we're using it as lower bound
                     self.queryset_or_list = self.queryset_or_list.filter(**{"%s__gte" % self.filter_field: start})
-                    qs = self.queryset_or_list[0:self.per_page + 1]
+                    qs = self.queryset_or_list
                     if count_only:
                         return qs.count()
+                    else:
+                        qs = qs[0:self.per_page + 1]
 
                     object_list = list(qs)
                     if len(object_list) > self.per_page:

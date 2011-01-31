@@ -26,10 +26,10 @@
 	{% endif %}
 	{%if object_list|length %}
 	{% with object_list|first as f %}
-	<ol id="threads" class="new-content threads-list" data-source-href="?start=-{{f.reverse_timestamp|add:'-1'}}" data-next-item="{{f.reverse_timestamp|add:'-1'}}">
+	<ol id="threads" class="new-content threads-list" data-items-left="{{items_left}}" data-source-href="?start=-{{f.reverse_timestamp|add:'-1'}}" data-next-item="{{f.reverse_timestamp|add:'-1'}}">
 	{% endwith %}
 	{% else %}
-	<ol id="threads" class="new-content threads-list" data-source-href="?start=-0">
+	<ol id="threads" class="new-content threads-list" data-source-href="?start=-0" data-items-left="">
 	{%endif%}		
 		{% for post in object_list  %}
 				{% include "board/thread_body.html" %}
