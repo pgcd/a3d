@@ -95,13 +95,17 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     context_instance = context_instance if context_instance else RequestContext(request, extra_context)
     tag = kwargs.get("tag")
     
-    if request.GET.get('count', False):
+    lastcount = request.GET.get('count', False)
+    if lastcount:
         #this is only a count request - result should only be a number
         c = EndlessPage(queryset, 30, filter_field = 'reverse_timestamp').page(context_instance, count_only = True)
         if c == 0:
             return HttpResponseNotModified()
         else:
-            _d = {'object_list':[], 'more_down':'%s' % (request.GET.get('start', '').lstrip('-')), 'next_item_direction':'up', 'tag':tag, 'how_many_more': c}
+            _d = {'object_list':[], 
+                  'more_down':'%s' % (request.GET.get('start', '').lstrip('-')), 
+                  'next_item_direction':'up', 
+                  'tag':tag, 'items_left': c}
             return render_to_response(template_name,
                 _d,
                 context_instance = context_instance)

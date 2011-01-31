@@ -827,6 +827,37 @@ jQuery(document).ready(function($){ // Makes me feel safer
         return false;
     });
     
+	
+	startUpdating = function(){
+		/*
+		 * TODO: All very nice but as soon as the first 200 OK, we need to change the HREF, otherwise it's all gonna
+		 * be 200 OK even if it's actually a 304 wrt the first 200.
+		 * 
+		 * TODO: Change the current implementation to an event (setpager?) of the container.
+		 */
+		var new_content_interval = a3d.personal_settings.new_content_fetch_interval;
+		$('.new-content').each(function(i,el) {
+			var $this = $(this);
+			var href = $this.attr('data-source-href');
+			$this.data('contentUpdateTimer', window.setInterval(function() {
+				$.get(a3d.updateQS(href, 'count=true'), function(data, status, request){
+		            if (status == 'success') {
+		                var paginator = $('<div>').append(data).find('.endless-paginator');
+		                var old_paginator = $('.endless-paginator[rel=' + paginator.attr('rel') + ']');
+		                
+		                if (old_paginator.length) {
+		                    old_paginator.replaceWith(paginator);
+		                }
+		                else {
+		                    $this.before(paginator);
+		                }
+		            }
+		        });
+			}, $this.data('data-content-update-interval') || new_content_interval));
+		});
+	};
+	
+	
     //Content updating
     updateContent = function(){
 		/*
@@ -836,7 +867,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
         if (a3d.stop_updates) {
             return;
         }
-        var href = $('.new-content').attr('href');
+        var href = $('.new-content').attr('data-source-href');
         $.get(a3d.updateQS(href, 'count=true'), function(data, status, request){
             if (status == 'success') {
                 var paginator = $('<div>').append(data).find('.endless-paginator');
@@ -848,7 +879,6 @@ jQuery(document).ready(function($){ // Makes me feel safer
                 else {
                     $('#new-content').before(paginator);
                 }
-                
             }
         });
     };
@@ -866,7 +896,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
     }, a3d.personal_settings.favorites_fetch_interval);
     window.setInterval(updateMentionsList, a3d.personal_settings.mentions_fetch_interval);
     //TODO: Riattivare
-    window.setInterval(function(){
-        updateContent();
-    }, a3d.personal_settings.new_content_fetch_interval);
+//    window.setInterval(function(){
+//        updateContent();
+//    }, a3d.personal_settings.new_content_fetch_interval);
 });

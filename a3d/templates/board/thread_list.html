@@ -22,7 +22,7 @@
 	{% prefetch post_interactions for object_list %}
 	{% inject_faves_to object_list by request.user of type star as is_starred %}
 	{% if more_down %}
-	<a href="?start=-{{more_down}}" class="endless-paginator" rel="next" data-attach-method="prepend">{{how_many_more}} fresher</a>
+	<a href="?start=-{{more_down}}" class="endless-paginator" rel="next" data-attach-method="prepend" data-items-left="{{items_left}}">{{items_left}} fresher</a>
 	{% endif %}
 	{%if object_list|length %}
 	{% with object_list|first as f %}
