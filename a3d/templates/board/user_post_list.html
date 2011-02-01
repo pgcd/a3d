@@ -1,0 +1,24 @@
+{% load board_tags faves %}
+
+{% block content %}
+	{% prefetch tags for post_list %}
+	{% prefetch post_interactions for post_list %}
+	{% inject_faves_to post_list by request.user of type star as is_starred %}
+	{% if more_down %}
+	<a href="?start=-{{more_down}}" class="endless-paginator" rel="next" data-attach-method="prepend" data-items-left="{{items_left}}">{{items_left}} fresher</a>
+	{% endif %}
+	{%if post_list|length %}
+	{% with post_list|first as f %}
+	<ol id="threads" class="new-content threads-list" data-items-left="{{items_left}}" data-source-href="?start=-{{f.pk|add:'1'}}" data-next-item="{{f.pk|add:'1'}}">
+	{% endwith %}
+	{% else %}
+	<ol id="threads" class="new-content threads-list" data-source-href="?start=-0" data-items-left="">
+	{%endif%}		
+		{% for post in post_list  %}
+				{% include "board/post_body.html" %}
+		{% endfor %} 
+	</ol> 
+	{% if more_up %}
+	<a href="?start={{more_up}}" class="endless-paginator" data-attach-method="append" rel="prev">older</a>
+	{% endif %}		
+{% endblock %}

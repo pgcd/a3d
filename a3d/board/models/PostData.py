@@ -25,8 +25,8 @@ class PostMixin(object):
     def public(self, user = None):
         q = models.Q(is_private = False)
         if user and user.is_authenticated():
-            q = q | models.Q(_title__istartswith = '@[%s]' % user.username)
-            q = q | models.Q(user = user)
+                q = q | models.Q(_title__istartswith = '@[%s]' % user.username)
+                q = q | models.Q(user = user)
         return self.filter(q)
     
     def tag_match(self, request):
@@ -44,9 +44,6 @@ class PostManager(models.Manager, PostMixin):
     def get_query_set(self):
         return PostQuerySet(Post, using = self._db)
             
-    def get_replies(self, pk, ct, user = None):
-        return self.public(user).filter(object_id = pk, content_type = ct, is_active = True).order_by('pk')
-    
     def get_highest_rated(self, limit = 5, tag_id = None, user = None):
         queryset = self.public(user).order_by('reverse_timestamp')
         if tag_id is not None:
@@ -141,7 +138,9 @@ class Post(Auditable, ExtendedAttributesManager):
     def get_absolute_url(self):
         return ('board_post_view', (), { 'post_id': self.pk })
 
-    
+    @models.permalink
+    def get_replies_url(self):
+        return ('board_post_view_replies', (), { 'post_id': self.pk })
     
     def get_smart_url(self):
         if self.replies_count or self.object_id == 0: #Not a reply, or has replies

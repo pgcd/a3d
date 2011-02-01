@@ -213,18 +213,27 @@ class RepliesToken(template.Node):
         except template.VariableDoesNotExist:
             return "Object %s does not exist" % self.obj
         
-        user = context["request"].user
-        limit = context['personal_settings']['post_per_page']
-        qs = obj.replies.public(user).tag_match(context["request"]) #Only public and user-specific replies
-        
-        _d = EndlessPage(qs, limit).page(context, list_name = self.var_name)
-        _d.update({
-                'next_item':_d['last_item'] + 1,
-                'next_item_direction':'down',
-               })
-        context.update(_d)
-        last_item = "%s;%s" % (_d['last_item'] or obj.pk, obj.replies_count - _d['items_left'])
-        board_signals.post_read.send(sender = obj.__class__, obj_id = obj.pk, last_item = last_item, user = context["request"].user)
+        ct = ContentType.objects.get_for_model(obj).name
+        if ct == 'post':
+            from board.views.post import list_replies
+            list_replies(context["request"], obj.pk, context, discard_response = True)
+            return ''
+        if ct == 'user profile':
+            from board.views.userprofile import list_replies
+            list_replies(context["request"], obj.user.username, context, discard_response = True)
+            return ''
+            
+#        user = context["request"].user
+#        limit = context['personal_settings']['post_per_page']
+#        qs = obj.replies.public(user).tag_match(context["request"]) #Only public and user-specific replies
+#        _d = EndlessPage(qs, limit).page(context, list_name = self.var_name)
+#        _d.update({
+#                'next_item':_d['last_item'] + 1,
+#                'next_item_direction':'down',
+#               })
+#        context.update(_d)
+#        last_item = "%s;%s" % (_d['last_item'] or obj.pk, obj.replies_count - _d['items_left'])
+#        board_signals.post_read.send(sender = obj.__class__, obj_id = obj.pk, last_item = last_item, user = context["request"].user)
         return ''
 parsingTag(RepliesToken, "get_replies", required = 1)
 
@@ -239,7 +248,7 @@ class UserPostsToken(template.Node):
         try:
             user = context["request"].user
             obj = self.user_object.resolve(context)
-            object_list = list(obj.posts.public(user)[:10]) # TODO: remove hardcoding
+            object_list = list(obj.posts.public(user).filter(username = user.username)[:10]) # TODO: remove hardcoding
             try:
                 last = "%s;%s" % (object_list[0].pk, 0) #TODO: Change if/when the above changes
             except IndexError:
@@ -250,6 +259,25 @@ class UserPostsToken(template.Node):
         except template.VariableDoesNotExist:
             return "Object %s does not exist" % self.obj
 parsingTag(UserPostsToken, "get_posts_by", required = 1)
+
+
+class PaginatorToken(template.Node):
+    """
+    """
+    def __init__(self, qs, limit = None, var_name = "post_list"):
+        self.qs = template.Variable(qs)
+        self.var_name = var_name
+        
+    def render(self, context):
+        try:
+            qs = self.qs.resolve(context)
+        except template.VariableDoesNotExist:
+            return "List %s does not exist" % self.qs
+        limit = context['personal_settings']['post_per_page']
+        _d = EndlessPage(qs, limit).page(context, list_name = self.var_name)
+        context.update(_d)
+        return ''
+parsingTag(PaginatorToken, "paginate", required = 1)
 
 
 #============================================================================
@@ -328,7 +356,7 @@ def replies_for_path(path):
     return '?'.join(path)
 
 @register.filter
-def sensibletime(value, arg=None):
+def sensibletime(value, arg = None):
     """
     If it's today, show the time, otherwise show the date. Might be improved later on.
     """

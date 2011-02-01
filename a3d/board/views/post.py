@@ -170,7 +170,12 @@ def view(request, post_id, template_name = 'board/post_view.html',
                               context_instance = context)
 
 
-def list_replies(request, post_id, context_instance = None, template_name = 'board/post_list.html', data_only = False):
+def list_replies(request,
+                 post_id,
+                 context_instance = None,
+                 template_name = 'board/post_list.html',
+                 data_only = False,
+                 discard_response = False):
     """
     This view is used for replies to posts only; for comments to user profiles we'll do something different.
     """
@@ -209,20 +214,22 @@ def list_replies(request, post_id, context_instance = None, template_name = 'boa
                 context_instance = context_instance)
     last_item = "%s;%s" % (_d['last_item'] or post_id, post.replies_count - _d['items_left'])
     board_signals.post_read.send(sender = Post, obj_id = post_id, last_item = last_item, user = request.user)
-    return render_to_response(template_name,
-            _d,
-            context_instance = context_instance)
+    if not discard_response:
+        return render_to_response(template_name,
+                _d,
+                context_instance = context_instance)
     
 
     
     
     
-def list_by_user(request, username, **kwargs): #TODO: Ehm.
+def list_by_user(request, username, **kwargs):
+    #TODO: Ehm.
     user_obj = get_object_or_404(UserProfile, user__username = username)
     context_instance = RequestContext(request, {})
-    context_instance.update(EndlessPage(user_obj.posts, context_instance['personal_settings']['post_per_page'], filter_field = 'reverse_timestamp').page(context_instance))
-    board_signals.post_read.send(User, obj_id = user_obj.pk, last_item = context_instance["last_item"], user = request.user) #same functionality with different semantics. what to do?
-    return render_to_response('board/thread_list.html',
+    context_instance.update(EndlessPage(user_obj.posts, context_instance['personal_settings']['post_per_page'], filter_field = 'reverse_timestamp').page(context_instance, list_name = 'post_list'))
+    board_signals.post_read.send(User, obj_id = user_obj.pk, last_item = "%s;%s" % (context_instance["last_item"], '0'), user = request.user) #same functionality with different semantics. what to do?
+    return render_to_response('board/user_post_list.html',
                                     {},
                                    context_instance = context_instance)
 

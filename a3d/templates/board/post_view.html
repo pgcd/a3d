@@ -21,7 +21,7 @@
 	        <div class="post-text">{{ post.postdata.body|safe }}</div>
 	        <div class="signature">{{ post.postdata.signature|safe }}</div>
 	    {% endblock %}
-		{% with post as parent_post %}
+		{% with parent_post=post %}
 			{% get_replies for parent_post as post_list %}
 			{% include "board/post_list.html" %}
 		{% endwith %}

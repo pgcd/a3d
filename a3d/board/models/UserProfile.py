@@ -71,6 +71,12 @@ class UserProfile(models.Model, ExtendedAttributesManager):
         name = self.user.username
 #        name=name+'\x01' if name.endswith('.') else name
         return ('profiles_profile_detail', (), { 'username':  name})
+
+    @models.permalink
+    def get_replies_url(self):
+        name = self.user.username
+        return ('board_profile_view_replies', (), { 'username':  name})
+
     
     @property
     def replies(self):
