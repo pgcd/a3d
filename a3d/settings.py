@@ -16,7 +16,7 @@ TEMPLATE_CONTEXT_PROCESSORS += (
 )
 
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -68,10 +68,12 @@ SECRET_KEY = 'a1h+9bg!#9=cj=_b63brdgk+(oyjw==35!+l=9g1k17il2qu-4'
 
 # List of callables that know how to import templates from various sources.
 TEMPLATE_LOADERS = (
-    'django.template.loaders.filesystem.load_template_source',
-    'django.template.loaders.app_directories.load_template_source',
-#     'django.template.loaders.eggs.load_template_source',
+#    ('django.template.loaders.cached.Loader', (
+        'django.template.loaders.filesystem.Loader',
+        'django.template.loaders.app_directories.Loader',
+#    )),
 )
+
 
 MIDDLEWARE_CLASSES = (
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -80,7 +82,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 #    'denorm.middleware.DenormMiddleware',
     'board.middleware.CurrentUserPageMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
+#    'debug_toolbar.middleware.DebugToolbarMiddleware',
 #    'board.middleware.StatsMiddleware',
 
 )
@@ -112,10 +114,11 @@ INSTALLED_APPS = (
     'registration',
 #    'denorm',
     'a3d.faves',
-    'debug_toolbar',
+#    'debug_toolbar',
     'a3d.almparse',
     'a3d.board',
-    'south'
+    'south',
+    'django_extensions',
 )
 
 
@@ -126,17 +129,18 @@ ACCOUNT_ACTIVATION_DAYS = 7 # One-week activation window; you may, of course, us
 
 # Various apps available
 DEBUG_TOOLBAR_PANELS = (
-    'debug_toolbar.panels.version.VersionDebugPanel',
+#    'debug_toolbar.panels.version.VersionDebugPanel',
     'debug_toolbar.panels.timer.TimerDebugPanel',
-    'debug_toolbar.panels.headers.HeaderDebugPanel',
+#    'debug_toolbar.panels.headers.HeaderDebugPanel',
     'debug_toolbar.panels.request_vars.RequestVarsDebugPanel',
-    'debug_toolbar.panels.sql.SQLDebugPanel',
+#    'debug_toolbar.panels.sql.SQLDebugPanel',
     'debug_toolbar.panels.cache.CacheDebugPanel',
     'debug_toolbar.panels.logger.LoggingPanel',
+    'debug_profiling.ProfilingPanel',
 )
 DEBUG_TOOLBAR_CONFIG = {
      'INTERCEPT_REDIRECTS': False,
-     'SHOW_TOOLBAR_CALLBACK': lambda req: DEBUG and req.session.get('_auth_user_id',0) == 77 #FIXME: Horrible hack!
+     'SHOW_TOOLBAR_CALLBACK': lambda req: DEBUG and req.session.get('_auth_user_id', 0) == 77 #FIXME: Horrible hack!
 }
 
 #BOARD SPECIFIC SETTINGS

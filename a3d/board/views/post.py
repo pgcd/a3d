@@ -14,20 +14,18 @@ from django.http import HttpResponseRedirect, HttpResponse, HttpRequest, \
 from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.csrf import csrf_protect
 from django.core import urlresolvers
-from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.decorators import login_required
 
 from board.models import UserProfile, Post, Tag, PostData, InteractionType
 from board.utils import EndlessPage, tripcode
 from board.forms import PostDataForm, PostDataEditForm
 from board import signals as board_signals
 from django.utils import simplejson
-#import sys
 from django.db.models.signals import pre_save
 import re
 from django.contrib.auth.models import User
 from faves.templatetags.faves import has_faved
 from django.contrib.contenttypes.models import ContentType
-import sys
 
 
 #from django.contrib.contenttypes.models import ContentType
