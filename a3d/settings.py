@@ -83,7 +83,7 @@ MIDDLEWARE_CLASSES = (
 #    'denorm.middleware.DenormMiddleware',
     'board.middleware.CurrentUserPageMiddleware',
 #    'debug_toolbar.middleware.DebugToolbarMiddleware',
-#    'board.middleware.StatsMiddleware',
+    'board.middleware.StatsMiddleware',
 
 )
 
