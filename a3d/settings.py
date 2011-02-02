@@ -118,7 +118,7 @@ INSTALLED_APPS = (
     'a3d.almparse',
     'a3d.board',
     'south',
-    'django_extensions',
+#    'django_extensions',
 )
 
 
