@@ -88,7 +88,7 @@ height: 100%;
 #left div {
 	width: 100%;
 }
-	
+
 #auth form ul {
     margin: 0;
     padding: 0;
@@ -102,6 +102,10 @@ height: 100%;
     padding: 0;
     display: block;
     width: 80%;
+}
+
+#auth label {
+	float: left;
 }
 
 #mentions-list,

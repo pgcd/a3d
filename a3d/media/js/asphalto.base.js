@@ -681,17 +681,6 @@ jQuery(document).ready(function($){ // Makes me feel safer
         }
     });
     
-    //	updateTagsList = function() {
-    //		$.get(a3d.url.board_tags_list, function(data, req) {
-    //			var oc = $('#tags-list ul li');
-    //			$(data).find('ul li').append('#tags-list ul');
-    //		});
-    //	};
-    
-    $('input#stop-updates').click(function(){
-        a3d.stopUpdates = this.checked;
-    });
-    
     updateTagsList = function(){ // I don't like this version very much but whatever.
         if (a3d.stop_updates) {
             return;
@@ -824,7 +813,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
     });
     
 	
-	startUpdating = function(){
+	a3d.startUpdating = function(){
 		/*
 		 * TODO: All very nice but as soon as the first 200 OK, we need to change the HREF, otherwise it's all gonna
 		 * be 200 OK even if it's actually a 304 wrt the first 200.
@@ -833,8 +822,10 @@ jQuery(document).ready(function($){ // Makes me feel safer
 		$('.new-content').each(function(i,el) {
 			var $this = $(this);
 			var href = $this.attr('data-source-href');
-			var items_left = 
 			$this.data('contentUpdateTimer', window.setInterval(function() {
+		        if (a3d.stop_updates) {
+    		        return;
+        			}
 				$.get(a3d.updateQS(href, 'count='+$this.attr('data-items-left')||''), function(data, status, request){
 		            if (status == 'success') {
 		                var paginator = $('<div>').append(data).find('.endless-paginator');
@@ -860,9 +851,6 @@ jQuery(document).ready(function($){ // Makes me feel safer
 		 * TODO: Update this to work for ALL .new-content elements with the correct tags.
 		 */
         //        var paginate_type = href.match("start=-") ? 'down' : 'up';
-        if (a3d.stop_updates) {
-            return;
-        }
         var href = $('.new-content').attr('data-source-href');
         $.get(a3d.updateQS(href, 'count=true'), function(data, status, request){
             if (status == 'success') {
@@ -879,20 +867,26 @@ jQuery(document).ready(function($){ // Makes me feel safer
         });
     };
     
-    /* Tags list */
-    window.setInterval(function(){
-        if ($('#tags-list').is(':visible')) {
-            updateTagsList();
-        }
-    }, a3d.personal_settings.tags_fetch_interval);
-    window.setInterval(function(){
-        if ($('#fave-list').is(':visible')) {
-            updateFaveList();
-        }
-    }, a3d.personal_settings.favorites_fetch_interval);
-    window.setInterval(updateMentionsList, a3d.personal_settings.mentions_fetch_interval);
-    //TODO: Riattivare
-//    window.setInterval(function(){
-//        updateContent();
-//    }, a3d.personal_settings.new_content_fetch_interval);
+    $('input#stop-updates').click(function(){
+		/*
+		 * TODO: Clear this up.
+		 */
+        a3d.stop_updates = this.checked;
+		if(!a3d.stop_updates) {
+			a3d.startUpdating();
+		    window.setInterval(function(){
+		        if ($('#tags-list').is(':visible')) {
+		            updateTagsList();
+		        }
+		    }, a3d.personal_settings.tags_fetch_interval);
+		    window.setInterval(function(){
+		        if ($('#fave-list').is(':visible')) {
+		            updateFaveList();
+		        }
+		    }, a3d.personal_settings.favorites_fetch_interval);
+		    window.setInterval(updateMentionsList, a3d.personal_settings.mentions_fetch_interval);
+			
+		}
+    });
+
 });

@@ -40,7 +40,7 @@
 				  {% endwith %}
 				  {% endif %}
 				<br />
-				<input type="checkbox" id="stop-updates" checked="checked"/><label for="stop-updates">Stop updates</label>
+				<label for="stop-updates">Stop updates</label><input type="checkbox" id="stop-updates"/>
 				{% else %} 
 				 {% login_form %}
 				{% endif %}
@@ -70,7 +70,10 @@
 		<div id="content">
 		{% block content %}{% endblock %}
 		</div>
-		{% if request.user.is_staff %}<footer id="main-footer" class="text-center"><a href="/admin">admin</a><br />{% endif %}
+		<footer id="main-footer" class="text-center">
+		{% if request.user.is_staff %}
+			<a href="/admin">admin</a><br />
+		{% endif %}
 		<div id="online-users" class="text-center">Online: {% list_online_users "5" %}</div>
 			<!-- STATS: Total: %(totTime).4f Python: %(pyTime).4f DB: %(dbTime).4f Queries: %(queries)d -->
 		</footer>
@@ -83,7 +86,7 @@
 	<script type="text/javascript" src="{{media_url}}js/alm.js"></script>	
 	<script type="text/javascript">
 			var a3d = (function(){
-				stop_updates = true; // TODO: Move this to settings
+				stop_updates = false; // TODO: Move this to settings
 				personal_settings = {{ personal_settings|jsonify|safe }};
 				alm_available_macros = {{ alm_available_macros|jsonify|safe }};
 				selected = {};
