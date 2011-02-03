@@ -93,11 +93,11 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     context_instance = context_instance if context_instance else RequestContext(request, extra_context)
     tag = kwargs.get("tag")
     
-    lastcount = request.GET.get('count', False)
-    if lastcount:
+    lastcount = request.GET.get('count', None)
+    if lastcount is not None:
         #this is only a count request - result should only be a number
         c = EndlessPage(queryset, 30, filter_field = 'reverse_timestamp').page(context_instance, count_only = True)
-        if c == 0 or c == int(lastcount):
+        if c == 0 or c < int(lastcount):
             return HttpResponseNotModified()
         else:
             _d = {'object_list':[],

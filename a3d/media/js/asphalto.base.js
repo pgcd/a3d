@@ -154,7 +154,6 @@ jQuery(document).ready(function($){ // Makes me feel safer
                 dataType: 'html',
                 success: function(data, statusText, xhrequest){
                     var val, $form = xhrequest.active_form, $target = xhrequest.target_anchor;
-                    
                     try {
                         errors = $.parseJSON(data);
                     } 
@@ -167,8 +166,15 @@ jQuery(document).ready(function($){ // Makes me feel safer
                         }
                     }
                     else {
+						//FIXME: This doesn't actually work in replies. Needs immediate fixing.
+						$target.attr('data-items-left', $(data).attr('data-items-left'));
+						$target.attr('data-source-href', $(data).attr('data-source-href'));
+
+
                         $target[$form.attr('data-attach-method')](data);
                         // reset all fields
+						
+												
                         $form[0].reset();
                         $form.siblings('.previewtext').empty().hide();
                         val = $('#' + $form.attr('data-attach-element')).attr('data-next-item');
@@ -332,9 +338,10 @@ jQuery(document).ready(function($){ // Makes me feel safer
                     }
                 }
             });
-			var $target = $('.new-content'); // Might be useful to further specify?
+			var $target = $('.new-content'); //TODO: Must be specified further
             $target[$(that).attr('data-attach-method')]($items);
-			$target.attr('data-items-left', $(that).attr('data-items-left'));
+			$target.attr('data-items-left', $(data).attr('data-items-left'));
+			$target.attr('data-source-href', $(data).attr('data-source-href'));
             $('#post-form').find('input[name=next_item]').val($('#new-content').attr('data-next-item'));
 			// Replace the current paginators.
 			$(that).replaceWith($('<p/>').html(data).find('a.endless-paginator[rel='+that.rel+']'));
@@ -821,11 +828,11 @@ jQuery(document).ready(function($){ // Makes me feel safer
 		var new_content_interval = a3d.personal_settings.new_content_fetch_interval;
 		$('.new-content').each(function(i,el) {
 			var $this = $(this);
-			var href = $this.attr('data-source-href');
 			$this.data('contentUpdateTimer', window.setInterval(function() {
 		        if (a3d.stop_updates) {
     		        return;
         			}
+				var href = $this.attr('data-source-href');
 				$.get(a3d.updateQS(href, 'count='+$this.attr('data-items-left')||''), function(data, status, request){
 		            if (status == 'success') {
 		                var paginator = $('<div>').append(data).find('.endless-paginator');
@@ -841,6 +848,21 @@ jQuery(document).ready(function($){ // Makes me feel safer
 		        });
 			}, $this.attr('data-content-update-interval')*1000 || new_content_interval));
 		});
+
+		/*
+		 * I'm moving these here, even though they need to be somewhere else.
+		 */
+	    window.setInterval(function(){
+	        if ($('#tags-list').is(':visible')) {
+	            updateTagsList();
+	        }
+	    }, a3d.personal_settings.tags_fetch_interval);
+	    window.setInterval(function(){
+	        if ($('#fave-list').is(':visible')) {
+	            updateFaveList();
+	        }
+	    }, a3d.personal_settings.favorites_fetch_interval);
+	    window.setInterval(updateMentionsList, a3d.personal_settings.mentions_fetch_interval);
 		return this; //TODO: Make this return a more sensible value?
 	};
 	
@@ -850,7 +872,6 @@ jQuery(document).ready(function($){ // Makes me feel safer
 		/*
 		 * TODO: Update this to work for ALL .new-content elements with the correct tags.
 		 */
-        //        var paginate_type = href.match("start=-") ? 'down' : 'up';
         var href = $('.new-content').attr('data-source-href');
         $.get(a3d.updateQS(href, 'count=true'), function(data, status, request){
             if (status == 'success') {
@@ -868,25 +889,10 @@ jQuery(document).ready(function($){ // Makes me feel safer
     };
     
     $('input#stop-updates').click(function(){
-		/*
-		 * TODO: Clear this up.
-		 */
         a3d.stop_updates = this.checked;
 		if(!a3d.stop_updates) {
 			a3d.startUpdating();
-		    window.setInterval(function(){
-		        if ($('#tags-list').is(':visible')) {
-		            updateTagsList();
-		        }
-		    }, a3d.personal_settings.tags_fetch_interval);
-		    window.setInterval(function(){
-		        if ($('#fave-list').is(':visible')) {
-		            updateFaveList();
-		        }
-		    }, a3d.personal_settings.favorites_fetch_interval);
-		    window.setInterval(updateMentionsList, a3d.personal_settings.mentions_fetch_interval);
-			
 		}
     });
-
+	a3d.startUpdating();
 });
