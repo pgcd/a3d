@@ -1,6 +1,6 @@
 {% load board_tags i18n humanize %}
 {% do_tags_list 25 %}
-<ul>
+<ul data-source-href="" data-next-item="">
 {% for p in tags_list  %}
 	<li>
 		<a href="{% url board_post_list_by_tag_title p.title %}"

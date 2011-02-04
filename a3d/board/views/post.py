@@ -388,6 +388,8 @@ def create(request, is_editing = False):
                     #TODO: Do we want to create it automatically if it doesn't exist?
                     pass
             board_signals.postdata_created.send(sender = p.__class__, request = request, instance = p)
+        else:
+            p = control #The idea here is to return the previous post.
         if request.is_ajax():
             #===================================================================
             # We need to be able to return: 

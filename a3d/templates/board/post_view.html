@@ -18,8 +18,10 @@
 	    {% block post_body %}
 	        <header><h1 class="post-title">{{ post.title }}</h1></header>
 	        {% include "board/post_info.html" %}
+			{% if post.postdata %}
 	        <div class="post-text">{{ post.postdata.body|safe }}</div>
-	        <div class="signature">{{ post.postdata.signature|safe }}</div>
+	        {% if post.postdata.signature %}<div class="signature">{{ post.postdata.signature|safe }}</div>{%endif%}
+			{% endif %}
 	    {% endblock %}
 		{% with post as parent_post %}
 			{% get_replies for parent_post as post_list %}

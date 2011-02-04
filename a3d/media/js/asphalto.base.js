@@ -166,19 +166,20 @@ jQuery(document).ready(function($){ // Makes me feel safer
                         }
                     }
                     else {
+						var $data = $(data);
 						//FIXME: This doesn't actually work in replies. Needs immediate fixing.
-						$target.attr('data-items-left', $(data).attr('data-items-left'));
-						$target.attr('data-source-href', $(data).attr('data-source-href'));
+						$target.attr('data-items-left', $data.attr('data-items-left'));
+						$target.attr('data-source-href', $data.attr('data-source-href'));
 
-
-                        $target[$form.attr('data-attach-method')](data);
-                        // reset all fields
+						//If we attach the *children* we can use the same approach for both replies and threads.
+						//TODO: Use the duplicates removing function.
+                        $target[$form.attr('data-attach-method')]($data.html());
+                        
 						
-												
+						// reset all fields
                         $form[0].reset();
                         $form.siblings('.previewtext').empty().hide();
-                        val = $('#' + $form.attr('data-attach-element')).attr('data-next-item');
-                        $form.find('input[name=next_item]').val(val);
+                        $form.find('input[name=next_item]').val($data.attr('data-next-item'));
                     }
                 },
                 beforeSend: function(xhrequest){
@@ -689,6 +690,9 @@ jQuery(document).ready(function($){ // Makes me feel safer
     });
     
     updateTagsList = function(){ // I don't like this version very much but whatever.
+    	/*
+    	 * TODO: Normalize this -> use data-source-href etc.
+    	 */
         if (a3d.stop_updates) {
             return;
         }

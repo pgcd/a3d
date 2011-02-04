@@ -7,6 +7,8 @@ admin.autodiscover()
 urlpatterns = patterns('',
     #TODO: Can we move this crap to board?
     url(r'^(?:home)?$', 'board.views.post.home', name = "board_post_list_home"),
+    url(r'^p/create$', 'board.views.post.create', name = "board_post_create"),
+    url(r'^p/preview$', 'board.views.post.preview', name = "board_post_preview"),
     url(r'^go/post_id/(?P<post_id>\d+)$', 'django.views.generic.simple.redirect_to', {'url': '/p/%(post_id)s', 'permanent': True}, name = "board_post_view"),
     url(r'^p/(?P<post_id>\d+)$', 'board.views.post.view', name = "board_post_view"),
     url(r'^p/(?P<post_id>\d+)/replies$', 'board.views.post.list_replies', name = "board_post_view_replies"),
@@ -15,8 +17,6 @@ urlpatterns = patterns('',
     url(r'^p/(?P<post_id>\d+)/mark_read$', 'board.views.post.mark_as', {'action':'read'}, name = "board_post_mark_as_read"),
     url(r'^p/(?P<post_id>\d+)/mark_unread$', 'board.views.post.mark_as', {'action':'unread'}, name = "board_post_mark_as_unread"),
     url(r'^p/(?P<post_id>\d+)/rate/(?P<action>down|up)$', 'board.views.post.rate', name = "board_post_rate"),
-    url(r'^p/create$', 'board.views.post.create', name = "board_post_create"),
-    url(r'^p/preview$', 'board.views.post.preview', name = "board_post_preview"),
 #    url(r'^p/delete$', 'board.views.post.delete', name="board_post_delete"),
     url(r'^s/(?P<search_term>.+)$', 'board.views.post.search', name = "board_post_search"),
 
