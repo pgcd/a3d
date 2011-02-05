@@ -26,6 +26,8 @@ import re
 from django.contrib.auth.models import User
 from faves.templatetags.faves import has_faved
 from django.contrib.contenttypes.models import ContentType
+import sys
+from a3d import settings
 
 
 #from django.contrib.contenttypes.models import ContentType
@@ -336,15 +338,17 @@ def create(request, is_editing = False):
     """
     #TODO: Some serious validation is required here!
     next_page = request.POST.get('next_page', '')
+    is_reply = int(request.POST.get('is_reply', 0)) > 0 #TODO: Kinda certain there's a saner way.
     form = PostDataForm(data = request.POST)
     context_instance = RequestContext(request)
     if form.is_valid():
         p = form.save(commit = False) #Here we have the basic data
         p.ip = request.META.get('REMOTE_ADDR')
         p._title = form.cleaned_data["title"]
+        p.rating = settings.A3D_BASE_SETTINGS['base_rating'] #The default - might want to provide for different cases? Perhaps Group-based
         if form.cleaned_data['username']:
             p.username = form.cleaned_data['username']
-            if (request.user.is_authenticated() and request.user.username == form.cleaned_data['username']):
+            if (request.user.is_authenticated() and request.user.username.lower() == form.cleaned_data['username'].lower()):
                 p.user_id = request.user.id
             else:
                 p.user_id = 0 
@@ -357,10 +361,10 @@ def create(request, is_editing = False):
 
         if p.user_id > 0 and len(p.body_markup) > 0:
             p.signature = getattr(request.user.get_profile(), "signature", '')
-            #FIXME: This needs attention - as it is, all posts end up in homepage when base_rating is high enough
-            #Disabled until it gets fixed
-            #p.rating = context_instance['personal_settings']["base_rating"] 
-            p.rating = context_instance['personal_settings']["base_rating"] / 4
+            #The base_rating applies ONLY to logged-in users who actually use their name.
+            if not is_reply:
+                p.rating = context_instance['personal_settings']["base_rating"]
+
         try:
             control = PostData.objects.filter(username = p.username).order_by('-pk')[0] #@UndefinedVariable
         except IndexError:
@@ -397,15 +401,11 @@ def create(request, is_editing = False):
             # - post_body if it's a reply 
             #===================================================================
             view, args, kwargs = urlresolvers.resolve(next_page)
-            is_reply = request.POST.get('is_reply', '')
-            if is_reply:
-                kwargs['post_id'] = p.pk #We change the post id to return if it's a reply
             new_req = HttpRequest()
             new_req.META['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
             new_req.user = request.user
             new_req.GET = request.GET.copy()
             new_req.GET.update({'start': request.POST.get('next_item', ''),
-                                'skip_text':True,
                                 'is_reply':is_reply,
                                 'down':True,
                                 'up': True})

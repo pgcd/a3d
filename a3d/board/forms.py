@@ -22,6 +22,7 @@ class PostDataForm(forms.ModelForm):
             self.is_reply = False
         else: 
             self.is_reply = True
+            self.next_page = self.target_object.get_replies_url()
 
         if initial is None:
             initial = {}

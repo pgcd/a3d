@@ -144,7 +144,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
         var $form = $(this), $target = $($form.attr("data-attach-element")), postData = $form.serializeArray();
         postData.push({
             name: 'is_reply',
-            value: $('.parent-post').length > 0
+            value: $('.parent-post').length > 0?1:0
         });
         if ($target) {
             $.ajax({
@@ -326,7 +326,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
     $('a.endless-paginator').live('click', function(){
         var that = this;
         var paginate_type = this.href.match("start=-") ? 'down' : 'up';
-        $.get(this.href + '&skip_text=true&' + paginate_type + '=true', function(data){
+        $.get(this.href + '&' + paginate_type + '=true', function(data){
             var $items = $(data).children('li');
             $.each($items, function(i, e){ //TODO: Update this to reflect changes in structure
                 var id = e.id;

@@ -25,12 +25,18 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'mysql'           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-DATABASE_NAME = 'a3d'             # Or path to database file if using sqlite3.
-DATABASE_USER = 'a3d'             # Not used with sqlite3.
-DATABASE_PASSWORD = 'a3d'         # Not used with sqlite3.
-DATABASE_HOST = ''             # Set to empty string for localhost. Not used with sqlite3.
-DATABASE_PORT = ''             # Set to empty string for default. Not used with sqlite3.
+DATABASES = {
+             'default': {
+                         
+                        'ENGINE' : 'django.db.backends.mysql',           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+                        'NAME' : 'a3d',             # Or path to database file if using sqlite3.
+                        'USER' : 'a3d',             # Not used with sqlite3.
+                        'PASSWORD' : 'a3d',         # Not used with sqlite3.
+                        'HOST' : '',             # Set to empty string for localhost. Not used with sqlite3.
+                        'PORT' : '',             # Set to empty string for default. Not used with sqlite3.
+                         
+                         }
+             }
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -118,7 +124,7 @@ INSTALLED_APPS = (
     'a3d.almparse',
     'a3d.board',
     'south',
-#    'django_extensions',
+    'django_extensions',
 )
 
 

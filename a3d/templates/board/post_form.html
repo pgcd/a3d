@@ -28,7 +28,7 @@
 	{{ form.object_id }}
 	{{ form.content_type }}
 	
-	<input type="hidden" name="next_page" value="{{ request.path }}" />
+	<input type="hidden" name="next_page" value="{{ form.next_page|default:request.path }}" />
 	<input type="hidden" name="next_item" value="{{ next_item }}" />
 	<input type="hidden" name="direction" value="{{ next_item_direction }}" />
 {% if tag %}
