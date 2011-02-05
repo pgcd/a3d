@@ -1,5 +1,5 @@
 {% load board_tags %}
-<li id="post-id-{{post.pk}}-container">
+<li id="post-id-{{post.pk}}-container" class="author-id-{{post.user_id}}">
 	<article id="post-id-{{post.pk}}" class="post skip-signature skip-tags {% class_tags post %} rating{{post.rating|font_by_rating}}{%if request.user.is_authenticated and post.has_new_replies%} has-new-replies{%endif%}">
 		<header><h1 class="post-title">
 			{% if post.username or post.user_id %}
