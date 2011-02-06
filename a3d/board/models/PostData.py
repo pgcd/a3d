@@ -146,7 +146,7 @@ class Post(Auditable, ExtendedAttributesManager):
         if self.replies_count or self.object_id == 0: #Not a reply, or has replies
             return reverse('board_post_view', kwargs = { 'post_id': self.pk })
         else:
-            return self.parent_url + '?start=%s' % self.pk
+            return self.parent_url + '?start=%s#replies-%s' % (self.pk, self.object_id) #TODO: Remove hardcoding?
 
     @property
     def title(self):
@@ -174,14 +174,21 @@ class Post(Auditable, ExtendedAttributesManager):
 
     @property
     def parent_url(self):
-        #model = self.content_type_id #TODO: I want to find a way of caching this
-        model = ContentType.objects.get_for_id(self.content_type_id).name
-        if model == 'post':
-            return urlresolvers.reverse('board_post_view', kwargs = {'post_id':self.object_id}) 
-        elif model == 'userprofile':
-            return urlresolvers.reverse('profiles_profile_detail', kwargs = {'username':re.sub(r'/^\[\d+\]\s+/', '', self.title)})
-        else:
+        try:
             return self.in_reply_to.get_absolute_url()
+        except AttributeError:
+            #TODO: Should we return self's url?
+            return None
+        #=======================================================================
+        # 
+        # model = ContentType.objects.get_for_id(self.content_type_id).name
+        # if model == 'post':
+        #    return urlresolvers.reverse('board_post_view', kwargs = {'post_id':self.object_id}) 
+        # elif model == 'userprofile':
+        #    return urlresolvers.reverse('profiles_profile_detail', kwargs = {'username':re.sub(r'/^\[\d+\]\s+/', '', self.title)})
+        # else:
+        #    return self.in_reply_to.get_absolute_url()
+        #=======================================================================
 
     def has_new_replies(self):
         read_last = getattr(self, 'read_last', False)
