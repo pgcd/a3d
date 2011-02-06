@@ -15,7 +15,7 @@
 			
 			{% if request.user.is_authenticated and personal_settings.all_read_before < post.last_reply %}
 				{% if not post.read_last or post.read_last < post.last_reply %}
-					/ <a href="{% url board_post_view post.pk %}?start={{post.read_last}}" title="{% trans 'Last read post' %}" class="post-link">
+					/ <a href="{% url board_post_view post.pk %}?start={{post.read_last|add:'1'}}" title="{% trans 'Last read post' %}" class="post-link">
 					{% if post.unread_replies %}
 						unread: {{post.unread_replies}}
 					{% else %}
