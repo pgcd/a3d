@@ -109,10 +109,10 @@ class Post(Auditable, ExtendedAttributesManager):
         #TODO: Make some kind of duplicate check
         parent = None
         pvt_recipient = False
-        try: 
+        try:
             pvt_recipient = User.objects.get(username = re.search('^@\[(?P<username>[^]]+)\]', self.title).group('username'))
             self.is_private = True
-        except AttributeError:
+        except AttributeError: #If the title does not start with a username-like string, we jump here.
             pass
 
         if not bool(self.reverse_timestamp):
@@ -123,7 +123,7 @@ class Post(Auditable, ExtendedAttributesManager):
                 #TODO: Don't we want to move this to a listener?
                 parent = self.in_reply_to
                 parent.reverse_timestamp = min(parent.reverse_timestamp, self.reverse_timestamp)
-                parent.replies_count = parent.replies.count() + 1 #I'd rather hit the DB than end up with the wrong numbers
+                parent.replies_count = parent.replies.public().count() + 1 #I'd rather hit the DB than end up with the wrong numbers
                 parent.last_poster_id = self.user_id
                 parent.last_poster_name = self.username
                 parent.tags.all().update(reverse_timestamp = parent.reverse_timestamp, last_attach = datetime.datetime.fromtimestamp(0xffffffff - parent.reverse_timestamp))
