@@ -28,7 +28,7 @@ register = template.import_library("board.decorators")
 
 #@ parsingTag
 class TagsList(template.Node):
-    def __init__(self, limit = 30):
+    def __init__(self, limit = 15):
         self.limit = limit
     def render(self, context):
         from board.views.tag import list as tag_list

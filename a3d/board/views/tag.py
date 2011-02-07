@@ -20,7 +20,7 @@ import datetime, time
 def list(request,
                  template_name = 'board/tag_list.html',
                  context_instance = None,
-                 limit = 30,
+                 limit = 15,
                  discard_response = False, **kwargs):
     """
     """
@@ -30,7 +30,7 @@ def list(request,
         return HttpResponseNotModified()
 
     d = {'next_item': int(time.mktime(max(tags_list, key = lambda x:x.last_attach).last_attach.timetuple())),
-         'tags_list': tags_list,
+         'tags_list': tags_list[0:int(limit)],
          }
 
     if discard_response:
