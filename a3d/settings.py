@@ -28,12 +28,12 @@ MANAGERS = ADMINS
 DATABASES = {
              'default': {
                          
-                        'ENGINE' : 'django.db.backends.mysql',           # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-                        'NAME' : 'a3d',             # Or path to database file if using sqlite3.
-                        'USER' : 'a3d',             # Not used with sqlite3.
-                        'PASSWORD' : 'a3d',         # Not used with sqlite3.
-                        'HOST' : '',             # Set to empty string for localhost. Not used with sqlite3.
-                        'PORT' : '',             # Set to empty string for default. Not used with sqlite3.
+                        'ENGINE' : 'django.db.backends.mysql', # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
+                        'NAME' : 'a3d', # Or path to database file if using sqlite3.
+                        'USER' : 'a3d', # Not used with sqlite3.
+                        'PASSWORD' : 'a3d', # Not used with sqlite3.
+                        'HOST' : '', # Set to empty string for localhost. Not used with sqlite3.
+                        'PORT' : '', # Set to empty string for default. Not used with sqlite3.
                          
                          }
              }
@@ -158,7 +158,7 @@ A3D_BASE_SETTINGS = {
     'threshold_high_rating':4,
     'post_per_page':10,
     'base_rating':1,
-    'tags_fetch_interval': 180200,
+    'tags_fetch_interval': 80200,
     'mentions_fetch_interval': 71000,
     'favorites_fetch_interval': 60500,
     'new_content_fetch_interval': 30300,

@@ -1,14 +1,14 @@
-{% load board_tags i18n humanize %}
+{% load board_tags i18n %}
 {% do_tags_list 25 %}
-<ul data-source-href="" data-next-item="">
-{% for p in tags_list  %}
-	<li>
-		<a href="{% url board_post_list_by_tag_title p.title %}"
-		data-brief-href="{% url board_post_list_by_tag_title p.title %}?info_only=True"  
+<ul data-source-href="{% url board_tags_list %}" data-next-item="{{next_item}}">
+{% for tag in tags_list  %}
+	<li id="tag-item-{{tag.title}}">
+		<a href="{% url board_post_list_by_tag_title tag.title %}"
+		data-brief-href="{% url board_post_list_by_tag_title tag.title %}?info_only=True"  
 	class="brief-available popularity-{% if forloop.counter <= 7 %}high{% else %}{% if forloop.counter <= 14 %}medium{% else %}{% if forloop.counter <= 21 %}low{% else %}very-low{% endif %}{% endif %}{% endif %}">
-		.{{ p.title }}
+		.{{ tag.title }}
 		</a>
-		<time datetime="{{p.last_attach|date:"r"}}">{{p.last_attach|sensibletime:"d/m/y"}}</time>
+		<time datetime="{{tag.last_attach|date:"r"}}">{{tag.last_attach|sensibletime:"d/m/y"}}</time>
 	</li>
 {% endfor %}	
 </ul>

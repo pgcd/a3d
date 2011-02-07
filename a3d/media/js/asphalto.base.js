@@ -696,7 +696,19 @@ jQuery(document).ready(function($){ // Makes me feel safer
         if (a3d.stop_updates) {
             return;
         }
-        $('#tags-list ul').load(a3d.url.board_tags_list + ' ul');
+		var $tags = $('#tags-list ul'); 
+		$.get(a3d.updateQS($tags.attr('data-source-href'), 'after='+$tags.attr('data-next-item')), 
+			function(data, result, req) {
+			if (result == 'success') {
+				var $data = $(data);
+				$tags.attr('data-next-item', $data.attr('data-next-item'));
+				$data.children('li').each(function(i, e) {
+					$tags.find('#'+e.id).remove();
+				});
+				$tags.prepend($data.html());
+				}
+			});
+        
     };
     
     updateMentionsList = function(){

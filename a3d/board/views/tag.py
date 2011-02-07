@@ -7,28 +7,39 @@ Created on 31/mar/2010
 from django.views.generic.list_detail import object_list
 #from django.core import serializers
 from board.models import Tag, TagAttach, Post
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotModified
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_protect
 from django.template.defaultfilters import slugify
 from django.db.utils import IntegrityError
-
+import datetime, time
 
 
 def list(request,
-                 template_name = 'board/tag_list.html', **kwargs):
+                 template_name = 'board/tag_list.html',
+                 context_instance = None,
+                 limit = 30,
+                 discard_response = False, **kwargs):
     """
-    **Template:**
-    
-    ``template_name`` keyword argument or
-    :template:`board/post_list.html`.
-    
     """
-    queryset = Tag.objects.filter(is_active = True).select_related(depth = 1)
-    kwargs['queryset'] = queryset
-    return object_list(request, template_name = template_name, **kwargs)
+    context_instance = context_instance if context_instance else RequestContext(request)
+    tags_list = Tag.objects.filter(is_active = True, last_attach__gt = datetime.datetime.fromtimestamp(int(request.GET.get('after', 0)))).order_by('-attach_count')
+    if tags_list.count() == 0:
+        return HttpResponseNotModified()
+
+    d = {'next_item': int(time.mktime(max(tags_list, key = lambda x:x.last_attach).last_attach.timetuple())),
+         'tags_list': tags_list,
+         }
+
+    if discard_response:
+        return d
+    else:
+        context_instance.update(d)
+        return render_to_response(template_name, d, context_instance)
+     
+    
 
 def list_on_post(request, post_id, template_name = 'board/tags_on_object.html', **kwargs):
     tags = Tag.objects.filter(tagattach__post__exact = post_id)

@@ -25,6 +25,9 @@ class TagAttach(models.Model):
             self.reverse_timestamp = self.post.reverse_timestamp
         t = self.tag
         t.attach_count = t.tagattach_set.count()
+        #=======================================================================
+        # NOTE: The following is meant to reflect the date of the attached post
+        #=======================================================================
         t.last_attach = datetime.datetime.fromtimestamp(0xFFFFFFFF - self.reverse_timestamp).strftime("%Y-%m-%d %H:%M:%S")
         t.reverse_timestamp = self.reverse_timestamp
         t.save()

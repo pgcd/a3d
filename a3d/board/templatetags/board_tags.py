@@ -15,16 +15,13 @@ from board.utils import EndlessPage
 from board.decorators import parsingTag
 #from django.template import RequestContext
 #from django.core.urlresolvers import reverse
-from django.template.loader import render_to_string    
+#from django.template.loader import render_to_string    
 from django.views.decorators.csrf import csrf_protect
 from django.utils import simplejson
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
-import sys
-import re
-from django.template import defaultfilters
 from django.contrib.humanize.templatetags import humanize
-from django.utils.translation import ugettext
+import sys
 
 register = template.import_library("board.decorators")
 
@@ -34,7 +31,9 @@ class TagsList(template.Node):
     def __init__(self, limit = 30):
         self.limit = limit
     def render(self, context):
-        context['tags_list'] = Tag.objects.filter(is_active = True).order_by('-attach_count')[:self.limit]
+        from board.views.tag import list as tag_list
+        d = tag_list(context['request'], limit = self.limit, discard_response = True)
+        context.update(d)
         return ''
 parsingTag(TagsList, "do_tags_list")
 

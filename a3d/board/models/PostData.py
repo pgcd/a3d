@@ -16,7 +16,7 @@ from djangosphinx.models import SphinxSearch #@UnresolvedImport
 import re
 import time
 from django.db.models.query import QuerySet
-import sys
+import datetime
 #from django.core.exceptions import ObjectDoesNotExist
 #from django.template.defaultfilters import slugify
 
@@ -120,12 +120,14 @@ class Post(Auditable, ExtendedAttributesManager):
         if self.pk: #This is an update, should perhaps do something?
             pass
         elif self.object_id: #New post, update parent accordingly
+                #TODO: Don't we want to move this to a listener?
                 parent = self.in_reply_to
                 parent.reverse_timestamp = min(parent.reverse_timestamp, self.reverse_timestamp)
                 parent.replies_count = parent.replies.count() + 1 #I'd rather hit the DB than end up with the wrong numbers
                 parent.last_poster_id = self.user_id
                 parent.last_poster_name = self.username
-                
+                parent.tags.all().update(reverse_timestamp = parent.reverse_timestamp, last_attach = datetime.datetime.fromtimestamp(0xffffffff - parent.reverse_timestamp))
+
         _ = super(Post, self).save(*args, **kwargs) # Call the "real" save() method.
         if parent:
             parent._last_reply_id = self.pk
