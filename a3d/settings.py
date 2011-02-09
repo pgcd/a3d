@@ -114,6 +114,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'django.contrib.markup',
     'django.contrib.humanize',
+    'template_utils',
     'profiles',
     'registration',
 #    'denorm',

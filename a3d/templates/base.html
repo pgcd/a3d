@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-{% load board_tags i18n %}
+{% load board_tags i18n cache feeds %}
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
@@ -28,42 +28,48 @@
 		<nav id="left">
 			<a href="/home" class="home-link ui-accordion-header ui-helper-reset ui-state-default ui-corner-all">home</a>
 			<div id="menu">
-			{% block auth %}
-			<h3>user</h3>
-			<div id="auth">
-				{% if request.user.is_authenticated %}
-				<a href="{% url django.contrib.auth.views.logout %}?next={{request.path}}" rel="logout" class="logout-user-link needs-full-refresh">logout {{request.user.username}}</a>
-				  {%if object_list %}
-				  {% with object_list|first as firstobj %}
-	            <br />
-	            <a title="{% trans 'Up to '%} {{firstobj.last_reply|default:firstobj.pk}}" href="{% url board_userprofile_all_read firstobj.last_reply|default:firstobj.pk %}?next={{request.path}}" rel="nofollow needs-full-refresh">{% trans "Mark all read" %}</a>
-				  {% endwith %}
-				  {% endif %}
-				<br />
-				<label for="stop-updates">Stop updates</label><input type="checkbox" id="stop-updates"/>
-				{% else %} 
-				 {% login_form %}
-				{% endif %}
-			</div>
-			{%endblock %}
-			{% if request.user.is_authenticated %}
-				<h3>mentions</h3>
-				<div id="mentions-list">
-					{% list_mentions_for request.user %}
+				{% block auth %}
+				<h3>user</h3>
+				<div id="auth">
+					{% if request.user.is_authenticated %}
+					<a href="{% url django.contrib.auth.views.logout %}?next={{request.path}}" rel="logout" class="logout-user-link needs-full-refresh">logout {{request.user.username}}</a>
+					  {%if object_list %}
+					  {% with object_list|first as firstobj %}
+		            <br />
+		            <a title="{% trans 'Up to '%} {{firstobj.last_reply|default:firstobj.pk}}" href="{% url board_userprofile_all_read firstobj.last_reply|default:firstobj.pk %}?next={{request.path}}" rel="nofollow needs-full-refresh">{% trans "Mark all read" %}</a>
+					  {% endwith %}
+					  {% endif %}
+					<br />
+					<label for="stop-updates">Stop updates</label><input type="checkbox" id="stop-updates"/>
+					{% else %} 
+					 {% login_form %}
+					{% endif %}
 				</div>
-			{% endif %}
-			{% if request.user.is_authenticated %}
-			<h3>stars</h3>
-			<div id="fave-list" class="scroller">
-				{% with request.user.get_profile.favorites as faves %}
-				{% include "board/fave_list.html" %}
-				{% endwith %}
-			</div>
-			{% endif %}
-			<h3>tags</h3>
-			<div id="tags-list">
-				{% include "board/tag_list.html" %}	
-			</div>
+				{%endblock %}
+				{% if request.user.is_authenticated %}
+					<h3>mentions</h3>
+					<div id="mentions-list">
+						{% list_mentions_for request.user %}
+					</div>
+				{% endif %}
+				{% if request.user.is_authenticated %}
+				<h3>stars</h3>
+				<div id="fave-list" class="scroller">
+					{% with request.user.get_profile.favorites as faves %}
+					{% include "board/fave_list.html" %}
+					{% endwith %}
+				</div>
+				{% endif %}
+				<h3>tags</h3>
+				<div id="tags-list">
+					{% include "board/tag_list.html" %}	
+				</div>
+				{% cache 30 lgcc %}
+				<h3>code updates</h3>
+				<div id="latest-googlecode-changes">
+					{% include_feed "http://code.google.com/feeds/p/a3d/hgchanges/basic" 5 board/googlecode.html %}
+				</div>
+				{% endcache %}
 			</div>
 		</nav>
 

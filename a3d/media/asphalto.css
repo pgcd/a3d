@@ -215,6 +215,22 @@ a.direct-message:before {
 	color: black;
 }
 
+#latest-googlecode-changes {
+	font-size: 80%;
+}
+
+#latest-googlecode-changes h1 {
+	font-size: 100%;
+}
+
+#latest-googlecode-changes ul,
+#latest-googlecode-changes ul li,
+ {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
 #left .home-link {
 	padding:2px;
 	display:block;
