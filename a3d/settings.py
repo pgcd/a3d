@@ -16,7 +16,7 @@ TEMPLATE_CONTEXT_PROCESSORS += (
 )
 
 
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -27,14 +27,12 @@ MANAGERS = ADMINS
 
 DATABASES = {
              'default': {
-                         
                         'ENGINE' : 'django.db.backends.mysql', # 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
                         'NAME' : 'a3d', # Or path to database file if using sqlite3.
                         'USER' : 'a3d', # Not used with sqlite3.
                         'PASSWORD' : 'a3d', # Not used with sqlite3.
                         'HOST' : '', # Set to empty string for localhost. Not used with sqlite3.
                         'PORT' : '', # Set to empty string for default. Not used with sqlite3.
-                         
                          }
              }
 
@@ -88,8 +86,8 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 #    'denorm.middleware.DenormMiddleware',
     'board.middleware.CurrentUserPageMiddleware',
-#    'debug_toolbar.middleware.DebugToolbarMiddleware',
-    'board.middleware.StatsMiddleware',
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+#    'board.middleware.StatsMiddleware',
 
 )
 
@@ -120,7 +118,7 @@ INSTALLED_APPS = (
     'registration',
 #    'denorm',
     'a3d.faves',
-#    'debug_toolbar',
+    'debug_toolbar',
     'a3d.almparse',
     'a3d.board',
     'south',
@@ -139,14 +137,14 @@ DEBUG_TOOLBAR_PANELS = (
     'debug_toolbar.panels.timer.TimerDebugPanel',
 #    'debug_toolbar.panels.headers.HeaderDebugPanel',
     'debug_toolbar.panels.request_vars.RequestVarsDebugPanel',
-#    'debug_toolbar.panels.sql.SQLDebugPanel',
+    'debug_toolbar.panels.sql.SQLDebugPanel',
     'debug_toolbar.panels.cache.CacheDebugPanel',
     'debug_toolbar.panels.logger.LoggingPanel',
     'debug_profiling.ProfilingPanel',
 )
 DEBUG_TOOLBAR_CONFIG = {
-     'INTERCEPT_REDIRECTS': False,
-     'SHOW_TOOLBAR_CALLBACK': lambda req: DEBUG and req.session.get('_auth_user_id', 0) == 77 #FIXME: Horrible hack!
+     'INTERCEPT_REDIRECTS': True,
+#     'SHOW_TOOLBAR_CALLBACK': lambda req: DEBUG and req.session.get('_auth_user_id', 0) == 77 #FIXME: Horrible hack!
 }
 
 #BOARD SPECIFIC SETTINGS

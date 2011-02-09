@@ -57,7 +57,7 @@ class ProfilesNode(template.Node):
         return ''
 
 class PostInteractionsNode(template.Node):
-    def __init__(self, lst, varname = ''):
+    def __init__(self, lst, with_parents = True, varname = ''):
         self.lst = template.Variable(lst)
         self.varname = varname
     def render(self, context):
@@ -65,7 +65,8 @@ class PostInteractionsNode(template.Node):
         user = context["request"].user
         if not user.is_authenticated():
             return ''
-        interactions = Interaction.objects.filter(object_id__in = [x.pk for x in posts], user = user).values('value', 'object_id', 'interaction_type__name', 'interaction_type__content_type_id')
+        object_pks = [x.pk for x in posts]
+        interactions = Interaction.objects.filter(object_id__in = object_pks, user = user).values('value', 'object_id', 'interaction_type__name', 'interaction_type__content_type_id')
         pdict = dict((d.pk, d) for d in posts)
         for i in interactions:
             p_id = i["object_id"]

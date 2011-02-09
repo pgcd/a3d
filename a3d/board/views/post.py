@@ -214,6 +214,13 @@ def list_replies(request,
                 context_instance = context_instance)
     last_item = "%s;%s" % (_d['last_item'] or post_id, post.replies_count - _d['items_left'])
     board_signals.post_read.send(sender = Post, obj_id = post_id, last_item = last_item, user = request.user)
+    
+    #deal with mentions in replies (and possibly other situations as well, since it actually makes sense).
+    try:
+        starting_reply = abs(int(request.GET.get('start', '')))
+        board_signals.post_read.send(sender = Post, obj_id = starting_reply, last_item = "%s;0" % starting_reply, user = request.user)
+    except ValueError:
+        pass
     if not discard_response:
         return render_to_response(template_name,
                 _d,

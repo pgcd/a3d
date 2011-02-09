@@ -8,7 +8,7 @@ import hashlib
 import sys
 
 def tripcode(s):
-    length = 9
+    length = 13
     start = len(s)
     cons = 'bcdfghjlmnprstvxzbcdfgklmnyrstvw'
     vowels = "aeioue'"

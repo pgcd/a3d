@@ -148,7 +148,7 @@ class Post(Auditable, ExtendedAttributesManager):
         if self.replies_count or self.object_id == 0: #Not a reply, or has replies
             return reverse('board_post_view', kwargs = { 'post_id': self.pk })
         else:
-            return self.parent_url + '?start=%s#replies-%s' % (self.pk, self.object_id) #TODO: Remove hardcoding?
+            return self.parent_url + '?start=%s#post-id-%s' % (self.pk, self.pk) #TODO: Remove hardcoding?
 
     @property
     def title(self):
@@ -157,13 +157,17 @@ class Post(Auditable, ExtendedAttributesManager):
     @property
     def title_as_reply(self): #Yeah, I don't like it either but I can't think of a better way right now.
         if self.replies_count > 0:
-            return self._title or "#%s" % self.pk
+            return self.title
         else:
             return self._title
 
     @property
     def last_reply(self): #TODO: Check if we want to have this return the actual object?
         return self._last_reply_id or self.pk
+
+    @property
+    def is_unread(self):
+        return bool(int(getattr(self, 'read_last', 0)) < self.last_reply)
 
     @property
     def replies(self):

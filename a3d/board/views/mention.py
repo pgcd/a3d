@@ -16,5 +16,5 @@ def mentions_list(request, limit = 10, offset = 0):
     else:
         mentions = []
     if len(mentions) == 0:
-        return HttpResponseNotModified()    
+        return HttpResponseNotModified()
     return render_to_response('board/mention_list.html', {'mentions':mentions}, context_instance)

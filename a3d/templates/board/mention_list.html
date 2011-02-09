@@ -6,8 +6,9 @@
  {% endif %}
  <li>
 	 {% with m.title|clean_mention:request.user as mtitle%}
-	 <a href="{{m.get_smart_url}}" class="post-link mention-link{%if m.title|is_direct:request.user %} direct-message{%endif%}{% if m.read_last < m.pk %} fresh-content{%endif%}" title="{{mtitle}}">
-	 	{%if m.title|is_direct:request.user %}{{m.username}}: {% endif%}{{mtitle}}
+	 <a href="{{m.get_smart_url}}"
+	 class="post-link mention-link{%if m.title|is_direct:request.user %} direct-message{%endif%}{% if m.is_unread %} fresh-content{%endif%}" title="{{mtitle}}">
+	 	{%if m.title|is_direct:request.user %}{{m.username}}{%if mtitle%}: {% endif%}{% endif%}{{mtitle}}
 	</a>
 	 {% endwith %}
 	 </li>
