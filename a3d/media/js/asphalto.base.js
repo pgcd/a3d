@@ -852,14 +852,16 @@ jQuery(document).ready(function($){ // Makes me feel safer
 				$.get(a3d.updateQS(href, 'count='+$this.attr('data-items-left')||''), function(data, status, request){
 		            if (status == 'success') {
 		                var paginator = $('<div>').append(data).find('.endless-paginator');
-						$this.attr('data-items-left', paginator.attr('data-items-left'));
-		                var old_paginator = $('.endless-paginator[rel=' + paginator.attr('rel') + ']');
-		                if (old_paginator.length) {
-		                    old_paginator.replaceWith(paginator);
-		                }
-		                else {
-		                    $this.parent()[paginator.attr('data-attach-method')](paginator);
-		                }
+						if(paginator.length) {
+							$this.attr('data-items-left', paginator.attr('data-items-left'));
+			                var old_paginator = $('.endless-paginator[rel=' + paginator.attr('rel') + ']');
+			                if (old_paginator.length) {
+			                    old_paginator.replaceWith(paginator);
+			                }
+			                else {
+			                    $this.parent()[paginator.attr('data-attach-method')](paginator);
+			                }
+						}
 		            }
 		        });
 			}, $this.attr('data-content-update-interval')*1000 || new_content_interval));
