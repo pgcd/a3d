@@ -26,21 +26,18 @@ import re
 from django.contrib.auth.models import User
 from faves.templatetags.faves import has_faved
 from django.contrib.contenttypes.models import ContentType
-import sys
 from a3d import settings
 
-
-#from django.contrib.contenttypes.models import ContentType
-#from endless_pagination.decorators import page_template
-#from django.template import loader
-#from django.http import Http404, HttpResponse
-
-#from datetime import datetime, time
 
 #I think the following should be moved to the interaction views, but right now it doesn't make a lot of sense to do so
 
 @login_required     #Shouldn't actually be required, but you never know
 def mark_as(request, post_id, action, **kwargs):
+    '''
+    @var request: The current request
+    @var post_id: The id of the Post (not PostData) object to act upon
+    @var action: 'read' or 'unread'  
+    '''
     try:
         p = Post.objects.get(pk = post_id)
         it = InteractionType.objects.get_type_for_model('read', ContentType.objects.get_for_model(Post))
@@ -57,8 +54,11 @@ def mark_as(request, post_id, action, **kwargs):
         return HttpResponseServerError()
 
 
-
-def list_by_tag_title(request, tag_title = None, **kwargs):
+def list_by_tag_title(request, tag_title, **kwargs):
+    '''
+    @var request: The current HttpRequest
+    @var tag_title: A string with the tag to search for.  
+    '''
     try:
         tag = Tag.objects.select_related('template__body').get(title__iexact = tag_title)
     except Tag.DoesNotExist: #@UndefinedVariable
@@ -72,15 +72,25 @@ def list_by_tag_title(request, tag_title = None, **kwargs):
     return _list(request, Post.objects.get_by_tag(tag.id), template_body = template_body, extra_context = extra_context, tag = tag, **kwargs)
 
 def list_tagless(request, **kwargs):
+    '''
+    @var request: The current HttpRequest
+    
+    This function returns only the posts that have no tag applied.
+    '''
     return _list(request, Post.objects.get_by_tag(0), **kwargs)
 
 def search(request, search_term, **kwargs):
+    '''
+    @var request: The current HttpRequest
+    @var search_term: String with the term to find. Currently matching only hashtags.
+    '''
     return _list(request, Post.objects.ft_search('#' + search_term), **kwargs)
 
 def home(request, **kwargs):
     """
-    List home posts
-    
+    @var request: The current HttpRequest
+    List "home" posts - that is, Posts returned by Post.objects.get_home_posts() 
+    with the current min_rating_for_home setting. 
     """
     context = RequestContext(request)
     return _list(request, Post.objects.get_home_posts(context['personal_settings']['min_rating_for_home']), context_instance = context, **kwargs)
@@ -89,12 +99,15 @@ def home(request, **kwargs):
 def _list(request, queryset, limit = None, template_name = 'board/thread_list.html', context_instance = None,
           extra_context = {}, template_body = None, **kwargs):
     """
-    It actually makes sense for this to use a "thread" list - posts are those that always have a body,
-    while those that only have a summary are threads.
+    @var request: The current HttpRequest
+    @var queryset: The queryset to list.
+
+    Utility function to list "threads" previously selected in a queryset. Please note that:
+    1) what constitutes a thread is defined by the caller function; and
+    2) the template_body var mechanism is currently not implemented.
     """
     context_instance = context_instance if context_instance else RequestContext(request, extra_context)
     tag = kwargs.get("tag")
-    
     lastcount = request.GET.get('count', None)
     if lastcount is not None:
         #this is only a count request - result should only be a number
@@ -113,7 +126,7 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     if request.GET.get('info_only', False): 
         #We use this for the brief - might require some tweaking later on
         _d = EndlessPage(queryset, 10, filter_field = 'reverse_timestamp').page(context_instance, list_name = 'post_list')
-        return render_to_response('board/post_list_brief.html',
+        return render_to_response('board/post_list_brief.html', #TODO: Remove hardcoding
                 _d,
                 context_instance = context_instance)
     
@@ -122,6 +135,7 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     else:
         paginate_by = limit or 30 # I need to enforce the hard limit for list_tagless, perhaps there's a better way.
 
+    #The actual processing takes place here.
     _d = EndlessPage(queryset.select_related('user', 'postdata'), paginate_by, filter_field = 'reverse_timestamp').page(context_instance)
     _d.update({'next_item':'-%s' % ((_d['first_item'] or 0xFFFFFFFF) - 1), 'next_item_direction':'up', 'tag':tag})
     if tag:
@@ -133,6 +147,11 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
             context_instance = context_instance)
 
 def _set_extra_attributes(request, post_obj):
+    '''
+    @var request:
+    @var post_obj:   
+    Helper function to set a few computed attributes on Post objects.
+    '''
     #TODO: Check if there's a better way to do this
     #TODO: Move this to a different module
     setattr(post_obj, 'tag_set', post_obj.tags.all())
@@ -145,9 +164,7 @@ def _set_extra_attributes(request, post_obj):
 def view(request, post_id, template_name = 'board/post_view.html',
                 info_only = False, extra_context = None):
     """
-    ``template_name`` keyword argument or
-    :template:`board/post_view.html`.
-    
+    View a single post - also used as a response for editing and creating new posts.
     """
     if info_only:
         template_name = 'board/post_info.html'
@@ -161,6 +178,7 @@ def view(request, post_id, template_name = 'board/post_view.html',
     if extra_context is None:
         extra_context = {}
     context = RequestContext(request, extra_context)
+    #The following deals with future enhancements
     for key, value in extra_context.items():
         context[key] = callable(value) and value() or value
     return render_to_response(template_name,
@@ -177,7 +195,8 @@ def list_replies(request,
                  data_only = False,
                  discard_response = False):
     """
-    This view is used for replies to posts only; for comments to user profiles we'll do something different.
+    @var discard_response: Pass this if you only want to update the context, without output to HttpResponse
+    This view is used for replies to posts only; comments to user profiles are dealt with in views.user.list_replies.
     """
     user = request.user
     context_instance = context_instance if context_instance else RequestContext(request)
@@ -190,7 +209,7 @@ def list_replies(request,
         c = EndlessPage(qs, 30).page(context_instance, count_only = True)
         if c == 0 or c == int(lastcount):
             return HttpResponseNotModified()
-        else:
+        else: #Since there are new posts, we return them, formatted with the current template
             _d = {'post_list':[],
                   'more_up':'%s' % (request.GET.get('start', '').lstrip('-')),
                   'next_item_direction':'up',
@@ -199,7 +218,7 @@ def list_replies(request,
                 _d,
                 context_instance = context_instance)
     
-    
+    #retrieve the list     
     _d = EndlessPage(qs, limit).page(context_instance, list_name = 'post_list')
     _d.update({
             'next_item':_d['last_item'] + 1,
@@ -208,10 +227,13 @@ def list_replies(request,
            })
     context_instance.update(_d)
     
+    #Check if we only want the list of the last posts, without the actual data.
+    #TODO: Check if it's possibile to remove select_related - perhaps we can make the check in the caller funcs?
     if request.GET.get('info_only', False):
         return render_to_response('board/post_list_brief.html',
                 {},
                 context_instance = context_instance)
+        
     last_item = "%s;%s" % (_d['last_item'] or post_id, post.replies_count - _d['items_left'])
     board_signals.post_read.send(sender = Post, obj_id = post_id, last_item = last_item, user = request.user)
     
@@ -221,6 +243,7 @@ def list_replies(request,
         board_signals.post_read.send(sender = Post, obj_id = starting_reply, last_item = "%s;0" % starting_reply, user = request.user)
     except ValueError:
         pass
+    #discard_response is used when calling the view from a template_tag
     if not discard_response:
         return render_to_response(template_name,
                 _d,
@@ -244,6 +267,11 @@ def list_by_user(request, username, **kwargs):
 @login_required(redirect_field_name = 'next_page')
 @require_GET
 def rate(request, post_id, action):
+    '''
+    This function has two effects: the actual rating if the user has the required permissions,
+    and the timeshift for all other users.
+    
+    '''
     #first we require some kind of check
     next_page = request.GET.get('next_page')
     post = get_object_or_404(Post.objects.select_related(), pk = post_id).with_interactions(request)
@@ -269,17 +297,7 @@ def rate(request, post_id, action):
         
         setattr(post, 'tag_set', post.tags.all())
         if request.is_ajax():
-            #======================================================================= 
-            # view, args, kwargs = urlresolvers.resolve(next_page) #@UnusedVariable
-            # if view.__name__.find('list') > -1:
-            #    template_name = 'board/thread_body.html'
-            # elif request.GET.get('as_reply') == 'true':
-            #    template_name = 'board/post_body.html'
-            # else:
-            #    template_name = 'board/post_view.html'
-            # return render_to_response(template_name, {'post':post}, context_instance = context_instance)
-            #=======================================================================
-            return view(request, post_id, info_only = True)
+            return view(request, post_id, info_only = True) #This calls this modules' view() function
         else:
             return HttpResponseRedirect(next_page) #TODO: Remove hardcode
     else: #No auth
@@ -289,19 +307,23 @@ def rate(request, post_id, action):
 @csrf_protect
 @require_POST
 def preview(request):
+    '''
+    A simple preview for Posts.
+    '''
+    #TODO: Save the preview as draft somewhere
     from almparse.parser import transform
-#    f=PostDataForm(data=request.POST)
-#    p=f.save(commit=False)
-#    board_signals.postdata_pre_create.send(sender=p.__class__, request=request, instance=p)
-#    p.postdata.body=transform(p.postdata.body_markup)
     b = request.POST.get('data')
     p = PostData(body = transform(b))
     pre_save.send(sender = PostData, request = request, instance = p)
     context_instance = RequestContext(request, {'post':p})
     return render_to_response('board/post_preview.html', {}, context_instance = context_instance)
 
+
 @csrf_protect
 def edit(request, post_id):
+    '''
+    If the request method is GET, we return the edit form; if it's POST we do the actual editing of the item.
+    '''
     if request.method == 'GET':
         data = get_object_or_404(PostData, pk = post_id)
         initial = {'title':data._title,
@@ -334,14 +356,14 @@ def edit(request, post_id):
                                       {'post':p.post_ptr, #Note: this is so that the template can retrieve all the replies; might be changed later. 
                                        'extend': p.extended_attributes},
                                       context_instance = context_instance)
-        else:
-            p = PostData(body = "DID NOT WORK", title = "DID NOT WORK")
-
+        else: #TODO: Return a meaningful response.
+            return HttpResponseNotModified()
 
 @csrf_protect
 @require_POST
-def create(request, is_editing = False):
+def create(request):
     """
+    Create a new post.
     """
     #TODO: Some serious validation is required here!
     next_page = request.POST.get('next_page', '')
@@ -353,25 +375,31 @@ def create(request, is_editing = False):
         p.ip = request.META.get('REMOTE_ADDR')
         p._title = form.cleaned_data["title"]
         p.rating = settings.A3D_BASE_SETTINGS['base_rating'] #The default - might want to provide for different cases? Perhaps Group-based
+        
+        #Fully auth'ed post, with user_id
         if form.cleaned_data['username']:
             p.username = form.cleaned_data['username']
             if (request.user.is_authenticated() and request.user.username.lower() == form.cleaned_data['username'].lower()):
                 p.user_id = request.user.id
             else:
-                p.user_id = 0 
+                p.user_id = 0
+        #Username with no password
         elif request.user.is_authenticated() and not form.cleaned_data['password']:
             p.username = request.user.username
-            p.user_id = request.user.id 
+            p.user_id = request.user.id
+        #Fully anonymous with tripcode 
         else: 
             p.username = tripcode(form.cleaned_data['password'])
             p.user_id = -1 
 
+
         if p.user_id > 0 and len(p.body_markup) > 0:
             p.signature = getattr(request.user.get_profile(), "signature", '')
-            #The base_rating applies ONLY to logged-in users who actually use their name.
+            #The base_rating applies ONLY to logged-in users who actually use their name, overriding the previously set default
             if not is_reply:
                 p.rating = context_instance['personal_settings']["base_rating"]
 
+        #Retrieve the user's previous post
         try:
             control = PostData.objects.filter(username = p.username).order_by('-pk')[0] #@UndefinedVariable
         except IndexError:
@@ -379,6 +407,7 @@ def create(request, is_editing = False):
 
         # same username
         if not control or control._title <> p._title or control.body_markup <> p.body_markup:
+            #Since we are here, the previous post is different enough to believe it's intentional
             #checking tags in title
             all_tags = re.findall(r'(?:^|\])\[(.*?[^ ])(?=\])', p._title)
             if request.POST.get('list_tag'):
@@ -387,11 +416,10 @@ def create(request, is_editing = False):
             existing_tags = Tag.objects.filter(title__in = list(set(all_tags)))
             p._title = re.sub('|'.join(['\[%s\]' % t.title for t in existing_tags]), '', p._title)
             board_signals.postdata_pre_create.send(sender = p.__class__, request = request, instance = p)
-            # Let's start with the checks
+            #The post should be mostly ready, so we can save it.
             p.save()
-            
-            
-            for newtag in existing_tags:
+
+            for newtag in existing_tags: #Create the required TagAttach records
                 try:
                     #TODO: Find a way to deal with multiples, if that is desirable
                     p.tags.through(tag = newtag, post = p, reverse_timestamp = p.reverse_timestamp).save()
@@ -400,7 +428,9 @@ def create(request, is_editing = False):
                     pass
             board_signals.postdata_created.send(sender = p.__class__, request = request, instance = p)
         else:
-            p = control #The idea here is to return the previous post.
+            p = control #There is a previous, identical post - we're simply returning it. 
+                        #TODO: Perhaps a different response would be better? 
+            
         if request.is_ajax():
             #===================================================================
             # We need to be able to return: 
@@ -418,12 +448,12 @@ def create(request, is_editing = False):
                                 'up': True})
             return view(new_req, *args, **kwargs)
         else:
-            return HttpResponseRedirect(next_page) #TODO: Remove hardcode
-    else:
-        #TODO: Some feedback would be nice
+            return HttpResponseRedirect(next_page)
+    else: #Something's wrong with the submitted form, let's display the errors.
         if request.is_ajax():
             errors = dict((k, v[0].__unicode__()) for k, v in form.errors.items())
             return HttpResponse(simplejson.dumps(errors), mimetype = 'application/json')
         else:
-            return HttpResponseRedirect(next_page) #TODO: Remove hardcode
+            #TODO: Some feedback for non-ajax enabled users?
+            return HttpResponseRedirect(next_page)
     pass
