@@ -64,7 +64,7 @@
 				<div id="tags-list">
 					{% include "board/tag_list.html" %}	
 				</div>
-				{% cache 30 lgcc %}
+				{% cache 3600 lgcc %}
 				<h3>code updates</h3>
 				<div id="latest-googlecode-changes">
 					{% include_feed "http://code.google.com/feeds/p/a3d/hgchanges/basic" 5 board/googlecode.html %}

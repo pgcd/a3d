@@ -79,7 +79,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
         addMore: function(){
             $.each(this, function(i, e){
                 var $e = $(e);
-                $e.toggleClass('more', ($e.childrenWidth() > $e.width() || e.scrollHeight > $e.height()));
+                $e.toggleClass('more', e.scrollHeight > $e.height() * 2); //If it's not at least twice the height, it means there aren't at least two rows, right?
             });
             return this;
         },

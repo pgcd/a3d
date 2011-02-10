@@ -224,7 +224,7 @@ a.direct-message:before {
 }
 
 #latest-googlecode-changes ul,
-#latest-googlecode-changes ul li,
+#latest-googlecode-changes ul li
  {
 	margin: 0;
 	padding: 0;
@@ -588,7 +588,7 @@ a#linked_quote {
     display: block;
 	overflow: hidden;
 	height: 100%;
-	width: 30em; /* TODO: Improve on this */
+	max-width: 20em; /* TODO: Improve on this */
 	line-height: 1.5em;
 	border-left: 2px #000 solid;
 	margin: 0;
@@ -624,6 +624,7 @@ a#linked_quote {
 	/*position: absolute;*/
 	border: 2px #c2833d double;
 	border-top: none;
+	z-index: 10000;
 }
 
 .more:before {
@@ -658,7 +659,8 @@ a#linked_quote {
 }
 
 .low-rating.post {
-    opacity: 0.8
+    opacity: 0.8;
+	font-size: 80%;
 }
 
 .high-rating.post {
