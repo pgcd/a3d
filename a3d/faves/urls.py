@@ -1,6 +1,6 @@
-from django.conf.urls.defaults import *
+from django.conf.urls.defaults import patterns, url
 
-from faves.views import *
+from faves.views import fave_object, unfave_object, user_faves, toggle_fave_ajax
 
 urlpatterns = patterns('',
     url(

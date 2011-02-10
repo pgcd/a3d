@@ -28,7 +28,7 @@ from a3d import settings
 #I think the following should be moved to the interaction views, but right now it doesn't make a lot of sense to do so
 
 @login_required     #Shouldn't actually be required, but you never know
-def mark_as(request, post_id, action, **kwargs):
+def mark_as(request, post_id, action, **kwargs):  #IGNORE:W0613
     '''
     @var request: The current request
     @var post_id: The id of the Post (not PostData) object to act upon
@@ -46,7 +46,7 @@ def mark_as(request, post_id, action, **kwargs):
         
         #if request.is_ajax(): #TODO: Some kind of response+template for non-ajax requests
         return view(request, post_id, info_only = True) #FIXME:I really don't like using "board.views.post.view" like this, I'd rather use a more specific addressing
-    except Post.DoesNotExist, InteractionType.DoesNotExist:
+    except Post.DoesNotExist, InteractionType.DoesNotExist: #IGNORE:E1101
         return HttpResponseServerError()
 
 
@@ -56,8 +56,8 @@ def list_by_tag_title(request, tag_title, **kwargs):
     @var tag_title: A string with the tag to search for.  
     '''
     try:
-        tag = Tag.objects.select_related('template__body').get(title__iexact = tag_title)
-    except Tag.DoesNotExist: #@UndefinedVariable
+        tag = Tag.objects.select_related('template__body').get(title__iexact = tag_title) #IGNORE:E1101
+    except Tag.DoesNotExist: #@UndefinedVariable #IGNORE:E1101
         #TODO: This view should return something different, I believe.
         return search(request, tag_title)
     try:
@@ -93,7 +93,7 @@ def home(request, **kwargs):
     
 
 def _list(request, queryset, limit = None, template_name = 'board/thread_list.html', context_instance = None,
-          extra_context = None, template_body = None, **kwargs):
+          extra_context = None, template_body = None, **kwargs): #IGNORE:W0613
     """
     @var request: The current HttpRequest
     @var queryset: The queryset to list.
@@ -155,7 +155,7 @@ def _set_extra_attributes(request, post_obj):
     setattr(post_obj, 'can_be_rated', post_obj._can_be_rated(request))
     setattr(post_obj, 'is_starred', has_faved(request.user, post_obj) if request.user.is_authenticated() else False)
     if post_obj.user_id > 0:
-        post_obj.userprofile = UserProfile.objects.get(user = post_obj.user_id)
+        post_obj.userprofile = UserProfile.objects.get(user = post_obj.user_id) #IGNORE:E1101
     return post_obj
 
 def view(request, post_id, template_name = 'board/post_view.html',
@@ -249,7 +249,7 @@ def list_replies(request,
     
     
     
-def list_by_user(request, username, **kwargs):
+def list_by_user(request, username):
     #TODO: Ehm.
     user_obj = get_object_or_404(UserProfile, user__username = username)
     context_instance = RequestContext(request, {})
@@ -399,10 +399,10 @@ def create(request):
         try:
             control = PostData.objects.filter(username = p.username).order_by('-pk')[0] #@UndefinedVariable
         except IndexError:
-            control = False
+            control = None
 
         # same username
-        if not control or control._title != p._title or control.body_markup != p.body_markup:
+        if control is None or control._title != p._title or control.body_markup != p.body_markup:
             #Since we are here, the previous post is different enough to believe it's intentional
             #checking tags in title
             all_tags = re.findall(r'(?:^|\])\[(.*?[^ ])(?=\])', p._title)
@@ -419,13 +419,13 @@ def create(request):
                 try:
                     #TODO: Find a way to deal with multiples, if that is desirable
                     p.tags.through(tag = newtag, post = p, reverse_timestamp = p.reverse_timestamp).save()
-                except Tag.DoesNotExist: #@UndefinedVariable
+                except Tag.DoesNotExist: #@UndefinedVariable #IGNORE:E1101
                     #TODO: Do we want to create it automatically if it doesn't exist?
                     pass
             board_signals.postdata_created.send(sender = p.__class__, request = request, instance = p)
         else:
             p = control #There is a previous, identical post - we're simply returning it. 
-                        #TODO: Perhaps a different response would be better? 
+                        #TODO: Perhaps a different response would be better?
             
         if request.is_ajax():
             #===================================================================

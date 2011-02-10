@@ -13,17 +13,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.db import models
 from django.db.models.query_utils import Q
-#from django.utils.translation import ugettext_lazy as _
 from faves.models import Fave
 import datetime
 import operator
-#import sys
-#from django.core.exceptions import ObjectDoesNotExist
-#from django.template.defaultfilters import slugify
-
-#from denorm import CountField, denormalized, depend_on_related
-
-#from board import signals as board_signals
 
 class UserProfile(models.Model, ExtendedAttributesManager):
     user = models.ForeignKey(User, unique = True, related_name = 'profile')
@@ -88,7 +80,7 @@ class UserProfile(models.Model, ExtendedAttributesManager):
 
     @property
     def posts(self):
-        return self.user._posts.select_related('user', 'postdata').order_by('-pk')
+        return self.user._posts.select_related('user', 'postdata').order_by('-pk')#IGNORE:W0212
 
 
     @property
@@ -163,10 +155,10 @@ class UserProfile(models.Model, ExtendedAttributesManager):
         return faves
     
     
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs): #IGNORE:W0221
         if not bool(self._last_reply_id):
             self._last_reply_id = self.pk
         super(UserProfile, self).save(*args, **kwargs) # Call the "real" save() method.    
 
-    class Meta:
+    class Meta:#IGNORE:W0232
         app_label = 'board'

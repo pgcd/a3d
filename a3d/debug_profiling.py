@@ -46,11 +46,11 @@ class ProfilingPanel(DebugPanel):
     def content(self):
         if self.stats and not self.formatted_stats:
             try:
-                buffer = StringIO.StringIO()
-                self.stats.stream = buffer
+                buffr = StringIO.StringIO()
+                self.stats.stream = buffr
                 self.stats.sort_stats('time', 'calls')
                 self.stats.print_stats(100)
-                self.formatted_stats = buffer.getvalue()
+                self.formatted_stats = buffr.getvalue()
             except:
                 print "Error getting hotshot stats:"
                 traceback.print_exc()

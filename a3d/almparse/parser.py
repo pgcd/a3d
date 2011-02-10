@@ -6,12 +6,6 @@ Created on 29/mag/2010
 import re
 from django.utils.html import escape
 from almparse.signals import parsing_done
-#import urllib
-#def escape(string):
-#        subst=r'([\'"<>]|[\x7f-\xff])'
-#        entities={'"':'&quot;', "'":'&#39;', ">":'&gt;', "<":'&lt;'}
-#        repl=lambda x: '%s'%entities[x.group(0)] if x.group(0) in entities else ord(x.group(0))
-#        return re.sub(subst, repl, string)
 
 
 class Node(object):
@@ -32,13 +26,15 @@ class Node(object):
 
     
     def update_attributes(self, body, basedict = None):
-        at = True
+        _ = True
         basedict = basedict or {}
-        while at:
+        while _:
             at = re.search(r'^(\((?P<key>\w+):(?P<quote>[\'"]?)(?P<val>.*?)(?P=quote)\))(?!\s)', body)
-            if at:
+            if at is not None:
                 basedict.update({at.group('key'):at.group('val')})
                 body = body[at.end():]
+            else:
+                _ = False
         attrs = self.attrs.copy()
         attrs.update(basedict)
         return (body, attrs)
@@ -62,7 +58,7 @@ class Node(object):
             for i, p in enumerate(prlst):
                 if x[1].regex_priority == p:
                     regexlst[i].append(x[1].regex)
-                    break;
+                    break
             else:
                 pass # uh? if parsing reaches this point there's a bug
 
@@ -82,7 +78,7 @@ class Node(object):
             result = body
         return result
     
-    def parse(self, text, groupdict = ''):
+    def parse(self, text, groupdict = None):  #IGNORE:W0613
         def xlate(t):
             rx = self.build_regex()
             m = rx.search(t)
@@ -105,21 +101,21 @@ class Node(object):
         return self.build(xlate(text), attrs)
 
 class RawHtmlNode(Node):
-    def parse(self, body, *args, **kwargs):
-        return escape(body)
+    def parse(self, text, groupdict = None, *args, **kwargs):#IGNORE:W0613
+        return escape(text)
 
 class CodeNode(Node):
-    def parse(self, body, *args, **kwargs):
-        return super(CodeNode, self).parse(re.sub('\n', '<br />', escape(body)), *args, **kwargs)
+    def parse(self, text, groupdict = None, *args, **kwargs):#IGNORE:W0613
+        return super(CodeNode, self).parse(re.sub('\n', '<br />', escape(text)), *args, **kwargs)
 
 
 class LineBreakNode(Node):
-    def parse(self, body, *args, **kwargs):
+    def parse(self, text, groupdict = None, *args, **kwargs):#IGNORE:W0613
         return '<br />'
 
     
 class LinkNode(Node):
-    def update_attributes(self, body):
+    def update_attributes(self, body, basedict = None):
         attrs = self.attrs.copy()
         match = re.search(r'^\s*(?P<href>\S+)\s*((?P<q>[\'"]?)(?P<content>(.+)?)(?P=q))?\s*$', body)
         if match: #TODO: fix regex do that this check is unnecessary
@@ -131,7 +127,7 @@ class LinkNode(Node):
         return (body, attrs)
 
 class QuoteNode(Node):
-    def update_attributes(self, body):
+    def update_attributes(self, body, basedict = None):
         attrs = self.attrs.copy()
         body = re.sub(r'(?P<st>^|\n)>\s?', '\g<st>', body)
         try:
@@ -158,7 +154,7 @@ class QuoteNode(Node):
 
 
 class ImgNode(Node):
-    def update_attributes(self, body):
+    def update_attributes(self, body, basedict = None):
         body, attrs = super(ImgNode, self).update_attributes(body)
         match = re.search(r'(?m)^\s*(?P<src>\S+)\s*((?P<q>[\'"]?)(?P<title>(.+?)?)(?P=q)?)?\s*$', body)
         if match: #TODO: fix regex do that this check is unnecessary
@@ -169,19 +165,19 @@ class ImgNode(Node):
         return ('', attrs)
 
 class AutoImgNode(Node):
-    def update_attributes(self, body):
+    def update_attributes(self, body, basedict = None):
         attrs = self.attrs.copy()
         attrs['src'] = attrs['alt'] = body
         return ('', attrs)
 
 class AutoLinkNode(Node):
-    def update_attributes(self, body):
+    def update_attributes(self, body, basedict = None):
         attrs = self.attrs.copy()
         attrs['href'] = body
         return (body, attrs)
    
 class ListNode(Node):
-    def parse(self, text, groupdict):
+    def parse(self, text, groupdict = None):
         list_marker = groupdict.get('list_marker') or groupdict.get('ol_marker') or groupdict.get('ul_marker')
         tabs = ' ' * (len(list_marker))
         regex = r'''(?x)(?s)
@@ -212,11 +208,11 @@ class ListNode(Node):
         return '\n' + tabs + self.build(xlate(text), {}) + '\n'
 
 class MacroNode(Node):
-    def parse(self, text, groupdict):
+    def parse(self, text, groupdict = None):
         from almparse.models import Macro
         try:
-            m = Macro.objects.get(name = groupdict['macro_name']) #TODO: Filter by user/group/perm
-        except Macro.DoesNotExist: #@UndefinedVariable
+            m = Macro.objects.get(name = groupdict['macro_name']) #TODO: Filter by user/group/perm #IGNORE:E1101
+        except Macro.DoesNotExist: #@UndefinedVariable #IGNORE:E1101
             return groupdict['macro'].replace('%}', " -- macro not available%}" + groupdict['macro_name']) #TODO: Something prettier
         if m.regex_match:
             if groupdict.get('macro_content'):
@@ -335,11 +331,11 @@ Nodes['a'].children = {'autoimg':Nodes['autoimg'], 'img':Nodes['img']}
 Nodes['autolink'].children = {}
 Nodes['code'].children = {} #{'br': Nodes['br']}
 
-def transform(input):
+def transform(instr):
     """
     This is actually the main function.
     """
     root = Node(children = Nodes)
-    r = root.parse(input)
+    r = root.parse(instr)
     parsing_done.send(root.__class__, text = r)
     return unicode(r)

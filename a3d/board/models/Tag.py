@@ -20,7 +20,7 @@ class TagAttach(models.Model):
     
     def __unicode__(self):
         return "%s: %s" % (self.tag, self.post)
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs):#IGNORE:W0221
         if self.reverse_timestamp is None and self.post is not None:
             self.reverse_timestamp = self.post.reverse_timestamp
         t = self.tag
@@ -33,7 +33,7 @@ class TagAttach(models.Model):
         t.save()
         super(TagAttach, self).save(*args, **kwargs)
         
-    class Meta:
+    class Meta:#IGNORE:W0232
         unique_together = ('tag', 'post')
         app_label = 'board'
 
@@ -59,7 +59,10 @@ class Tag(Auditable, ExtendedAttributesManager):
 
     @models.permalink
     def get_absolute_url(self):
+        '''
+        
+        '''
         return ('board_post_list_by_tag_title', (), { 'tag_title': self.title })
     
-    class Meta:
+    class Meta: #IGNORE:W0232
         app_label = 'board'

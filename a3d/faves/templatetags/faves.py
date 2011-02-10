@@ -138,7 +138,7 @@ class GetFavoritesForUserNode(template.Node):
         try:
             user = resolve_variable(self.user, context)
             if self.model:
-                [app_label, model_name] = model.split('.')
+                [app_label, model_name] = self.model.split('.')
                 content_type = ContentType.objects.get(app_label = app_label, model = model_name)
                 context[self.varname] = Fave.objects.active().filter(type__slug = self.fave_type_slug, user = user, content_type = content_type)
             else:    
@@ -183,7 +183,7 @@ class GetFavoritedNode(template.Node):
     def __init__(self, object_list, user, fave_type_slug, varname):
         self.object_list, self.user, self.fave_type_slug, self.varname = object_list, user, fave_type_slug, varname
         
-    def return_results(self):
+    def return_results(self, context):
         context[self.varname] = self.faves_dict
 
     def render(self, context):
@@ -191,9 +191,9 @@ class GetFavoritedNode(template.Node):
             user = resolve_variable(self.user, context)
             self.objects = resolve_variable(self.object_list, context)                         
 
-            ''' allow single object to be passed by putting it into list '''
+            #allow single object to be passed by putting it into list
             try:  
-                it = iter(self.objects)
+                _ = iter(self.objects)
             except TypeError: 
                 self.objects = [self.objects]
                 
@@ -205,7 +205,7 @@ class GetFavoritedNode(template.Node):
                                                  object_id__in = [item.id for item in self.objects])            
             self.faves_dict = dict((fave.object_id, fave) for fave in list(faves))            
             
-            self.return_results()
+            self.return_results(context)
         except:
             pass
         return ''
@@ -243,9 +243,9 @@ def get_favorited(parser, token):
 
 class InjectFavesToNode(GetFavoritedNode):
     def return_results(self):
-        for object in self.objects:
-            if self.faves_dict.has_key(object.id):
-                object.__setattr__(self.varname, self.faves_dict[object.id])        
+        for obj in self.objects:
+            if self.faves_dict.has_key(obj.id):
+                obj.__setattr__(self.varname, self.faves_dict[obj.id])        
 
 @register.tag
 def inject_faves_to(parser, token):

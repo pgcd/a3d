@@ -4,8 +4,6 @@ Created on 31/mar/2010
 @author: pgcd
 '''
 # Create your views here.
-from django.views.generic.list_detail import object_list
-#from django.core import serializers
 from board.models import Tag, TagAttach, Post
 from django.http import HttpResponse, HttpResponseNotModified
 from django.shortcuts import get_object_or_404, render_to_response

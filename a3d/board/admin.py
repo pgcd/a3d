@@ -1,8 +1,13 @@
 from django.contrib import admin
 from django.contrib.contenttypes.generic import GenericTabularInline
 from django.contrib.auth.admin import UserAdmin
-from board.models import *
 from faves.models import Fave
+from board.models.base import ExtendedAttributeValue, Ignore, Interaction, \
+    Mention, Template, InteractionType, ExtendedAttribute
+from board.models.UserProfile import UserProfile
+from django.contrib.auth.models import User
+from board.models.Tag import TagAttach, Tag
+from board.models.PostData import Post, PostData
 
 
 class ExtendedValueInline(GenericTabularInline):
@@ -28,7 +33,7 @@ class UserProfileInline(admin.StackedInline):
     model = UserProfile
 
 class UserAdmin(admin.ModelAdmin):
-    inlines = [UserProfileInline, ExtendedValueInline, FaveInline,]
+    inlines = [UserProfileInline, ExtendedValueInline, FaveInline, ]
     list_display = ('username', 'email',)
     search_fields = ['username', 'email', ]
 

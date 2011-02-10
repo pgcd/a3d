@@ -21,7 +21,6 @@ from django.utils import simplejson
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.contrib.humanize.templatetags import humanize
-import sys
 
 register = template.import_library("board.decorators")
 
@@ -218,25 +217,13 @@ class RepliesToken(template.Node):
         
         ct = ContentType.objects.get_for_model(obj).name
         if ct == 'post':
-            from board.views.post import list_replies
-            list_replies(context["request"], obj.pk, context, discard_response = True)
+            from board.views.post import list_replies as post_replies
+            post_replies(context["request"], obj.pk, context, discard_response = True)
             return ''
         if ct == 'user profile':
-            from board.views.userprofile import list_replies
-            list_replies(context["request"], obj.user.username, context, discard_response = True)
+            from board.views.userprofile import list_replies as profile_comments
+            profile_comments(context["request"], obj.user.username, context, discard_response = True)
             return ''
-            
-#        user = context["request"].user
-#        limit = context['personal_settings']['post_per_page']
-#        qs = obj.replies.public(user).tag_match(context["request"]) #Only public and user-specific replies
-#        _d = EndlessPage(qs, limit).page(context, list_name = self.var_name)
-#        _d.update({
-#                'next_item':_d['last_item'] + 1,
-#                'next_item_direction':'down',
-#               })
-#        context.update(_d)
-#        last_item = "%s;%s" % (_d['last_item'] or obj.pk, obj.replies_count - _d['items_left'])
-#        board_signals.post_read.send(sender = obj.__class__, obj_id = obj.pk, last_item = last_item, user = context["request"].user)
         return ''
 parsingTag(RepliesToken, "get_replies", required = 1)
 

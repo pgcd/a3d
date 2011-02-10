@@ -57,7 +57,7 @@ def _modified(path):
         # If any exception occured, likely that file has been
         # been removed just before stat(), so force a restart.
 
-        return True
+        return True  #IGNORE:W0702
 
     return False
 
@@ -88,7 +88,7 @@ def _monitor():
         try:
             return _queue.get(timeout = _interval)
         except:
-            pass
+            pass #IGNORE:W0702
 
 _thread = threading.Thread(target = _monitor)
 _thread.setDaemon(True)
@@ -97,7 +97,7 @@ def _exiting():
     try:
         _queue.put(True)
     except:
-        pass
+        pass #IGNORE:W0702
     _thread.join()
 
 atexit.register(_exiting)
@@ -107,11 +107,11 @@ def track(path):
         _files.append(path)
 
 def start(interval = 1.0):
-    global _interval
+    global _interval #IGNORE:W0603
     if interval < _interval:
         _interval = interval
 
-    global _running
+    global _running  #IGNORE:W0603
     _lock.acquire()
     if not _running:
         prefix = 'monitor (pid=%d):' % os.getpid()

@@ -55,7 +55,7 @@ class StatsMiddleware(object):
 
 
 class CurrentUserPageMiddleware(object):
-    def process_view(self, request, view_func, view_args, view_kwargs):
+    def process_view(self, request, view_func, view_args, view_kwargs):#IGNORE:W0613
         u = request.user
         if u.is_anonymous():
             return
