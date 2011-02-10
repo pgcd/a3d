@@ -79,7 +79,12 @@ jQuery(document).ready(function($){ // Makes me feel safer
         addMore: function(){
             $.each(this, function(i, e){
                 var $e = $(e);
-                $e.toggleClass('more', e.scrollHeight > $e.height() * 2); //If it's not at least twice the height, it means there aren't at least two rows, right?
+				//If it's not at least twice the height, it means there aren't at least two rows, right?
+				/*
+				 * Well, it appears it is not so. Two lines with line-height 13 might end up being 25px,
+				 * or two lines with line-height 11 might end up being 20px scrollHeight. So 1.5 times it is.
+				 */
+                $e.toggleClass('more', e.scrollHeight >= parseFloat($e.css('line-height')) * 1.5);
             });
             return this;
         },
@@ -266,7 +271,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
         else {
             $t.removeClass('show-all').addMore();
         }
-    }).parent().addMore();
+    }).addMore();
     
     
     $('.tag-link-container').live('hover', function(event){

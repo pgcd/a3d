@@ -628,7 +628,7 @@ a#linked_quote {
 }
 
 .more:before {
-	content:'\2026';
+	content:'\2207';
 	float:right;
 	display:block;
 }
@@ -659,7 +659,7 @@ a#linked_quote {
 }
 
 .low-rating.post {
-    opacity: 0.8;
+    opacity: 0.75;
 	font-size: 80%;
 }
 
