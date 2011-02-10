@@ -4,7 +4,6 @@ Created on 02/feb/2011
 @author: P.Dente
 '''
 import StringIO
-import hotshot
 import hotshot.stats
 import os
 import tempfile

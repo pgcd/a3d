@@ -5,7 +5,6 @@
 
 from django.conf import settings
 import hashlib
-import sys
 
 def tripcode(s):
     length = 13
@@ -97,7 +96,7 @@ class EndlessPage(object):
             try:
                 start = int(start)
                 if start < 0: #We're trying to retrieve the last per_page items up to :start
-                    self.queryset_or_list = self.queryset_or_list.filter(**{"%s__lte" % self.filter_field: abs(start)})
+                    self.queryset_or_list = self.queryset_or_list.filter(**{"%s__lte" % self.filter_field: abs(start)}) #IGNORE:W0142
                     qs = self.queryset_or_list.order_by(self.filter_field).reverse()
                     if count_only:
                         return qs.count()
@@ -109,7 +108,7 @@ class EndlessPage(object):
                         more_down = getattr(object_list.pop(0), self.filter_field)
                     more_up = abs(start) + 1
                 else: # Regular :start, so we're using it as lower bound
-                    self.queryset_or_list = self.queryset_or_list.filter(**{"%s__gte" % self.filter_field: start})
+                    self.queryset_or_list = self.queryset_or_list.filter(**{"%s__gte" % self.filter_field: start}) #IGNORE:W0142
                     qs = self.queryset_or_list
                     if count_only:
                         return qs.count()

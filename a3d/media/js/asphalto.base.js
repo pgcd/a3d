@@ -584,8 +584,8 @@ jQuery(document).ready(function($){ // Makes me feel safer
 				$.get($this.attr('data-brief-href'), function(data) {
 					$('.ajaxInProgress').removeClass('ajaxInProgress');
 					$floater = $(data).appendTo('body');
-					$floater.css({position:'absolute',left:ev.clientX, top:ev.clientY})
-				})				
+					$floater.css({position:'absolute',left:ev.clientX, top:ev.clientY});
+				});
 			},250);
 			$this.data('timeout', timeout);
 		} else {

@@ -91,6 +91,7 @@
 
 	<script type="text/javascript" src="{{media_url}}js/alm.js"></script>	
 	<script type="text/javascript">
+		<!--
 			var a3d = (function(){
 				stop_updates = false; // TODO: Move this to settings
 				personal_settings = {{ personal_settings|jsonify|safe }};
@@ -111,6 +112,7 @@
 			    } );
 				return this;
 			})();
+	// -->
 	</script>
 	
 	{% block javascript %}

@@ -3,10 +3,6 @@ Created on 31/mar/2010
 
 @author: pgcd
 '''
-
-
-# Create your views here.
-#from board.views.list_detail import object_list
 from django.shortcuts import get_object_or_404, render_to_response
 from django.template import RequestContext
 from django.http import HttpResponseRedirect, HttpResponse, HttpRequest, \
@@ -97,7 +93,7 @@ def home(request, **kwargs):
     
 
 def _list(request, queryset, limit = None, template_name = 'board/thread_list.html', context_instance = None,
-          extra_context = {}, template_body = None, **kwargs):
+          extra_context = None, template_body = None, **kwargs):
     """
     @var request: The current HttpRequest
     @var queryset: The queryset to list.
@@ -106,6 +102,7 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     1) what constitutes a thread is defined by the caller function; and
     2) the template_body var mechanism is currently not implemented.
     """
+    extra_context = extra_context or {}
     context_instance = context_instance if context_instance else RequestContext(request, extra_context)
     tag = kwargs.get("tag")
     lastcount = request.GET.get('count', None)
@@ -159,7 +156,7 @@ def _set_extra_attributes(request, post_obj):
     setattr(post_obj, 'is_starred', has_faved(request.user, post_obj) if request.user.is_authenticated() else False)
     if post_obj.user_id > 0:
         post_obj.userprofile = UserProfile.objects.get(user = post_obj.user_id)
-    return post_obj;
+    return post_obj
 
 def view(request, post_id, template_name = 'board/post_view.html',
                 info_only = False, extra_context = None):
@@ -192,7 +189,6 @@ def list_replies(request,
                  post_id,
                  context_instance = None,
                  template_name = 'board/post_list.html',
-                 data_only = False,
                  discard_response = False):
     """
     @var discard_response: Pass this if you only want to update the context, without output to HttpResponse
@@ -406,7 +402,7 @@ def create(request):
             control = False
 
         # same username
-        if not control or control._title <> p._title or control.body_markup <> p.body_markup:
+        if not control or control._title != p._title or control.body_markup != p.body_markup:
             #Since we are here, the previous post is different enough to believe it's intentional
             #checking tags in title
             all_tags = re.findall(r'(?:^|\])\[(.*?[^ ])(?=\])', p._title)
@@ -437,7 +433,7 @@ def create(request):
             # - post_view if it's a new topic
             # - post_body if it's a reply 
             #===================================================================
-            view, args, kwargs = urlresolvers.resolve(next_page)
+            expected_view, args, kwargs = urlresolvers.resolve(next_page)
             new_req = HttpRequest()
             new_req.META['HTTP_X_REQUESTED_WITH'] = 'XMLHttpRequest'
             new_req.user = request.user
@@ -446,7 +442,7 @@ def create(request):
                                 'is_reply':is_reply,
                                 'down':True,
                                 'up': True})
-            return view(new_req, *args, **kwargs)
+            return expected_view(new_req, args, kwargs)
         else:
             return HttpResponseRedirect(next_page)
     else: #Something's wrong with the submitted form, let's display the errors.
@@ -456,4 +452,3 @@ def create(request):
         else:
             #TODO: Some feedback for non-ajax enabled users?
             return HttpResponseRedirect(next_page)
-    pass

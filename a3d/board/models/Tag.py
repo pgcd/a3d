@@ -4,7 +4,7 @@ Created on 22/mag/2010
 @author: pgcd
 '''
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
+#from django.utils.translation import ugettext_lazy as _
 from django.contrib.contenttypes import generic
 #from django.conf import settings
 import datetime

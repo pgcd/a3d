@@ -7,9 +7,7 @@ Created on 21/giu/2010
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from django.views.decorators.http import require_POST
-import sys
 from django.core.urlresolvers import resolve
-from django.contrib.contenttypes.models import ContentType
 from board.models.PostData import Post
 from board.models.Tag import Tag
 from django.contrib.auth.models import User

@@ -7,7 +7,6 @@ import re
 from operator import add
 from time import time
 from django.db import connection
-import sys
 import datetime
 
 class StatsMiddleware(object):

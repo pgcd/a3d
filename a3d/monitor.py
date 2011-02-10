@@ -5,27 +5,26 @@ Created on 11/giu/2010
 '''
 import os
 import sys
-import time
 import signal
 import threading
 import atexit
 import Queue
 import ctypes
 
-_interval=1.0
-_times={}
-_files=[]
+_interval = 1.0
+_times = {}
+_files = []
 
-_running=False
-_queue=Queue.Queue()
-_lock=threading.Lock()
+_running = False
+_queue = Queue.Queue()
+_lock = threading.Lock()
 
 def _restart(path):
     _queue.put(True)
-    prefix='monitor (pid=%d):'%os.getpid()
-    print>>sys.stderr, '%s Change detected to \'%s\'.'%(prefix, path)
-    print>>sys.stderr, '%s Triggering process restart.'%prefix
-    if sys.platform=='win32':
+    prefix = 'monitor (pid=%d):' % os.getpid()
+    print >> sys.stderr, '%s Change detected to \'%s\'.' % (prefix, path)
+    print >> sys.stderr, '%s Triggering process restart.' % prefix
+    if sys.platform == 'win32':
         ctypes.windll.libhttpd.ap_signal_parent(1)
     else:
         os.kill(os.getpid(), signal.SIGINT) #@UndefinedVariable
@@ -44,15 +43,15 @@ def _modified(path):
 
         # Check for when file last modified.
 
-        mtime=os.stat(path).st_mtime
+        mtime = os.stat(path).st_mtime
         if path not in _times:
-            _times[path]=mtime
+            _times[path] = mtime
 
         # Force restart when modification time has changed, even
         # if time now older, as that could indicate older file
         # has been restored.
 
-        if mtime!=_times[path]:
+        if mtime != _times[path]:
             return True
     except:
         # If any exception occured, likely that file has been
@@ -69,11 +68,11 @@ def _monitor():
         for module in sys.modules.values():
             if not hasattr(module, '__file__'):
                 continue
-            path=getattr(module, '__file__')
+            path = getattr(module, '__file__')
             if not path:
                 continue
             if os.path.splitext(path)[1] in ['.pyc', '.pyo', '.pyd']:
-                path=path[:-1]
+                path = path[:-1]
             if _modified(path):
                 return _restart(path)
 
@@ -87,11 +86,11 @@ def _monitor():
         # Go to sleep for specified interval.
 
         try:
-            return _queue.get(timeout=_interval)
+            return _queue.get(timeout = _interval)
         except:
             pass
 
-_thread=threading.Thread(target=_monitor)
+_thread = threading.Thread(target = _monitor)
 _thread.setDaemon(True)
 
 def _exiting():
@@ -107,16 +106,16 @@ def track(path):
     if not path in _files:
         _files.append(path)
 
-def start(interval=1.0):
+def start(interval = 1.0):
     global _interval
-    if interval<_interval:
-        _interval=interval
+    if interval < _interval:
+        _interval = interval
 
     global _running
     _lock.acquire()
     if not _running:
-        prefix='monitor (pid=%d):'%os.getpid()
-        print>>sys.stderr, '%s Starting change monitor.'%prefix
-        _running=True
+        prefix = 'monitor (pid=%d):' % os.getpid()
+        print >> sys.stderr, '%s Starting change monitor.' % prefix
+        _running = True
         _thread.start()
     _lock.release()

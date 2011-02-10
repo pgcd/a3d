@@ -1,7 +1,5 @@
-import datetime
-
 from django import template
-from django.template import Library, Node
+from django.template import Library
 from django.contrib.contenttypes.models import ContentType
 from django.template import resolve_variable
 from django.core.urlresolvers import reverse
@@ -21,7 +19,7 @@ def validate_template_tag_params(bits, arguments_count, keyword_positions):
         for ex. {2:'by', 4:'of', 5:'type', 7:'as'}).            
     '''    
     
-    if len(bits) != arguments_count+1:
+    if len(bits) != arguments_count + 1:
         raise template.TemplateSyntaxError("'%s' tag takes %d arguments" % (bits[0], arguments_count,))
     
     for pos in keyword_positions:
@@ -41,7 +39,7 @@ def has_faved(value, arg):
     user = value
     object = arg
     try:
-        fave = Fave.objects.get_for_model(object).get(user=user, object_id=object.id, withdrawn=False)
+        fave = Fave.objects.get_for_model(object).get(user = user, object_id = object.id, withdrawn = False)
     except Fave.DoesNotExist:
         return False
     
@@ -57,7 +55,7 @@ def is_favorited(value, arg):
     
 
 @register.simple_tag
-def get_toggle_fave_url(object, fave_type_slug='favorites'):
+def get_toggle_fave_url(object, fave_type_slug = 'favorites'):
     """
     Given an object, returns the URL for "toggle favorite for this item".
     Optionally takes a second argument, which is the slug of a 
@@ -73,13 +71,13 @@ def get_toggle_fave_url(object, fave_type_slug='favorites'):
     """
     try:        
         content_type = ContentType.objects.get_for_model(object)
-        return reverse('toggle_fave', args=(fave_type_slug, content_type.id, object.id))
+        return reverse('toggle_fave', args = (fave_type_slug, content_type.id, object.id))
     except:
         return ''
 
 
 @register.simple_tag
-def get_fave_url(object, fave_type_slug='favorites'):
+def get_fave_url(object, fave_type_slug = 'favorites'):
     """
     Given an object, returns the URL for "favorite this item".
     Optionally takes a second argument, which is the slug of a 
@@ -99,12 +97,12 @@ def get_fave_url(object, fave_type_slug='favorites'):
     """
     try:
         content_type = ContentType.objects.get_for_model(object)
-        return reverse('fave_object', args=(fave_type_slug, content_type.id, object.id))
+        return reverse('fave_object', args = (fave_type_slug, content_type.id, object.id))
     except:
         return ''
 
 @register.simple_tag
-def get_unfave_url(object, fave_type_slug='favorites'):
+def get_unfave_url(object, fave_type_slug = 'favorites'):
     """
     Given an object, returns the URL for "unfavorite this item."
     Optionally takes a second argument, which is the slug of a 
@@ -124,7 +122,7 @@ def get_unfave_url(object, fave_type_slug='favorites'):
     """
     try:
         content_type = ContentType.objects.get_for_model(object)
-        return reverse('unfave_object', kwargs={'fave_type_slug': fave_type_slug, 
+        return reverse('unfave_object', kwargs = {'fave_type_slug': fave_type_slug,
                                                 'content_type_id': content_type.id,
                                                 'object_id': object.id})
     except:
@@ -141,10 +139,10 @@ class GetFavoritesForUserNode(template.Node):
             user = resolve_variable(self.user, context)
             if self.model:
                 [app_label, model_name] = model.split('.')
-                content_type = ContentType.objects.get(app_label=app_label, model=model_name)
-                context[self.varname] = Fave.objects.active().filter(type__slug=self.fave_type_slug, user=user, content_type=content_type)
+                content_type = ContentType.objects.get(app_label = app_label, model = model_name)
+                context[self.varname] = Fave.objects.active().filter(type__slug = self.fave_type_slug, user = user, content_type = content_type)
             else:    
-                context[self.varname] = Fave.objects.active().filter(type__slug=self.fave_type_slug, user=user)
+                context[self.varname] = Fave.objects.active().filter(type__slug = self.fave_type_slug, user = user)
         except:
             pass
         return ''
@@ -166,7 +164,7 @@ def get_faves_for_user(parser, token):
 
     """
     bits = token.contents.split()
-    if len(bits) not in [7,8]:
+    if len(bits) not in [7, 8]:
         raise template.TemplateSyntaxError("'%s' tag takes six or seven arguments" % bits[0])
     if bits[2] != 'of':
         raise template.TemplateSyntaxError("second argument to '%s' tag must be 'of'" % bits[0])
@@ -201,10 +199,10 @@ class GetFavoritedNode(template.Node):
                 
             content_type = ContentType.objects.get_for_model(self.objects[0])
             
-            faves = Fave.objects.active().filter(type__slug=self.fave_type_slug, 
-                                                 user=user, 
-                                                 content_type=content_type,
-                                                 object_id__in=[item.id for item in self.objects])            
+            faves = Fave.objects.active().filter(type__slug = self.fave_type_slug,
+                                                 user = user,
+                                                 content_type = content_type,
+                                                 object_id__in = [item.id for item in self.objects])            
             self.faves_dict = dict((fave.object_id, fave) for fave in list(faves))            
             
             self.return_results()
@@ -287,7 +285,7 @@ class GetFavoriteNode(template.Node):
             object = resolve_variable(self.object, context)
             content_type = ContentType.objects.get_for_model(object)
             try:
-                fave = Fave.active_objects.get(type__slug=self.fave_type_slug, user=user, content_type=content_type, object_id=object.id)
+                fave = Fave.active_objects.get(type__slug = self.fave_type_slug, user = user, content_type = content_type, object_id = object.id)
             except:
                 fave = None
             context[self.varname] = fave

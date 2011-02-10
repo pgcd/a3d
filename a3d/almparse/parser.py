@@ -6,7 +6,6 @@ Created on 29/mag/2010
 import re
 from django.utils.html import escape
 from almparse.signals import parsing_done
-import sys
 #import urllib
 #def escape(string):
 #        subst=r'([\'"<>]|[\x7f-\xff])'
