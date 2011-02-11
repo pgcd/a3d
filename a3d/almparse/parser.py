@@ -211,8 +211,8 @@ class MacroNode(Node):
     def parse(self, text, groupdict = None):
         from almparse.models import Macro
         try:
-            m = Macro.objects.get(name = groupdict['macro_name']) #TODO: Filter by user/group/perm #IGNORE:E1101
-        except Macro.DoesNotExist: #@UndefinedVariable #IGNORE:E1101
+            m = Macro.objects.get(name = groupdict['macro_name']) #TODO: Filter by user/group/perm
+        except Macro.DoesNotExist: #@UndefinedVariable
             return groupdict['macro'].replace('%}', " -- macro not available%}" + groupdict['macro_name']) #TODO: Something prettier
         if m.regex_match:
             if groupdict.get('macro_content'):

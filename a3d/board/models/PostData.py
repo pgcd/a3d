@@ -120,13 +120,18 @@ class Post(Auditable, ExtendedAttributesManager):
         if self.pk: #This is an update, should perhaps do something?
             pass
         elif self.object_id: #New post, update parent accordingly
-                #TODO: Don't we want to move this to a listener?
-                parent = self.in_reply_to
-                parent.reverse_timestamp = min(parent.reverse_timestamp, self.reverse_timestamp)
-                parent.replies_count = parent.replies.public().count() + 1 #I'd rather hit the DB than end up with the wrong numbers
-                parent.last_poster_id = self.user_id
-                parent.last_poster_name = self.username
+            #TODO: Don't we want to move this to a listener?
+            parent = self.in_reply_to
+            parent.reverse_timestamp = min(parent.reverse_timestamp, self.reverse_timestamp)
+            
+            #I'd rather hit the DB than end up with the wrong numbers
+            parent.replies_count = parent.replies.public().count() + 1 
+            parent.last_poster_id = self.user_id
+            parent.last_poster_name = self.username
+            try:
                 parent.tags.all().update(reverse_timestamp = parent.reverse_timestamp, last_attach = datetime.datetime.fromtimestamp(0xffffffff - parent.reverse_timestamp))
+            except AttributeError: #If the parent is a UserProfile there are no tags.
+                pass
 
         _ = super(Post, self).save(*args, **kwargs) # Call the "real" save() method.
         if parent:

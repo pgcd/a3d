@@ -1,3 +1,4 @@
+#pylint: disable-msg-cat=WCREFI
 from django import template
 from django.template.defaultfilters import linebreaksbr
 from django.utils.html import escape
@@ -16,7 +17,7 @@ def rawdump(x):
         }
         d.update(x.__dict__)
         x = d
-    output = pformat(x)+'\n'
+    output = pformat(x) + '\n'
     return output
 
 def dump(x):

@@ -149,7 +149,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
         var $form = $(this), $target = $($form.attr("data-attach-element")), postData = $form.serializeArray();
         postData.push({
             name: 'is_reply',
-            value: $('.parent-post').length > 0?1:0
+            value: $form.find('input[name=object_id]').val() && $form.find('input[name=content_type]').val()?1:0
         });
         if ($target) {
             $.ajax({

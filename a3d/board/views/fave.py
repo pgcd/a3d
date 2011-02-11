@@ -33,12 +33,12 @@ def add_star(request):
     if kwargs.has_key('post_id'):
         faved_object = Post.objects.get(pk = kwargs['post_id'])
     elif kwargs.has_key('tag_title'):
-        faved_object = Tag.objects.get(title = kwargs['tag_title']) #IGNORE:E1101
+        faved_object = Tag.objects.get(title = kwargs['tag_title'])
     elif kwargs.has_key('username'):
         faved_object = User.objects.get(username = kwargs['username'])
     else:
         return render_to_response('base_ajax.html') #TODO: Return some kind of useful info, maybe?
 
-    fave_type = FaveType.objects.get(slug = 'star')  #IGNORE:E1101
+    fave_type = FaveType.objects.get(slug = 'star')
     Fave.objects.create_or_update(request.user, faved_object, fave_type, force_not_withdrawn = True)
     return render_to_response('board/fave_list.html', {'faves':request.user.get_profile().favorites}, context)

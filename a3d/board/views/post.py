@@ -1,3 +1,4 @@
+# encoding utf-8
 '''
 Created on 31/mar/2010
 
@@ -46,7 +47,7 @@ def mark_as(request, post_id, action, **kwargs):  #IGNORE:W0613
         
         #if request.is_ajax(): #TODO: Some kind of response+template for non-ajax requests
         return view(request, post_id, info_only = True) #FIXME:I really don't like using "board.views.post.view" like this, I'd rather use a more specific addressing
-    except Post.DoesNotExist, InteractionType.DoesNotExist: #IGNORE:E1101
+    except Post.DoesNotExist, InteractionType.DoesNotExist:
         return HttpResponseServerError()
 
 
@@ -56,8 +57,8 @@ def list_by_tag_title(request, tag_title, **kwargs):
     @var tag_title: A string with the tag to search for.  
     '''
     try:
-        tag = Tag.objects.select_related('template__body').get(title__iexact = tag_title) #IGNORE:E1101
-    except Tag.DoesNotExist: #@UndefinedVariable #IGNORE:E1101
+        tag = Tag.objects.select_related('template__body').get(title__iexact = tag_title)
+    except Tag.DoesNotExist: #@UndefinedVariable
         #TODO: This view should return something different, I believe.
         return search(request, tag_title)
     try:
@@ -155,7 +156,7 @@ def _set_extra_attributes(request, post_obj):
     setattr(post_obj, 'can_be_rated', post_obj._can_be_rated(request))
     setattr(post_obj, 'is_starred', has_faved(request.user, post_obj) if request.user.is_authenticated() else False)
     if post_obj.user_id > 0:
-        post_obj.userprofile = UserProfile.objects.get(user = post_obj.user_id) #IGNORE:E1101
+        post_obj.userprofile = UserProfile.objects.get(user = post_obj.user_id)
     return post_obj
 
 def view(request, post_id, template_name = 'board/post_view.html',
@@ -442,7 +443,7 @@ def create(request):
                                 'is_reply':is_reply,
                                 'down':True,
                                 'up': True})
-            return expected_view(new_req, args, kwargs)
+            return expected_view(new_req, *args, **kwargs) #IGNORE:W0142
         else:
             return HttpResponseRedirect(next_page)
     else: #Something's wrong with the submitted form, let's display the errors.
