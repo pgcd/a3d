@@ -47,6 +47,9 @@ TIME_ZONE = 'Europe/Rome'
 # http://www.i18nguy.com/unicode/language-identifiers.html
 LANGUAGE_CODE = 'en-us'
 
+DEFAULT_CHARSET = 'utf-8'
+
+
 SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
@@ -86,10 +89,12 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 #    'denorm.middleware.DenormMiddleware',
     'board.middleware.CurrentUserPageMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
 #    'board.middleware.StatsMiddleware',
-
 )
+
+if DEBUG:
+    MIDDLEWARE_CLASSES = MIDDLEWARE_CLASSES + ('debug_toolbar.middleware.DebugToolbarMiddleware',)
+
 
 ROOT_URLCONF = 'a3d.urls'
 
@@ -141,11 +146,11 @@ DEBUG_TOOLBAR_PANELS = (
     'debug_toolbar.panels.sql.SQLDebugPanel',
     'debug_toolbar.panels.cache.CacheDebugPanel',
     'debug_toolbar.panels.logger.LoggingPanel',
-    'debug_profiling.ProfilingPanel',
+#    'debug_profiling.ProfilingPanel',
 )
 DEBUG_TOOLBAR_CONFIG = {
      'INTERCEPT_REDIRECTS': True,
-#     'SHOW_TOOLBAR_CALLBACK': lambda req: DEBUG and req.session.get('_auth_user_id', 0) == 77 #FIXME: Horrible hack!
+     'SHOW_TOOLBAR_CALLBACK': lambda req: DEBUG and req.session.get('_auth_user_id', 0) == 77 #FIXME: Horrible hack!
 }
 
 #BOARD SPECIFIC SETTINGS

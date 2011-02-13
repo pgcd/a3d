@@ -1,4 +1,3 @@
-# encoding utf-8
 '''
 Created on 31/mar/2010
 
@@ -24,6 +23,8 @@ from django.contrib.auth.models import User
 from faves.templatetags.faves import has_faved
 from django.contrib.contenttypes.models import ContentType
 from a3d import settings
+import urllib
+import sys
 
 
 #I think the following should be moved to the interaction views, but right now it doesn't make a lot of sense to do so

@@ -5,7 +5,7 @@ Created on 13/lug/2010
 @author: pgcd
 '''
 from django.http import HttpResponse, HttpResponseRedirect, \
-    HttpResponseNotModified
+    HttpResponseNotModified, HttpResponseNotFound
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from board.models.base import ExtendedAttribute
@@ -16,7 +16,8 @@ from django.template.context import RequestContext
 from django.shortcuts import get_object_or_404, render_to_response
 from board.utils import EndlessPage
 from board import signals as board_signals
-import urllib2
+import sys
+import urllib
 
 def autocomplete(request, **kwargs): #TODO: Enforce minimum chars here?
     """
@@ -57,7 +58,7 @@ def list_replies(request,
     user = request.user
     context_instance = context_instance if context_instance else RequestContext(request)
     limit = context_instance['personal_settings']['post_per_page']
-    post = get_object_or_404(User, username = urllib2.unquote(username)).get_profile()
+    post = get_object_or_404(User, username = urllib.unquote(username.encode('utf-8'))).get_profile()
     qs = post.replies.public(user).tag_match(context_instance["request"]) #Only public and user-specific replies
     lastcount = request.GET.get('count', False)
     if lastcount:

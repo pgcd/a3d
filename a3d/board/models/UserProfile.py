@@ -60,13 +60,13 @@ class UserProfile(models.Model, ExtendedAttributesManager):
     
     @models.permalink
     def get_absolute_url(self):
-        name = self.user.username
+        name = self.__unicode__()
 #        name=name+'\x01' if name.endswith('.') else name
         return ('profiles_profile_detail', (), { 'username':  name})
 
     @models.permalink
     def get_replies_url(self):
-        name = self.user.username
+        name = self.__unicode__()
         return ('board_profile_view_replies', (), { 'username':  name})
 
     
