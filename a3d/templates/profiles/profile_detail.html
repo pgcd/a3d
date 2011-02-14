@@ -13,8 +13,10 @@
 <section id="user-posts" class="skip-signature">
 	<h2>Ultimi post</h2>
 	{% block user_posts %}
-	{% get_posts_by profile as post_list %}
-	{% include "board/user_post_list.html" %}
+		{% with profile.user as profile_user %}
+			{% get_posts_by profile as post_list %}
+			{% include "board/user_post_list.html" %}
+		{% endwith %}
 	{% endblock %}
 </section>
 <section id="comments-on-user">
@@ -26,9 +28,9 @@
 			{% include "board/post_list.html" %}
 		{% endwith %}	
 	{% endblock %}
+</section>
 			{% if not request.is_ajax %}
 				{% post_form profile %}
 			{% endif %}
 
 {% endblock %}
-</section>

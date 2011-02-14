@@ -18,7 +18,7 @@
 		data-content-update-interval="120">
 	{% endwith %}
 {% else %}
-	<ol id="replies-{{parent_post.pk}}" class="replies-list new-content" data-items-left="0" data-source-href="{{parent_post.get_replies_url}}">
+	<ol id="replies-{{parent_post.pk}}" class="replies-list new-content" data-content-update-interval="120" data-items-left="0" data-source-href="{{parent_post.get_replies_url}}">
 {% endif %}
 	<style type="text/css" scoped="scoped">
 		{% prefetch profiles for post_list as user_profiles %}

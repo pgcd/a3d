@@ -236,18 +236,12 @@ class UserPostsToken(template.Node):
     
     def render(self, context):
         try:
-            user = context["request"].user
             obj = self.user_object.resolve(context)
-            object_list = list(obj.posts.public(user).filter(username = user.username)[:10]) # TODO: remove hardcoding
-            try:
-                last = "%s;%s" % (object_list[0].pk, 0) #TODO: Change if/when the above changes
-            except IndexError:
-                last = "0;0"
-            board_signals.post_read.send(sender = obj.user.__class__, obj_id = obj.pk, last_item = last, user = user)
-            context[self.var_name] = object_list
-            return ''
         except template.VariableDoesNotExist:
             return "Object %s does not exist" % self.obj
+        from board.views.post import list_by_user
+        list_by_user(context['request'], obj.user.username, context, discard_response=True)
+        return ''
 parsingTag(UserPostsToken, "get_posts_by", required = 1)
 
 

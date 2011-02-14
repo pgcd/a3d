@@ -172,14 +172,13 @@ jQuery(document).ready(function($){ // Makes me feel safer
                     }
                     else {
 						var $data = $(data);
-						//FIXME: This doesn't actually work in replies. Needs immediate fixing.
 						$target.attr('data-items-left', $data.attr('data-items-left'));
 						$target.attr('data-source-href', $data.attr('data-source-href'));
 
 						//If we attach the *children* we can use the same approach for both replies and threads.
 						//TODO: Use the duplicates removing function.
                         $target[$form.attr('data-attach-method')]($data.html());
-                        
+						//TODO: Remove/reset the paginator
 						
 						// reset all fields
                         $form[0].reset();
@@ -344,7 +343,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
                     }
                 }
             });
-			var $target = $('.new-content'); //TODO: Must be specified further
+			var $target = $(that).siblings('.new-content');
             $target[$(that).attr('data-attach-method')]($items);
 			$target.attr('data-items-left', $(data).attr('data-items-left'));
 			$target.attr('data-source-href', $(data).attr('data-source-href'));
@@ -848,7 +847,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
 		 */
 		var new_content_interval = a3d.personal_settings.new_content_fetch_interval;
 		$('.new-content').each(function(i,el) {
-			var $this = $(this);
+			var $this = $(el);
 			$this.data('contentUpdateTimer', window.setInterval(function() {
 		        if (a3d.stop_updates) {
     		        return;
@@ -859,7 +858,8 @@ jQuery(document).ready(function($){ // Makes me feel safer
 		                var paginator = $('<div>').append(data).find('.endless-paginator');
 						if(paginator.length) {
 							$this.attr('data-items-left', paginator.attr('data-items-left'));
-			                var old_paginator = $('.endless-paginator[rel=' + paginator.attr('rel') + ']');
+							//Rel selection is required to discriminate between up and down paginators.
+			                var old_paginator = $this.siblings('.endless-paginator[rel=' + paginator.attr('rel') + ']');
 			                if (old_paginator.length) {
 			                    old_paginator.replaceWith(paginator);
 			                }
@@ -890,26 +890,26 @@ jQuery(document).ready(function($){ // Makes me feel safer
 	};
 	
 	
-    //Content updating
-    updateContent = function(){
-		/*
-		 * TODO: Update this to work for ALL .new-content elements with the correct tags.
-		 */
-        var href = $('.new-content').attr('data-source-href');
-        $.get(a3d.updateQS(href, 'count=true'), function(data, status, request){
-            if (status == 'success') {
-                var paginator = $('<div>').append(data).find('.endless-paginator');
-                var old_paginator = $('.endless-paginator[rel=' + paginator.attr('rel') + ']');
-                
-                if (old_paginator.length) {
-                    old_paginator.replaceWith(paginator);
-                }
-                else {
-                    $('#new-content').before(paginator);
-                }
-            }
-        });
-    };
+//    //Content updating
+//    updateContent = function(){
+//		/*
+//		 * TODO: Update this to work for ALL .new-content elements with the correct tags.
+//		 */
+//        var href = $('.new-content').attr('data-source-href');
+//        $.get(a3d.updateQS(href, 'count=true'), function(data, status, request){
+//            if (status == 'success') {
+//                var paginator = $('<div>').append(data).find('.endless-paginator');
+//                var old_paginator = $('.endless-paginator[rel=' + paginator.attr('rel') + ']');
+//                
+//                if (old_paginator.length) {
+//                    old_paginator.replaceWith(paginator);
+//                }
+//                else {
+//                    $('#new-content').before(paginator);
+//                }
+//            }
+//        });
+//    };
     
     $('input#stop-updates').click(function(){
         a3d.stop_updates = this.checked;
