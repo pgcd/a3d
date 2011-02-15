@@ -5,20 +5,24 @@
 	{% prefetch post_interactions for post_list %}
 	{% inject_faves_to post_list by request.user of type star as is_starred %}
 	{% if more_down %}
-	<a href="{% url board_profile_list_by_user profile_user %}?start=-{{more_down}}" class="endless-paginator" rel="next" data-attach-method="prepend" data-items-left="{{items_left}}">{{items_left}} fresher</a>
+	<a href="{% url board_profile_list_by_user profile_user %}?start=-{{more_down}}" class="endless-paginator no-form-effect" rel="next" data-attach-method="prepend" data-items-left="{{items_left}}">{{items_left}} fresher</a>
 	{% endif %}
 	{%if post_list|length %}
 	{% with post_list|first as f %}
-	<ol id="threads" class="new-content threads-list" data-content-update-interval="121" data-items-left="{{items_left}}" data-source-href="{% url board_profile_list_by_user profile_user %}?start=-{{f.reverse_timestamp|add:'-1'}}" data-next-item="{{f.reverse_timestamp|add:'-1'}}">
+	<ol id="threads" class="new-content threads-list"
+	data-content-update-interval="121" 
+	data-items-left="{{items_left}}"
+	data-source-href="{% url board_profile_list_by_user profile_user %}?start=-{{f.reverse_timestamp|add:'-1'}}"
+	data-next-item="{{f.reverse_timestamp|add:'-1'}}">
 	{% endwith %}
 	{% else %}
 	<ol id="threads" class="new-content threads-list" data-content-update-interval="121" data-source-href="{% url board_profile_list_by_user profile_user %}?start=-0" data-items-left="">
 	{%endif%}		
 		{% for post in post_list  %}
-				{% include "board/post_body.html" %}
+				{% include "board/thread_body.html" %}
 		{% endfor %} 
 	</ol> 
 	{% if more_up %}
-	<a href="{% url board_profile_list_by_user profile_user %}?start={{more_up}}" class="endless-paginator" data-attach-method="append" rel="prev">older</a>
+	<a href="{% url board_profile_list_by_user profile_user %}?start={{more_up}}" class="endless-paginator no-form-effect" data-attach-method="append" rel="prev">older</a>
 	{% endif %}		
 {% endblock %}

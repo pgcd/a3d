@@ -331,7 +331,8 @@ jQuery(document).ready(function($){ // Makes me feel safer
         var that = this;
         var paginate_type = this.href.match("start=-") ? 'down' : 'up';
         $.get(this.href + '&' + paginate_type + '=true', function(data){
-            var $items = $(data).children('li');
+			var $data = $(data);
+            var $items = $data.children('li');
             $.each($items, function(i, e){ //TODO: Update this to reflect changes in structure
                 var id = e.id;
                 if (id) {
@@ -345,12 +346,16 @@ jQuery(document).ready(function($){ // Makes me feel safer
             });
 			var $target = $(that).siblings('.new-content');
             $target[$(that).attr('data-attach-method')]($items);
-			$target.attr('data-items-left', $(data).attr('data-items-left'));
-			$target.attr('data-source-href', $(data).attr('data-source-href'));
-            $('#post-form').find('input[name=next_item]').val($('#new-content').attr('data-next-item'));
-			// Replace the current paginators.
-			$(that).replaceWith($('<p/>').html(data).find('a.endless-paginator[rel='+that.rel+']'));
+			$target.attr('data-items-left', $data.attr('data-items-left'));
+			$target.attr('data-source-href', $data.attr('data-source-href'));
 			
+			var paginator = $('<p/>').html(data).find('a.endless-paginator[rel='+that.rel+']');
+			if(!paginator.hasClass('no-form-effect')) {
+				$('#post-form').find('input[name=next_item]').val($data.attr('data-next-item'));
+			}
+            
+			// Replace the current paginators.
+			$(that).replaceWith(paginator);
             a3d.toggleNonMatchingPosts(); //Update the filtered posts
         });
         return false;
