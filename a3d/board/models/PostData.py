@@ -288,7 +288,7 @@ class PostData(Post):
                 try:
                     if tag[0] == '@':
                         hashtags.append(dict(title = tag,
-                                             link = urlresolvers.reverse('board_post_list_by_user',
+                                             link = urlresolvers.reverse('board_profile_list_by_user',
                                              args = [tag[1:]]), rel = "contributor", klass = "follow-user user-link"))
                     elif tag[1].isdigit():
                         hashtags.append(dict(title = tag,

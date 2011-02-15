@@ -8,5 +8,5 @@
 	{% endif %}
 {% endif %}
 {% if user.username %}
-	<a rel="author" class="follow-user" data-followed-user="{{user.username|urlencode}}" href="{% url board_post_list_by_user user.username %}">[&sect;]</a>&nbsp;
+	<a rel="author" class="follow-user" data-followed-user="{{user.username|urlencode}}" href="{% url board_profile_list_by_user user.username %}">[&sect;]</a>&nbsp;
 {% endif %}

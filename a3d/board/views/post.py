@@ -119,15 +119,16 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
                   'more_down':'%s' % (request.GET.get('start', '').lstrip('-')),
                   'next_item_direction':'up',
                   'tag':tag, 'items_left': c}
+            context_instance.update(_d)
             return render_to_response(template_name,
-                _d,
+                {},
                 context_instance = context_instance)
-
     if request.GET.get('info_only', False): 
         #We use this for the brief - might require some tweaking later on
         _d = EndlessPage(queryset, 10, filter_field = 'reverse_timestamp').page(context_instance, list_name = 'post_list')
+        context_instance.update(_d)
         return render_to_response('board/post_list_brief.html', #TODO: Remove hardcoding
-                _d,
+                {},
                 context_instance = context_instance)
 
     #The actual processing takes place here.
@@ -137,8 +138,9 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
         board_signals.tag_read.send(Tag, tag_id = tag.pk, last_item = _d["last_item"], user = request.user)
     else:
         board_signals.home_read.send(Post, last_item = _d["last_item"], user = request.user)
+    context_instance.update(_d)
     return render_to_response(template_name,
-            _d,
+            {},
             context_instance = context_instance)
 
 def _set_extra_attributes(request, post_obj):
@@ -209,8 +211,9 @@ def list_replies(request,
                   'more_up':'%s' % (request.GET.get('start', '').lstrip('-')),
                   'next_item_direction':'up',
                   'parent_post':post, 'items_left': c}
+            context_instance.update(_d)
             return render_to_response(template_name,
-                _d,
+                {},
                 context_instance = context_instance)
     
     #retrieve the list     
@@ -241,52 +244,9 @@ def list_replies(request,
     #discard_response is used when calling the view from a template_tag
     if not discard_response:
         return render_to_response(template_name,
-                _d,
+                {},
                 context_instance = context_instance)
     
-
-    
-    
-    
-def list_by_user(request, username, context_instance=None, discard_response=False):
-    '''
-    
-    @param request:
-    @param username:
-    @param discard_response:
-    '''
-    user_obj = get_object_or_404(UserProfile, user__username = username) #TODO: Very very difficult choice: only actual users?
-    context_instance = context_instance or RequestContext(request)
-    context_instance.update({'profile_user':username})
-    template_name = 'board/user_post_list.html'
-    ppp = context_instance['personal_settings']['post_per_page']
-    qs = user_obj.posts.public(request.user)
-    paginator = EndlessPage(qs, ppp, filter_field='reverse_timestamp')
-    lastcount = request.GET.get('count', '')
-    if bool(lastcount):
-        #this is only a count request - result should only be a number
-        
-        c = paginator.page(context_instance, count_only = True)
-        if c == 0 or c == int(lastcount):
-            return HttpResponseNotModified()
-        else: #Since there are new posts, we return a paginator with a counter and some other info
-            _d = {'post_list':[],
-                  'more_down':'%s' % (request.GET.get('start', '').lstrip('-')),
-                  'next_item_direction':'up',
-                  'parent_post':user_obj,
-                  'items_left': c}
-            return render_to_response(template_name,
-                _d,
-                context_instance = context_instance)
-
-    _d = paginator.page(context_instance, list_name = 'post_list')
-    _d.update({'next_item':'-%s' % ((_d['first_item'] or 0xFFFFFFFF) - 1), 'next_item_direction':'up'}) 
-    context_instance.update(_d)
-    board_signals.post_read.send(User, obj_id = user_obj.pk, last_item = "%s;%s" % (context_instance["last_item"], '0'), user = request.user) 
-    return render_to_response(template_name,
-                                    {},
-                                   context_instance = context_instance)
-
 
 
 @login_required(redirect_field_name = 'next_page')

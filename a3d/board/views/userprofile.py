@@ -71,8 +71,9 @@ def list_replies(request,
                   'more_up':'%s' % (request.GET.get('start', '').lstrip('-')),
                   'next_item_direction':'up',
                   'parent_post':post, 'items_left': c}
+            context_instance.update(_d)
             return render_to_response(template_name,
-                _d,
+                {},
                 context_instance = context_instance)
     
     
@@ -92,5 +93,46 @@ def list_replies(request,
     board_signals.post_read.send(sender = UserProfile, obj_id = post.pk, last_item = last_item, user = request.user)
     if not discard_response:
         return render_to_response(template_name,
-                _d,
+                {},
                 context_instance = context_instance)
+
+
+def list_by_user(request, username, context_instance = None, discard_response = False):
+    '''
+    
+    @param request:
+    @param username:
+    @param discard_response:
+    '''
+    user_obj = get_object_or_404(UserProfile, user__username = username) #TODO: Very very difficult choice: only actual users?
+    context_instance = context_instance or RequestContext(request)
+    context_instance.update({'profile_user':username})
+    template_name = 'board/user_post_list.html'
+    ppp = context_instance['personal_settings']['post_per_page']
+    qs = user_obj.posts.public(request.user)
+    paginator = EndlessPage(qs, ppp, filter_field = 'reverse_timestamp')
+    lastcount = request.GET.get('count', '')
+    if bool(lastcount):
+        #this is only a count request - result should only be a number
+        
+        c = paginator.page(context_instance, count_only = True)
+        if c == 0 or c == int(lastcount):
+            return HttpResponseNotModified()
+        else: #Since there are new posts, we return a paginator with a counter and some other info
+            _d = {'post_list':[],
+                  'more_down':'%s' % (request.GET.get('start', '').lstrip('-')),
+                  'next_item_direction':'up',
+                  'parent_post':user_obj,
+                  'items_left': c}
+            context_instance.update(_d)
+            return render_to_response(template_name,
+                {},
+                context_instance = context_instance)
+
+    _d = paginator.page(context_instance, list_name = 'post_list')
+    _d.update({'next_item':'-%s' % ((_d['first_item'] or 0xFFFFFFFF) - 1), 'next_item_direction':'up'}) 
+    board_signals.post_read.send(User, obj_id = user_obj.pk, last_item = "%s;%s" % (_d["last_item"], '0'), user = request.user)
+    context_instance.update(_d)
+    return render_to_response(template_name,
+                                   {},
+                                   context_instance = context_instance)

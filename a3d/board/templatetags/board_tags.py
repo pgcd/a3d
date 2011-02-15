@@ -239,8 +239,8 @@ class UserPostsToken(template.Node):
             obj = self.user_object.resolve(context)
         except template.VariableDoesNotExist:
             return "Object %s does not exist" % self.obj
-        from board.views.post import list_by_user
-        list_by_user(context['request'], obj.user.username, context, discard_response=True)
+        from board.views.userprofile import list_by_user
+        list_by_user(context['request'], obj.user.username, context, discard_response = True)
         return ''
 parsingTag(UserPostsToken, "get_posts_by", required = 1)
 
