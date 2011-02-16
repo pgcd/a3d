@@ -106,19 +106,19 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     extra_context = extra_context or {}
     context_instance = context_instance or RequestContext(request, extra_context)
     tag = kwargs.get("tag")
-    lastcount = request.GET.get('count', None)
     limit = limit or context_instance['personal_settings']['post_per_page']
-
-    if lastcount is not None:
+    if request.GET.get('count', None) is not None:
         #this is only a count request - result should only be a number
         c = EndlessPage(queryset, limit, filter_field = 'reverse_timestamp').page(context_instance, count_only = True)
-        if c == 0 or c < int(lastcount):
+        if c['items_left'] == 0: #Any other result means we actually have a result. 
             return HttpResponseNotModified()
         else:
             _d = {'object_list':[],
                   'more_down':'%s' % (request.GET.get('start', '').lstrip('-')),
                   'next_item_direction':'up',
-                  'tag':tag, 'items_left': c}
+                  'tag':tag,
+                  'next_item': c['tip'] - 1 if c['tip'] else 0,
+                  'items_left': c['items_left']}
             context_instance.update(_d)
             return render_to_response(template_name,
                 {},
@@ -133,7 +133,7 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
 
     #The actual processing takes place here.
     _d = EndlessPage(queryset.select_related('user', 'postdata'), limit, filter_field = 'reverse_timestamp').page(context_instance)
-    _d.update({'next_item':'-%s' % ((_d['first_item'] or 0xFFFFFFFF) - 1), 'next_item_direction':'up', 'tag':tag})
+    _d.update({'next_item':_d['tip'], 'next_item_direction':'up', 'tag':tag})
     if tag:
         board_signals.tag_read.send(Tag, tag_id = tag.pk, last_item = _d["last_item"], user = request.user)
     else:
@@ -200,17 +200,18 @@ def list_replies(request,
     post = get_object_or_404(Post, pk = post_id)
     qs = post.replies.public(user).tag_match(context_instance["request"]) #Only public and user-specific replies
     paginator = EndlessPage(qs, limit)
-    lastcount = request.GET.get('count', False)
-    if lastcount:
+    if request.GET.get('count', None) is not None:
         #this is only a count request - result should only be a number
         c = paginator.page(context_instance, count_only = True)
-        if c == 0 or c == int(lastcount):
+        if c['items_left'] == 0:
             return HttpResponseNotModified()
         else: #Since there are new posts, we return them, formatted with the current template
             _d = {'post_list':[],
                   'more_up':'%s' % (request.GET.get('start', '').lstrip('-')),
                   'next_item_direction':'up',
-                  'parent_post':post, 'items_left': c}
+                  'next_item': c['tip'] + 1 if c['tip'] else 0,
+                  'parent_post':post,
+                  'items_left': c['items_left']}
             context_instance.update(_d)
             return render_to_response(template_name,
                 {},
@@ -219,7 +220,7 @@ def list_replies(request,
     #retrieve the list     
     _d = paginator.page(context_instance, list_name = 'post_list')
     _d.update({
-            'next_item':_d['last_item'] + 1,
+            'next_item':_d['tip'] + 1,
             'next_item_direction':'down',
             'parent_post':post,
            })

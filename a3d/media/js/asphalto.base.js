@@ -346,7 +346,6 @@ jQuery(document).ready(function($){ // Makes me feel safer
             });
 			var $target = $(that).siblings('.new-content');
             $target[$(that).attr('data-attach-method')]($items);
-			$target.attr('data-items-left', $data.attr('data-items-left'));
 			$target.attr('data-source-href', $data.attr('data-source-href'));
 			
 			var paginator = $('<p/>').html(data).find('a.endless-paginator[rel='+that.rel+']');
@@ -846,10 +845,6 @@ jQuery(document).ready(function($){ // Makes me feel safer
     
 	
 	a3d.startUpdating = function(){
-		/*
-		 * TODO: All very nice but as soon as the first 200 OK, we need to change the HREF, otherwise it's all gonna
-		 * be 200 OK even if it's actually a 304 wrt the first 200.
-		 */
 		var new_content_interval = a3d.personal_settings.new_content_fetch_interval;
 		$('.new-content').each(function(i,el) {
 			var $this = $(el);
@@ -858,19 +853,27 @@ jQuery(document).ready(function($){ // Makes me feel safer
     		        return;
         			}
 				var href = $this.attr('data-source-href');
-				$.get(a3d.updateQS(href, 'count='+$this.attr('data-items-left')||''), function(data, status, request){
+				$.get(a3d.updateQS(href, 'count=True'), function(data, status, request){
 		            if (status == 'success') {
-		                var paginator = $('<div>').append(data).find('.endless-paginator');
+						var tmpdiv = $('<div />').append(data);
+		                var paginator = tmpdiv.find('.endless-paginator');
 						if(paginator.length) {
-							$this.attr('data-items-left', paginator.attr('data-items-left'));
 							//Rel selection is required to discriminate between up and down paginators.
 			                var old_paginator = $this.siblings('.endless-paginator[rel=' + paginator.attr('rel') + ']');
 			                if (old_paginator.length) {
-			                    old_paginator.replaceWith(paginator);
+								// We update the items count attr - we should update the displayed count as well.
+			                    old_paginator
+									.attr('data-items-left',function(i, att) {
+										return parseInt(att)+parseInt(paginator.attr('data-items-left'));
+										});
+								old_paginator
+									.children('.items-left').text(old_paginator.attr('data-items-left'));
 			                }
 			                else {
 			                    $this.parent()[paginator.attr('data-attach-method')](paginator);
 			                }
+							//Now we update the source-href to account for the new data:
+							$this.attr('data-source-href', tmpdiv.find('#'+$this.attr('id')).attr('data-source-href'));
 						}
 		            }
 		        });

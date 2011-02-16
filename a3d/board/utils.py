@@ -1,4 +1,5 @@
 import hashlib
+from django.db.models import Count, Max, Min
 
 def tripcode(res):
     length = 13
@@ -48,8 +49,10 @@ class EndlessPage(object):#IGNORE:R0903
 
         if start == 'last': #We want to select the last per_page items
             _qs = self.queryset_or_list.order_by(self.filter_field).reverse()
+            result.update(_qs.aggregate(tip = Max(self.filter_field)))
+            result.update({'items_left': 0})
             if count_only:
-                return _qs.count()
+                return result
             else:
                 _qs = _qs[0:self.per_page + 1]
             object_list = list(_qs)
@@ -57,11 +60,11 @@ class EndlessPage(object):#IGNORE:R0903
             if len(object_list) > self.per_page:
                 more_down = getattr(object_list.pop(0), self.filter_field)
             #Sensible approach as long as we use items_left
-            result['items_left'] = 0 
-        elif not bool(start):
+        elif not bool(start): #None or 0
             _qs = self.queryset_or_list
+            result.update(_qs.aggregate(tip = Max(self.filter_field), items_left = Count('pk')))
             if count_only:
-                return _qs.count()
+                return result
             else:
                 _qs = _qs[0:self.per_page + 1]
             object_list = list(_qs)
@@ -75,8 +78,9 @@ class EndlessPage(object):#IGNORE:R0903
                     #We're trying to retrieve the last per_page items up to :start
                     self.queryset_or_list = self.queryset_or_list.filter(**{"%s__lte" % self.filter_field: abs(start)}) #IGNORE:W0142
                     _qs = self.queryset_or_list.order_by(self.filter_field).reverse()
+                    result.update(_qs.aggregate(tip = Min(self.filter_field), items_left = Count('pk')))
                     if count_only:
-                        return _qs.count()
+                        return result
                     else:
                         _qs = _qs[0:self.per_page + 1]
                     object_list = list(_qs)
@@ -87,8 +91,9 @@ class EndlessPage(object):#IGNORE:R0903
                 else: # Regular :start, so we're using it as lower bound
                     self.queryset_or_list = self.queryset_or_list.filter(**{"%s__gte" % self.filter_field: start}) #IGNORE:W0142
                     _qs = self.queryset_or_list
+                    result.update(_qs.aggregate(tip = Max(self.filter_field), items_left = Count('pk')))
                     if count_only:
-                        return _qs.count()
+                        return result
                     else:
                         _qs = _qs[0:self.per_page + 1]
 
@@ -119,10 +124,11 @@ class EndlessPage(object):#IGNORE:R0903
             result['last_item'] = getattr(object_list[-1], self.filter_field, 0)
         except IndexError:
             result['first_item'] = result['last_item'] = 0
+        #Please note that "tip" is different from first/last item, in that it's the result of the not-limit'ed query
         
         result[list_name] = object_list
         #Can't help hitting the DB again until SQL_CALC_NUM_ROWS is supported
-        total = self.queryset_or_list.count()
-        if not result.has_key('items_left'):
-            result['items_left'] = max(total - self.per_page, 0)
+#        total = self.queryset_or_list.count()
+#        if not result.has_key('items_left'):
+        result['items_left'] -= self.per_page #Of course.
         return result

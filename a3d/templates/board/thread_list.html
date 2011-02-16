@@ -22,14 +22,23 @@
 	{% prefetch post_interactions for object_list %}
 	{% inject_faves_to object_list by request.user of type star as is_starred %}
 	{% if more_down %}
-	<a href="?start=-{{more_down}}" class="endless-paginator" rel="next" data-attach-method="prepend" data-items-left="{{items_left}}">{{items_left}} fresher</a>
+	<a href="?start=-{{more_down}}" 
+		class="endless-paginator" 
+		rel="next" 
+		data-attach-method="prepend"
+		data-items-left="{{items_left}}">
+		<span class="items-left">{{items_left}}</span> fresher
+	</a>
 	{% endif %}
 	{%if object_list|length %}
 	{% with object_list|first as f %}
-	<ol id="threads" class="new-content threads-list" data-items-left="{{items_left}}" data-source-href="?start=-{{f.reverse_timestamp|add:'-1'}}" data-next-item="-{{f.reverse_timestamp|add:'-1'}}">
+	<ol id="threads"
+		class="new-content threads-list"
+		data-source-href="?start=-{{f.reverse_timestamp|add:'-1'}}"
+		data-next-item="-{{f.reverse_timestamp|add:'-1'}}">
 	{% endwith %}
 	{% else %}
-	<ol id="threads" class="new-content threads-list" data-source-href="?start=-0" data-items-left="">
+	<ol id="threads" class="new-content threads-list" data-source-href="?start=-{{next_item|default:0}}">
 	{%endif%}		
 		{% for post in object_list  %}
 				{% include "board/thread_body.html" %}

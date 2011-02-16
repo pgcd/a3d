@@ -16,7 +16,7 @@ TEMPLATE_CONTEXT_PROCESSORS += (
 )
 
 
-DEBUG = True
+DEBUG = False
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -89,7 +89,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 #    'denorm.middleware.DenormMiddleware',
     'board.middleware.CurrentUserPageMiddleware',
-#    'board.middleware.StatsMiddleware',
+    'board.middleware.StatsMiddleware',
 )
 
 if DEBUG:
@@ -124,7 +124,7 @@ INSTALLED_APPS = (
     'registration',
 #    'denorm',
     'a3d.faves',
-    'debug_toolbar',
+#    'debug_toolbar',
     'a3d.almparse',
     'a3d.board',
     'south',
@@ -162,8 +162,8 @@ A3D_BASE_SETTINGS = {
     'threshold_high_rating':4,
     'post_per_page':10,
     'base_rating':1,
-    'tags_fetch_interval': 80200,
-    'mentions_fetch_interval': 71000,
-    'favorites_fetch_interval': 60500,
+    'tags_fetch_interval': 1180200,
+    'mentions_fetch_interval': 1171000,
+    'favorites_fetch_interval': 1160500,
     'new_content_fetch_interval': 30300,
 }

@@ -64,13 +64,15 @@ def list_replies(request,
     if lastcount:
         #this is only a count request - result should only be a number
         c = EndlessPage(qs, 30).page(context_instance, count_only = True)
-        if c == 0 or c == int(lastcount):
+        if c['items_left'] == 0:
             return HttpResponseNotModified()
         else:
             _d = {'post_list':[],
                   'more_up':'%s' % (request.GET.get('start', '').lstrip('-')),
                   'next_item_direction':'up',
-                  'parent_post':post, 'items_left': c}
+                  'next_item': c['tip'] + 1 if c['tip'] else 0,
+                  'parent_post':post,
+                  'items_left': c['items_left']}
             context_instance.update(_d)
             return render_to_response(template_name,
                 {},
@@ -116,14 +118,15 @@ def list_by_user(request, username, context_instance = None, discard_response = 
         #this is only a count request - result should only be a number
         
         c = paginator.page(context_instance, count_only = True)
-        if c == 0 or c == int(lastcount):
+        if c['items_left'] == 0:
             return HttpResponseNotModified()
         else: #Since there are new posts, we return a paginator with a counter and some other info
             _d = {'post_list':[],
                   'more_down':'%s' % (request.GET.get('start', '').lstrip('-')),
                   'next_item_direction':'up',
+                  'next_item': c['tip'] - 1 if c['tip'] else 0,
                   'parent_post':user_obj,
-                  'items_left': c}
+                  'items_left': c['items_left']}
             context_instance.update(_d)
             return render_to_response(template_name,
                 {},

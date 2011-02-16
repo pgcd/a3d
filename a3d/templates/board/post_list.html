@@ -4,7 +4,9 @@
 {% inject_faves_to post_list by request.user of type star as is_starred %}
 
 {% if more_down %}
-	<a href="{{parent_post.get_replies_url}}?start=-{{more_down}}" class="endless-paginator" rel="prev" data-attach-method="prepend">previous</a>
+	<a href="{{parent_post.get_replies_url}}?start=-{{more_down}}"
+		class="endless-paginator"
+		rel="prev" data-attach-method="prepend">previous</a>
 {% endif %}
 
 
@@ -12,13 +14,15 @@
 	{% with post_list|last as l %}
 	<ol id="replies-{{parent_post.pk}}"
 		class="replies-list new-content"
-		data-next-item="{{l.pk|add:'1'}}"
-		data-source-href="{{parent_post.get_replies_url}}?start={{l.pk|add:'1'}}"
-		data-items-left="{{items_left}}" 
-		data-content-update-interval="120">
+		data-next-item="{{next_item}}"
+		data-source-href="{{parent_post.get_replies_url}}?start={{next_item}}"
+		data-content-update-interval="20">
 	{% endwith %}
 {% else %}
-	<ol id="replies-{{parent_post.pk}}" class="replies-list new-content" data-content-update-interval="120" data-items-left="0" data-source-href="{{parent_post.get_replies_url}}">
+	<ol id="replies-{{parent_post.pk}}"
+		class="replies-list new-content"
+		data-content-update-interval="20" 
+		data-source-href="{{parent_post.get_replies_url}}?start={{next_item}}">
 {% endif %}
 	<style type="text/css" scoped="scoped">
 		{% prefetch profiles for post_list as user_profiles %}
@@ -37,5 +41,7 @@
 	{% endfor %}
 </ol>
 {% if more_up %}
-	<a href="{{parent_post.get_replies_url}}?start={{more_up}}" class="endless-paginator" rel="next" data-attach-method="append" data-items-left="{{items_left}}">{{items_left}} more</a>
+	<a href="{{parent_post.get_replies_url}}?start={{more_up}}" 
+	class="endless-paginator" rel="next" 
+	data-attach-method="append" data-items-left="{{items_left}}"><span class="items-left">{{items_left}}</span> more</a>
 {% endif %}
