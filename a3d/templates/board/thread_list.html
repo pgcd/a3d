@@ -21,8 +21,8 @@
 	{% prefetch tags for object_list %}
 	{% prefetch post_interactions for object_list %}
 	{% inject_faves_to object_list by request.user of type star as is_starred %}
-	{% if more_down %}
-	<a href="?start=-{{more_down}}" 
+	{% if more_low %}
+	<a href="?start=-{{more_low}}" 
 		class="endless-paginator" 
 		rel="next" 
 		data-attach-method="prepend"
@@ -30,22 +30,16 @@
 		<span class="items-left">{{items_left}}</span> fresher
 	</a>
 	{% endif %}
-	{%if object_list|length %}
-	{% with object_list|first as f %}
 	<ol id="threads"
 		class="new-content threads-list"
-		data-source-href="?start=-{{f.reverse_timestamp|add:'-1'}}"
-		data-next-item="-{{f.reverse_timestamp|add:'-1'}}">
-	{% endwith %}
-	{% else %}
-	<ol id="threads" class="new-content threads-list" data-source-href="?start=-{{next_item|default:0}}">
-	{%endif%}		
+		data-source-href="?start=-{{next_item}}"
+		data-next-item="-{{next_item}}">
 		{% for post in object_list  %}
 				{% include "board/thread_body.html" %}
 		{% endfor %} 
 	</ol> 
-	{% if more_up %}
-	<a href="?start={{more_up}}" class="endless-paginator" data-attach-method="append" rel="prev">older</a>
+	{% if more_high %}
+	<a href="?start={{more_high}}" class="endless-paginator" data-attach-method="append" rel="prev">older</a>
 	{% endif %}		
 
 {% if not request.is_ajax %}

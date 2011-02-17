@@ -108,16 +108,15 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     tag = kwargs.get("tag")
     limit = limit or context_instance['personal_settings']['post_per_page']
     if request.GET.get('count', None) is not None:
-        #this is only a count request - result should only be a number
-        c = EndlessPage(queryset, limit, filter_field = 'reverse_timestamp').page(context_instance, count_only = True)
-        if c['items_left'] == 0: #Any other result means we actually have a result. 
+        c = EndlessPage(queryset, limit,
+                        filter_field = 'reverse_timestamp').page(context_instance, count_only = True)
+        if c['items_left'] == 0: 
             return HttpResponseNotModified()
         else:
             _d = {'object_list':[],
                   'more_down':'%s' % (request.GET.get('start', '').lstrip('-')),
-                  'next_item_direction':'up',
                   'tag':tag,
-                  'next_item': c['tip'] - 1 if c['tip'] else 0,
+                  'next_item': c.get('tip', 0),
                   'items_left': c['items_left']}
             context_instance.update(_d)
             return render_to_response(template_name,
@@ -125,15 +124,20 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
                 context_instance = context_instance)
     if request.GET.get('info_only', False): 
         #We use this for the brief - might require some tweaking later on
-        _d = EndlessPage(queryset, 10, filter_field = 'reverse_timestamp').page(context_instance, list_name = 'post_list')
+        _d = EndlessPage(queryset, 10, #TODO: Remove hardcoding
+                         filter_field = 'reverse_timestamp').page(context_instance, list_name = 'post_list')
         context_instance.update(_d)
         return render_to_response('board/post_list_brief.html', #TODO: Remove hardcoding
                 {},
                 context_instance = context_instance)
 
     #The actual processing takes place here.
-    _d = EndlessPage(queryset.select_related('user', 'postdata'), limit, filter_field = 'reverse_timestamp').page(context_instance)
-    _d.update({'next_item':_d['tip'], 'next_item_direction':'up', 'tag':tag})
+    _d = EndlessPage(queryset.select_related('user', 'postdata'),
+                     limit,
+                     filter_field = 'reverse_timestamp').page(context_instance)
+    _d.update({'next_item':_d['first_item'],
+               'tag':tag,
+               })
     if tag:
         board_signals.tag_read.send(Tag, tag_id = tag.pk, last_item = _d["last_item"], user = request.user)
     else:
@@ -198,7 +202,8 @@ def list_replies(request,
     context_instance = context_instance if context_instance else RequestContext(request)
     limit = context_instance['personal_settings']['post_per_page']
     post = get_object_or_404(Post, pk = post_id)
-    qs = post.replies.public(user).tag_match(context_instance["request"]) #Only public and user-specific replies
+    #Only public and user-specific replies
+    qs = post.replies.public(user).tag_match(context_instance["request"])
     paginator = EndlessPage(qs, limit)
     if request.GET.get('count', None) is not None:
         #this is only a count request - result should only be a number
@@ -211,16 +216,17 @@ def list_replies(request,
                   'next_item_direction':'up',
                   'next_item': c['tip'] + 1 if c['tip'] else 0,
                   'parent_post':post,
-                  'items_left': c['items_left']}
+                  'items_left': c['items_left'],
+                  }
             context_instance.update(_d)
             return render_to_response(template_name,
                 {},
                 context_instance = context_instance)
     
-    #retrieve the list     
+    #retrieve the actual list     
     _d = paginator.page(context_instance, list_name = 'post_list')
     _d.update({
-            'next_item':_d['tip'] + 1,
+            'next_item':_d['tip'] + 1 if _d['tip'] else 0,
             'next_item_direction':'down',
             'parent_post':post,
            })
@@ -233,13 +239,21 @@ def list_replies(request,
                 {},
                 context_instance = context_instance)
         
-    last_item = "%s;%s" % (_d['last_item'] or post_id, post.replies_count - _d['items_left'])
-    board_signals.post_read.send(sender = Post, obj_id = post_id, last_item = last_item, user = request.user)
+    last_item = "%s;%s" % (_d['last_item'] or post_id,
+                           post.replies_count - _d['items_left'])
+    board_signals.post_read.send(sender = Post,
+                                 obj_id = post_id,
+                                 last_item = last_item,
+                                 user = request.user)
     
-    #deal with mentions in replies (and possibly other situations as well, since it actually makes sense).
+    #deal with mentions in replies 
+    #(and possibly other situations as well, since it actually makes sense).
     try:
         starting_reply = abs(int(request.GET.get('start', '')))
-        board_signals.post_read.send(sender = Post, obj_id = starting_reply, last_item = "%s;0" % starting_reply, user = request.user)
+        board_signals.post_read.send(sender = Post,
+                                     obj_id = starting_reply,
+                                     last_item = "%s;0" % starting_reply,
+                                     user = request.user)
     except ValueError:
         pass
     #discard_response is used when calling the view from a template_tag

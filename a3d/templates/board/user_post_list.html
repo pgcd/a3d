@@ -4,27 +4,22 @@
 	{% prefetch tags for post_list %}
 	{% prefetch post_interactions for post_list %}
 	{% inject_faves_to post_list by request.user of type star as is_starred %}
-	{% if more_down %}
-	<a href="{% url board_profile_list_by_user profile_user %}?start=-{{more_down}}"
+	{% if more_low %}
+	<a href="{% url board_profile_list_by_user profile_user %}?start=-{{more_low}}"
 		class="endless-paginator no-form-effect" 
 		rel="next" data-attach-method="prepend" 
 		data-items-left="{{items_left}}">{{items_left}} fresher</a>
 	{% endif %}
-	{%if post_list|length %}
-	{% with post_list|first as f %}
 	<ol id="threads" class="new-content threads-list"
 	data-content-update-interval="121" 
 	data-source-href="{% url board_profile_list_by_user profile_user %}?start=-{{next_item}}"
-	data-next-item="{{f.reverse_timestamp|add:'-1'}}">
-	{% endwith %}
-	{% else %}
-	<ol id="threads" class="new-content threads-list" data-content-update-interval="121" data-source-href="{% url board_profile_list_by_user profile_user %}?start=-{{next_item}}">
-	{%endif%}		
+	data-next-item="{{next_item}}">
 		{% for post in post_list  %}
 				{% include "board/thread_body.html" %}
 		{% endfor %} 
 	</ol> 
-	{% if more_up %}
-	<a href="{% url board_profile_list_by_user profile_user %}?start={{more_up}}" class="endless-paginator no-form-effect" data-attach-method="append" rel="prev">older</a>
+	{% if more_high %}
+	<a href="{% url board_profile_list_by_user profile_user %}?start={{more_high}}" 
+	class="endless-paginator no-form-effect" data-attach-method="append" rel="prev">older</a>
 	{% endif %}		
 {% endblock %}
