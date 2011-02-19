@@ -24,6 +24,7 @@ from django.contrib.contenttypes.models import ContentType
 from a3d import settings
 import sys
 from django.template.loader import render_to_string
+import datetime
 
 
 #I think the following should be moved to the interaction views, but right now it doesn't make a lot of sense to do so
@@ -90,7 +91,9 @@ def home(request, **kwargs):
     with the current min_rating_for_home setting. 
     """
     context = RequestContext(request)
-    return _list(request, Post.objects.get_home_posts(context['personal_settings']['min_rating_for_home']), context_instance = context, **kwargs)
+    return _list(request, 
+                 Post.objects.get_home_posts(context['personal_settings']['min_rating_for_home']), 
+                 context_instance = context, **kwargs)
     
 
 def _list(request, queryset, limit = None, template_name = 'board/thread_list.html', context_instance = None,
@@ -109,7 +112,7 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     limit = limit or context_instance['personal_settings']['post_per_page']
     if request.GET.get('count', None) is not None:
         c = EndlessPage(queryset, limit,
-                        filter_field = 'reverse_timestamp').page(context_instance, count_only = True)
+                        filter_field = 'timestamp').page(context_instance, count_only = True)
         if c['items_left'] == 0:
             return HttpResponseNotModified()
         else:
@@ -123,7 +126,7 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     if request.GET.get('info_only', False): 
         #We use this for the brief - might require some tweaking later on
         _d = EndlessPage(queryset, 10, #TODO: Remove hardcoding
-                         filter_field = 'reverse_timestamp').page(context_instance, list_name = 'post_list')
+                         filter_field = 'timestamp').page(context_instance, list_name = 'post_list')
         return render_to_response('board/post_list_brief.html', #TODO: Remove hardcoding
                 _d,
                 context_instance = context_instance)
@@ -131,7 +134,7 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     #The actual processing takes place here.
     _d = EndlessPage(queryset.select_related('user', 'postdata'),
                      limit,
-                     filter_field = 'reverse_timestamp').page(context_instance)
+                     filter_field = 'timestamp').page(context_instance)
     _d.update({'next_item':_d['first_item'],
                'tag':tag,
                })
@@ -248,6 +251,8 @@ def list_replies(request,
         pass
     #discard_response is used when calling the view from a template_tag
     if discard_response:
+        #Next_item needs to be set here
+        context_instance.update({'next_item':_d['next_item']})
         return render_to_string(template_name,
                 _d,
                 context_instance = context_instance)
@@ -280,7 +285,7 @@ def rate(request, post_id, action):
         parent_timeshift = timeshift / max(5, post.replies_count / 5) #TODO: As above
         if post.object_id: #This post has a parent, so any timeshift should be applied to the parent as well. 
             parent = post.in_reply_to
-            parent.reverse_timestamp = parent.reverse_timestamp + parent_timeshift
+            parent.timestamp = parent.timestamp + datetime.timedelta(seconds=parent_timeshift)
             parent.timeshift = parent.timeshift + parent_timeshift 
             if board_signals.interaction_event.send(Post, 
                                                     request = request, 
@@ -289,7 +294,7 @@ def rate(request, post_id, action):
                                                     value = action, 
                                                     interaction_type = 'timeshift'):
                 parent.save(no_update = True) 
-        post.reverse_timestamp = post.reverse_timestamp + timeshift
+        post.timestamp = post.timestamp + datetime.timedelta(seconds=timeshift)
         post.timeshift = post.timeshift + timeshift 
         if board_signals.interaction_event.send(Post, 
                                                 request = request, 
@@ -429,7 +434,7 @@ def create(request):
             for newtag in existing_tags: #Create the required TagAttach records
                 try:
                     #TODO: Find a way to deal with multiples, if that is desirable
-                    p.tags.through(tag = newtag, post = p, reverse_timestamp = p.reverse_timestamp).save()
+                    p.tags.through(tag = newtag, post = p).save()
                 except Tag.DoesNotExist: #@UndefinedVariable #IGNORE:E1101
                     #TODO: Do we want to create it automatically if it doesn't exist?
                     pass

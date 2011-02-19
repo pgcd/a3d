@@ -16,20 +16,20 @@ class TagAttach(models.Model):
     tag = models.ForeignKey("Tag")
     post = models.ForeignKey("Post")
     reverse_timestamp = models.PositiveIntegerField(blank = True, default = 0)
+    timestamp = models.PositiveIntegerField(blank = True, default = 0, db_index=True)
     
     
     def __unicode__(self):
         return "%s: %s" % (self.tag, self.post)
     def save(self, *args, **kwargs):#IGNORE:W0221
-        if self.reverse_timestamp is None and self.post is not None:
-            self.reverse_timestamp = self.post.reverse_timestamp
+        if self.timestamp is None and self.post is not None:
+            self.timestamp = self.post.timestamp
         t = self.tag
         t.attach_count = t.tagattach_set.count()
         #=======================================================================
         # NOTE: The following is meant to reflect the date of the attached post
         #=======================================================================
-        t.last_attach = datetime.datetime.fromtimestamp(0xFFFFFFFF - self.reverse_timestamp).strftime("%Y-%m-%d %H:%M:%S")
-        t.reverse_timestamp = self.reverse_timestamp
+        t.last_attach = self.timestamp
         t.save()
         super(TagAttach, self).save(*args, **kwargs)
         
@@ -42,7 +42,7 @@ class Tag(Auditable, ExtendedAttributesManager):
     title = models.SlugField(unique = True)
     #I removed this, as it should be dealt with in CSS
     reverse_timestamp = models.PositiveIntegerField(blank = True, default = 0)
-    last_attach = models.DateTimeField(default = datetime.datetime.now)
+    last_attach = models.DateTimeField(default = datetime.datetime.now) #FIXME: WWAAAARRGH
     icon = models.FileField(upload_to = 'tag', blank = True, default = '')
     attach_count = models.PositiveIntegerField(default = 0)
     template = models.ForeignKey('Template', null = True, blank = True) #TODO: Make this have some meaning?

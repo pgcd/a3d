@@ -85,7 +85,7 @@ def attach(request, **kwargs):
     if title <> '' and post_id > 0:
         tag, _ = Tag.objects.get_or_create(title = title)
         post = Post.objects.get(pk = post_id)
-        rel = TagAttach(tag = tag, post = post, reverse_timestamp = post.reverse_timestamp)
+        rel = TagAttach(tag = tag, post = post, timestamp = post.timestamp)
         try:
             rel.save()
         except IntegrityError: #The idea is that we don't care for duplicates

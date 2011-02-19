@@ -51,6 +51,7 @@ class UserProfile(models.Model, ExtendedAttributesManager):
     _replies = generic.GenericRelation("Post")
     _last_reply_id = models.PositiveIntegerField(default = 0, blank = True)
     reverse_timestamp = models.PositiveIntegerField(default = 0)
+    timestamp = models.PositiveIntegerField(blank = True, default = 0, db_index=True)
     replies_count = models.IntegerField(default = 0) #This should be a denorm.
     last_page_url = models.CharField(max_length = 255, blank = True, default = '')
     last_page_time = models.DateTimeField(default = datetime.datetime.now(), db_index = True)
@@ -122,7 +123,7 @@ class UserProfile(models.Model, ExtendedAttributesManager):
             
         faved_objects = {}
         faved_objects[post_ct] = dict((o.pk, {'last':o.last_reply, 'obj':o, 'type':'post'}) for o in Post.objects.filter(pk__in = fl[post_ct]))
-        faved_objects[tag_ct] = dict((o.pk, {'last': o.reverse_timestamp, 'obj':o, 'op':operator.gt, 'type':'tag'}) for o in Tag.objects.filter(pk__in = fl[tag_ct]))
+        faved_objects[tag_ct] = dict((o.pk, {'last': o.last_attach, 'obj':o, 'type':'tag'}) for o in Tag.objects.filter(pk__in = fl[tag_ct]))
 #        faved_objects[userprofile_ct] = dict((o.pk, {'last':o.last_reply, 'obj':o, 'type':'userprofile'}) for o in UserProfile.objects.filter(pk__in = fl[userprofile_ct]))
         faved_objects[userpost_ct] = dict((o.pk, {'last':o.get_profile().last_post_id, 'obj':o, 'type':'user'}) for o in User.objects.filter(pk__in = fl[userpost_ct]))
 

@@ -45,7 +45,7 @@ class PostManager(models.Manager, PostMixin):
         return PostQuerySet(Post, using = self._db)
             
     def get_highest_rated(self, limit = 5, tag_id = None, user = None):
-        queryset = self.public(user).order_by('reverse_timestamp')
+        queryset = self.public(user).order_by('-timestamp')
         if tag_id is not None:
             queryset = queryset.filter(tags__exact = tag_id)
         return queryset[:limit]
@@ -56,19 +56,19 @@ class PostManager(models.Manager, PostMixin):
     def ft_search(self, search_term, user = None):
         #TODO: Update to use Sphinx
         #return Post.search.query(search_term).select_related('postdata')
-        return self.public(user).filter(postdata__body__search = search_term).order_by('reverse_timestamp')
+        return self.public(user).filter(postdata__body__search = search_term).order_by('-timestamp')
     
     def get_by_tag(self, tag_id, user = None):
         if tag_id > 0:
-            return self.public(user).filter(tagattach__tag__exact = tag_id).order_by('tagattach__reverse_timestamp')
+            return self.public(user).filter(tagattach__tag__exact = tag_id).order_by('-tagattach__timestamp')
         else:
-            return self.public(user).filter(tagattach = None).filter(object_id = 0).order_by('reverse_timestamp') # should we also check posts?
+            return self.public(user).filter(tagattach = None).filter(object_id = 0).order_by('-timestamp') # should we also check posts?
         
     def get_home_posts(self, min_rating, user = None):
         # Should we only check threads (ie with replies or without parent)?
         list = self.public(user).filter(models.Q(rating__gte = min_rating) | \
                                            models.Q(replies_count__gt = 0) | \
-                                           models.Q(object_id = 0)).order_by('reverse_timestamp')
+                                           models.Q(object_id = 0)).order_by('-timestamp')
         return list
     
 class Post(Auditable, ExtendedAttributesManager):
@@ -85,6 +85,7 @@ class Post(Auditable, ExtendedAttributesManager):
     username = models.CharField(max_length = 30, blank = True, db_index = True)
     last_poster = models.ForeignKey(User, blank = True, null = True)
     last_poster_name = models.CharField(max_length = 30, blank = True, default = '') #denormalization
+    timestamp = models.PositiveIntegerField(blank = True, default = 0,db_index=True)
     reverse_timestamp = models.PositiveIntegerField(db_index = True)
     timeshift = models.IntegerField(default = 0) #Mostly used for bookkeeping, but might be useful later
     _title = models.CharField(max_length = 255, blank = True)
@@ -115,23 +116,22 @@ class Post(Auditable, ExtendedAttributesManager):
         except AttributeError: #If the title does not start with a username-like string, we jump here.
             pass
 
-        if not bool(self.reverse_timestamp):
+        if not bool(self.timestamp):
             pass
-            self.reverse_timestamp = 0xFFFFFFFF - int(time.time())
+            self.timestamp = int(time.mktime(datetime.datetime.now().timetuple()))
         if self.pk: #This is an update, should perhaps do something?
             pass
         elif self.object_id: #New post, update parent accordingly
             #TODO: Don't we want to move this to a listener?
             parent = self.in_reply_to
-            parent.reverse_timestamp = min(parent.reverse_timestamp, self.reverse_timestamp)
+            parent.timestamp = max(parent.timestamp, self.timestamp)
             
             #I'd rather hit the DB than end up with the wrong numbers
             parent.replies_count = parent.replies.public().count() + 1 
             parent.last_poster_id = self.user_id
             parent.last_poster_name = self.username
             try:
-                parent.tags.all().update(reverse_timestamp = parent.reverse_timestamp, 
-                                         last_attach = datetime.datetime.fromtimestamp(0xffffffff - parent.reverse_timestamp))
+                parent.tags.all().update(last_attach = parent.timestamp)
             except AttributeError: #If the parent is a UserProfile there are no tags.
                 pass
 

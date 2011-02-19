@@ -180,15 +180,13 @@ def post_form(context, obj = None):
     '''
     
     '''
-#    f = inlineformset_factory(Post, PostData)
-#    from django.core.context_processors import csrf
     request = context['request']
     return {'form':board_forms.PostDataForm(obj, request = request), 
             'hide_auth': request.user.is_authenticated() and request.GET.get('auth') != 'show',
             'request': request,
             'next_item': context['next_item'],
             'csrf_token': context['csrf_token'],
-            'tag': context['tag'],
+            'tag': context.get('tag',False),
             }
 
 

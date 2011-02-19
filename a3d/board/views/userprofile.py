@@ -112,7 +112,7 @@ def list_by_user(request, username, context_instance = None, discard_response = 
     template_name = 'board/user_post_list.html'
     ppp = context_instance['personal_settings']['post_per_page']
     qs = user_obj.posts.public(request.user)
-    paginator = EndlessPage(qs, ppp, filter_field = 'reverse_timestamp')
+    paginator = EndlessPage(qs, ppp, filter_field = '-timestamp')
     lastcount = request.GET.get('count', '')
     if bool(lastcount):
         #this is only a count request - result should only be a number
