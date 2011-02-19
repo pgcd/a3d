@@ -19,11 +19,11 @@ from board import signals as board_signals
 from django.utils import simplejson
 from django.db.models.signals import pre_save
 import re
-from django.contrib.auth.models import User
 from faves.templatetags.faves import has_faved
 from django.contrib.contenttypes.models import ContentType
 from a3d import settings
 import sys
+from django.template.loader import render_to_string
 
 
 #I think the following should be moved to the interaction views, but right now it doesn't make a lot of sense to do so
@@ -47,7 +47,7 @@ def mark_as(request, post_id, action, **kwargs):  #IGNORE:W0613
         
         #if request.is_ajax(): #TODO: Some kind of response+template for non-ajax requests
         return view(request, post_id, info_only = True) #FIXME:I really don't like using "board.views.post.view" like this, I'd rather use a more specific addressing
-    except Post.DoesNotExist, InteractionType.DoesNotExist:
+    except DoesNotExist: #@UndefinedVariable #IGNORE:E0602
         return HttpResponseServerError()
 
 
@@ -110,25 +110,22 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     if request.GET.get('count', None) is not None:
         c = EndlessPage(queryset, limit,
                         filter_field = 'reverse_timestamp').page(context_instance, count_only = True)
-        if c['items_left'] == 0: 
+        if c['items_left'] == 0:
             return HttpResponseNotModified()
         else:
             _d = {'object_list':[],
-                  'more_down':'%s' % (request.GET.get('start', '').lstrip('-')),
                   'tag':tag,
                   'next_item': c.get('tip', 0),
                   'items_left': c['items_left']}
-            context_instance.update(_d)
             return render_to_response(template_name,
-                {},
+                _d,
                 context_instance = context_instance)
     if request.GET.get('info_only', False): 
         #We use this for the brief - might require some tweaking later on
         _d = EndlessPage(queryset, 10, #TODO: Remove hardcoding
                          filter_field = 'reverse_timestamp').page(context_instance, list_name = 'post_list')
-        context_instance.update(_d)
         return render_to_response('board/post_list_brief.html', #TODO: Remove hardcoding
-                {},
+                _d,
                 context_instance = context_instance)
 
     #The actual processing takes place here.
@@ -142,9 +139,8 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
         board_signals.tag_read.send(Tag, tag_id = tag.pk, last_item = _d["last_item"], user = request.user)
     else:
         board_signals.home_read.send(Post, last_item = _d["last_item"], user = request.user)
-    context_instance.update(_d)
     return render_to_response(template_name,
-            {},
+            _d,
             context_instance = context_instance)
 
 def _set_extra_attributes(request, post_obj):
@@ -211,32 +207,26 @@ def list_replies(request,
         if c['items_left'] == 0:
             return HttpResponseNotModified()
         else: #Since there are new posts, we return them, formatted with the current template
-            _d = {'post_list':[],
-                  'more_up':'%s' % (request.GET.get('start', '').lstrip('-')),
-                  'next_item_direction':'up',
-                  'next_item': c['tip'] + 1 if c['tip'] else 0,
+            return render_to_response(template_name,
+                {'post_list':[],
+                  'next_item': c.get('tip',0),
                   'parent_post':post,
                   'items_left': c['items_left'],
-                  }
-            context_instance.update(_d)
-            return render_to_response(template_name,
-                {},
+                 },
                 context_instance = context_instance)
     
     #retrieve the actual list     
     _d = paginator.page(context_instance, list_name = 'post_list')
     _d.update({
-            'next_item':_d['tip'] + 1 if _d['tip'] else 0,
-            'next_item_direction':'down',
+            'next_item':_d.get('tip',0),
             'parent_post':post,
            })
-    context_instance.update(_d)
     
     #Check if we only want the list of the last posts, without the actual data.
     #TODO: Check if it's possibile to remove select_related - perhaps we can make the check in the caller funcs?
     if request.GET.get('info_only', False):
         return render_to_response('board/post_list_brief.html',
-                {},
+                _d,
                 context_instance = context_instance)
         
     last_item = "%s;%s" % (_d['last_item'] or post_id,
@@ -257,9 +247,13 @@ def list_replies(request,
     except ValueError:
         pass
     #discard_response is used when calling the view from a template_tag
-    if not discard_response:
+    if discard_response:
+        return render_to_string(template_name,
+                _d,
+                context_instance = context_instance)
+    else:
         return render_to_response(template_name,
-                {},
+                _d,
                 context_instance = context_instance)
     
 
@@ -288,11 +282,21 @@ def rate(request, post_id, action):
             parent = post.in_reply_to
             parent.reverse_timestamp = parent.reverse_timestamp + parent_timeshift
             parent.timeshift = parent.timeshift + parent_timeshift 
-            if board_signals.interaction_event.send(Post, request = request, user = request.user, object_id = parent.pk, value = action, interaction_type = 'timeshift'):
+            if board_signals.interaction_event.send(Post, 
+                                                    request = request, 
+                                                    user = request.user, 
+                                                    object_id = parent.pk, 
+                                                    value = action, 
+                                                    interaction_type = 'timeshift'):
                 parent.save(no_update = True) 
         post.reverse_timestamp = post.reverse_timestamp + timeshift
         post.timeshift = post.timeshift + timeshift 
-        if board_signals.interaction_event.send(Post, request = request, user = request.user, object_id = post.pk, value = action, interaction_type = signal_action):
+        if board_signals.interaction_event.send(Post, 
+                                                request = request, 
+                                                user = request.user, 
+                                                object_id = post.pk, 
+                                                value = action, 
+                                                interaction_type = signal_action):
             post.save(no_update = True)
         
         setattr(post, 'tag_set', post.tags.all())
@@ -315,8 +319,10 @@ def preview(request):
     b = request.POST.get('data')
     p = PostData(body = transform(b))
     pre_save.send(sender = PostData, request = request, instance = p)
-    context_instance = RequestContext(request, {'post':p})
-    return render_to_response('board/post_preview.html', {}, context_instance = context_instance)
+    context_instance = RequestContext(request)
+    return render_to_response('board/post_preview.html', 
+                              {'post':p}, 
+                              context_instance = context_instance)
 
 
 @csrf_protect
@@ -367,7 +373,8 @@ def create(request):
     """
     #TODO: Some serious validation is required here!
     next_page = request.POST.get('next_page', '')
-    is_reply = int(request.POST.get('is_reply', 0)) > 0 #TODO: Kinda certain there's a saner way.
+    #We should never have "is_reply=false" in the req
+    is_reply = request.POST.get('content_type', False) and request.POST.get('object_id', False)  
     form = PostDataForm(data = request.POST)
     context_instance = RequestContext(request)
     if form.is_valid():
@@ -375,7 +382,6 @@ def create(request):
         p.ip = request.META.get('REMOTE_ADDR')
         p._title = form.cleaned_data["title"]
         p.rating = settings.A3D_BASE_SETTINGS['base_rating'] #The default - might want to provide for different cases? Perhaps Group-based
-        
         #Fully auth'ed post, with user_id
         if form.cleaned_data['username']:
             p.username = form.cleaned_data['username']
@@ -413,9 +419,10 @@ def create(request):
             if request.POST.get('list_tag'):
                 all_tags.append(request.POST.get('list_tag'))
             #cleanup title
-            existing_tags = Tag.objects.filter(title__in = list(set(all_tags)))
+            existing_tags = Tag.objects.filter(title__in = list(set(all_tags))) 
             p._title = re.sub('|'.join(['\[%s\]' % t.title for t in existing_tags]), '', p._title)
-            board_signals.postdata_pre_create.send(sender = p.__class__, request = request, instance = p)
+            board_signals.postdata_pre_create.send(sender = p.__class__, 
+                                              request = request, instance = p)
             #The post should be mostly ready, so we can save it.
             p.save()
 
@@ -444,15 +451,18 @@ def create(request):
             new_req.GET = request.GET.copy()
             new_req.GET.update({'start': request.POST.get('next_item', ''),
                                 'is_reply':is_reply,
-                                'down':True,
-                                'up': True})
+            #The following prevents both endlesspaginators from being rendered
+                                'discard_low': True, 
+                                'discard_high': True,
+                                })
             return expected_view(new_req, *args, **kwargs) #IGNORE:W0142
         else:
             return HttpResponseRedirect(next_page)
     else: #Something's wrong with the submitted form, let's display the errors.
         if request.is_ajax():
             errors = dict((k, v[0].__unicode__()) for k, v in form.errors.items())
-            return HttpResponse(simplejson.dumps(errors), mimetype = 'application/json')
+            return HttpResponse(simplejson.dumps(errors),
+                                mimetype = 'application/json')
         else:
             #TODO: Some feedback for non-ajax enabled users?
             return HttpResponseRedirect(next_page)

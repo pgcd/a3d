@@ -9,9 +9,7 @@ import datetime
 from board.models import Tag, UserProfile, Interaction
 #from django.contrib.contenttypes.models import ContentType
 from board import forms as board_forms
-from board import signals as board_signals
 #from board.paginator import Paginator
-from board.utils import EndlessPage
 from board.decorators import parsingTag
 #from django.template import RequestContext
 #from django.core.urlresolvers import reverse
@@ -31,9 +29,7 @@ class TagsList(template.Node):
         self.limit = limit
     def render(self, context):
         from board.views.tag import list as tag_list
-        d = tag_list(context['request'], limit = self.limit, discard_response = True)
-        context.update(d)
-        return ''
+        return tag_list(context['request'], limit = self.limit, context_instance=context, discard_response = True) 
 parsingTag(TagsList, "do_tags_list")
 
 
@@ -65,7 +61,11 @@ class PostInteractionsNode(template.Node):
         if not user.is_authenticated():
             return ''
         object_pks = [x.pk for x in posts]
-        interactions = Interaction.objects.filter(object_id__in = object_pks, user = user).values('value', 'object_id', 'interaction_type__name', 'interaction_type__content_type_id')
+        interactions = Interaction.objects.filter(object_id__in = object_pks, 
+                                                  user = user).values('value', 
+                                                                      'object_id', 
+                                                                      'interaction_type__name', 
+                                                                      'interaction_type__content_type_id')
         pdict = dict((d.pk, d) for d in posts)
         for i in interactions:
             p_id = i["object_id"]
@@ -133,11 +133,15 @@ def prefetch(parser, token):
 
 
 @register.inclusion_tag("board/tags_on_object.html", takes_context = True)
-def object_tags(context, obj, skip_tag = None):
-    #TODO: This tag might be removed 
-    tags = getattr(obj, "tag_set", [])
-    context.update({"tags":tags, 'obj':obj})
-    return context
+def object_tags(context, obj):
+    '''
+    @param context:
+    @param obj:
+    '''
+    return {"tags":getattr(obj, "tag_set", []), 
+            'obj':obj,
+            'request':context['request']
+            }
     
 
 
@@ -164,9 +168,10 @@ def login_form(context):
     
     '''
     from django.contrib.auth.forms import AuthenticationForm
-    form = AuthenticationForm(context["request"])
-    context.update({ 'form':form})
-    return context
+    return {
+            'form':AuthenticationForm(context["request"]),
+            'request': context['request'],
+            }
 
 
 @csrf_protect
@@ -178,18 +183,21 @@ def post_form(context, obj = None):
 #    f = inlineformset_factory(Post, PostData)
 #    from django.core.context_processors import csrf
     request = context['request']
-    form = board_forms.PostDataForm(obj, request = request)
-    context.update({ 'form':form, 'hide_auth': request.user.is_authenticated() and request.GET.get('auth') != 'show'})
-#    _d = { 'form':board_forms.PostDataForm(obj), 'request': context['request'], 'csrf_token': context['csrf_token'] }
-    return context
+    return {'form':board_forms.PostDataForm(obj, request = request), 
+            'hide_auth': request.user.is_authenticated() and request.GET.get('auth') != 'show',
+            'request': request,
+            'next_item': context['next_item'],
+            'csrf_token': context['csrf_token'],
+            'tag': context['tag'],
+            }
 
 
 @register.inclusion_tag("board/post_info.html", takes_context = True)
-def post_info(context, p, *args, **kwargs):
+def post_info(context, post):
     '''
     
     '''
-    return {'post':p,
+    return {'post':post,
             'request':context['request'],
             'personal_settings':context['personal_settings'],
             }
@@ -205,9 +213,8 @@ def list_mentions_for(context, user):
 class RepliesToken(template.Node):
     """
     """
-    def __init__(self, obj, var_name = "object_list"):
+    def __init__(self, obj, list_name='object_list'):
         self.obj = template.Variable(obj)
-        self.var_name = var_name
         
     def render(self, context):
         try:
@@ -218,8 +225,7 @@ class RepliesToken(template.Node):
         ct = ContentType.objects.get_for_model(obj).name
         if ct == 'post':
             from board.views.post import list_replies as post_replies
-            post_replies(context["request"], obj.pk, context, discard_response = True)
-            return ''
+            return post_replies(context["request"], obj.pk, context, discard_response = True)
         if ct == 'user profile':
             from board.views.userprofile import list_replies as profile_comments
             profile_comments(context["request"], obj.user.username, context, discard_response = True)
@@ -238,31 +244,11 @@ class UserPostsToken(template.Node):
         try:
             obj = self.user_object.resolve(context)
         except template.VariableDoesNotExist:
-            return "Object %s does not exist" % self.obj
+            return "Object %s does not exist" % self.user_object
         from board.views.userprofile import list_by_user
         list_by_user(context['request'], obj.user.username, context, discard_response = True)
         return ''
 parsingTag(UserPostsToken, "get_posts_by", required = 1)
-
-
-class PaginatorToken(template.Node):
-    """
-    """
-    def __init__(self, qs, limit = None, var_name = "post_list"):
-        self.qs = template.Variable(qs)
-        self.var_name = var_name
-        
-    def render(self, context):
-        try:
-            qs = self.qs.resolve(context)
-        except template.VariableDoesNotExist:
-            return "List %s does not exist" % self.qs
-        limit = context['personal_settings']['post_per_page']
-        _d = EndlessPage(qs, limit).page(context, list_name = self.var_name)
-        context.update(_d)
-        return ''
-parsingTag(PaginatorToken, "paginate", required = 1)
-
 
 #============================================================================
 # Simple Tags

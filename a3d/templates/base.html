@@ -60,10 +60,12 @@
 					{% endwith %}
 				</div>
 				{% endif %}
+				{% block tags_list %}
 				<h3>tags</h3>
 				<div id="tags-list">
-					{% include "board/tag_list.html" %}	
+					{% do_tags_list 25 %}
 				</div>
+				{% endblock %}
 				<h3>code updates</h3>
 				<div id="latest-googlecode-changes">
 					{% cache 3600 lgcc %}

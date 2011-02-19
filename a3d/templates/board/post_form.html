@@ -9,9 +9,22 @@
 	data-attach-element=".threads-list.new-content"
 	{% endif %}
 	class="append-to-target quick-submit markitup">	
+
+	{{ form.object_id }}
+	{{ form.content_type }}
+	
+	<input type="hidden" name="next_page" value="{{ form.next_page|default:request.path }}" />
+	<input type="hidden" name="next_item" value="{{ next_item }}" />
+{% if tag %}
+	<input type="hidden" name="list_tag" value="{{ tag }}" />
+{% endif %}
+
+	
 	{% csrf_token %}
 	{% if hide_auth %}
-	 <a title="{% trans "click to post with a different username" %}" href="{{request.path|updateurl:"auth=show"}}" class="auth-hidden">{% trans "logged in as " %}<b>{{request.user.username}}</b></a>
+	 <a title="{% trans "click to post with a different username" %}"
+	    href="{{request.path|updateurl:"auth=show"}}" 
+		class="auth-hidden">{% trans "logged in as " %}<b>{{request.user.username}}</b></a>
 	{% endif %}
 	<ul style="margin: 0 auto;" {% if hide_auth %}class="auth-hidden"{% endif %}>
 		<li>{{ form.username.label_tag }}{{ form.username }}</li>
@@ -25,15 +38,6 @@
 	<ul class="advanced-options">
 		<li>{{ form.wiki.label_tag }}{{ form.wiki }}</li>
 	</ul>
-	{{ form.object_id }}
-	{{ form.content_type }}
-	
-	<input type="hidden" name="next_page" value="{{ form.next_page|default:request.path }}" />
-	<input type="hidden" name="next_item" value="{{ next_item }}" />
-	<input type="hidden" name="direction" value="{{ next_item_direction }}" />
-{% if tag %}
-	<input type="hidden" name="list_tag" value="{{ tag }}" />
-{% endif %}
 	<input type="submit" value="Submit" />
 	<div id="preview-anchor-right"></div>
 	<div id="preview-anchor-bottom"></div>

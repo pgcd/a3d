@@ -116,6 +116,7 @@ class Post(Auditable, ExtendedAttributesManager):
             pass
 
         if not bool(self.reverse_timestamp):
+            pass
             self.reverse_timestamp = 0xFFFFFFFF - int(time.time())
         if self.pk: #This is an update, should perhaps do something?
             pass
@@ -129,7 +130,8 @@ class Post(Auditable, ExtendedAttributesManager):
             parent.last_poster_id = self.user_id
             parent.last_poster_name = self.username
             try:
-                parent.tags.all().update(reverse_timestamp = parent.reverse_timestamp, last_attach = datetime.datetime.fromtimestamp(0xffffffff - parent.reverse_timestamp))
+                parent.tags.all().update(reverse_timestamp = parent.reverse_timestamp, 
+                                         last_attach = datetime.datetime.fromtimestamp(0xffffffff - parent.reverse_timestamp))
             except AttributeError: #If the parent is a UserProfile there are no tags.
                 pass
 

@@ -1,4 +1,28 @@
 jQuery(document).ready(function($){ // Makes me feel safer
+
+	//Adding this as per Django specs, to deal with CSRF prot.
+	$('html').ajaxSend(function(event, xhr, settings) {
+	    function getCookie(name) {
+	        var cookieValue = null;
+	        if (document.cookie && document.cookie != '') {
+	            var cookies = document.cookie.split(';');
+	            for (var i = 0; i < cookies.length; i++) {
+	                var cookie = jQuery.trim(cookies[i]);
+	                // Does this cookie string begin with the name we want?
+	                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+	                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+	                    break;
+	                }
+	            }
+	        }
+	        return cookieValue;
+	    }
+	    if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+	        // Only send the token to relative URLs i.e. locally.
+	        xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+	    }
+	});
+
     a3d.htmlToAlm = function($$){
         $$.find('blockquote').each(function(i, e){
             var $this = $(this);
@@ -147,10 +171,14 @@ jQuery(document).ready(function($){ // Makes me feel safer
     //The form type used to post new items.
     $('form.append-to-target').submit(function(){
         var $form = $(this), $target = $($form.attr("data-attach-element")), postData = $form.serializeArray();
-        postData.push({
-            name: 'is_reply',
-            value: $form.find('input[name=object_id]').val() && $form.find('input[name=content_type]').val()?1:0
-        });
+//		This shouldn't actually be necessary
+//        if($form.find('input[name=object_id]').val() && $form.find('input[name=content_type]').val()) {
+//			postData.push({
+//	            name: 'is_reply',
+//	            value: '1'
+//	        });
+//		}
+
         if ($target) {
             $.ajax({
                 type: 'POST',
@@ -174,7 +202,6 @@ jQuery(document).ready(function($){ // Makes me feel safer
 						var $data = $(data);
 						$target.attr('data-items-left', $data.attr('data-items-left'));
 						$target.attr('data-source-href', $data.attr('data-source-href'));
-
 						//If we attach the *children* we can use the same approach for both replies and threads.
 						//TODO: Use the duplicates removing function.
                         $target[$form.attr('data-attach-method')]($data.html());
@@ -194,7 +221,6 @@ jQuery(document).ready(function($){ // Makes me feel safer
                 },
                 complete: function(xhrequest){
                     xhrequest.active_form.slideDown('fast');
-//                    location.hash = $form.attr("data-attach-element");
                     $('document').trigger('postsAppended');
                     return xhrequest;
                 }
@@ -221,13 +247,16 @@ jQuery(document).ready(function($){ // Makes me feel safer
         var that = this, $that = $(this);
         
         this.attachTag = function(tag){
-            var target_post_id = $that.attr('data-tag-target-object'), target_url = that.href, data = {
+            var target_post_id = $that.attr('data-tag-target-object');
+			var target_url = $that.attr('href');
+			var data = {
                 post_id: target_post_id,
                 tag_title: tag
             };
             // Now we POST the new association to the view
             $.post(target_url, data, function(responseText, textStatus, XMLHttpRequest){
-                $('#post-id-' + target_post_id + '>.post-info .tags-on-post') //Sensible pattern, isn't it? This way only the relevant post is updated even when nested 
+                $('#post-id-' + target_post_id + '>.post-info .tags-on-post') //Sensible pattern, isn't it? 
+                															  //This way only the relevant post is updated even when nested 
 					.find('.tag-link:not(.hashtag-link)')
 					.remove()
 					.end()
@@ -284,14 +313,19 @@ jQuery(document).ready(function($){ // Makes me feel safer
     });
     
     $('ul.post-info .tags-on-post a.tag-link-detach').live('click', function(){
-        var that = this, target_tag = $(that).siblings('a.tag-link').text().substr(1), target_post_id = $(that).attr('data-tag-target-object'), target_url = that.href, data = {
+        var $that = $(this), target_tag = $that.siblings('a.tag-link').text().substr(1)
+		var target_post_id = $that.attr('data-tag-target-object');
+		var target_url = $that.attr('href'), data = {
             post_id: target_post_id,
             tag_title: target_tag,
             _method: 'DELETE'
         };
         // Now we POST the new association to the view
         $.post(target_url, data, function(responseText, textStatus, XMLHttpRequest){
-            $('#post-id-' + target_post_id + '>.post-info .tags-on-post').find('.tag-link:not(.hashtag-link)').remove().end().prepend(responseText);
+            $('#post-id-' + target_post_id + '>.post-info .tags-on-post')
+			.find('.tag-link:not(.hashtag-link)').remove()
+			.end()
+			.prepend(responseText);
         });
         return false;
     });
@@ -328,9 +362,8 @@ jQuery(document).ready(function($){ // Makes me feel safer
     });
     
     $('a.endless-paginator').live('click', function(){
-        var that = this;
-        var paginate_type = this.href.match("start=-") ? 'down' : 'up';
-        $.get(this.href + '&' + paginate_type + '=true', function(data){
+        var $that = $(this);
+        $.get($that.attr('href'), function(data){
 			var $data = $(data);
             var $items = $data.children('li');
             $.each($items, function(i, e){ //TODO: Update this to reflect changes in structure
@@ -344,17 +377,17 @@ jQuery(document).ready(function($){ // Makes me feel safer
                     }
                 }
             });
-			var $target = $(that).siblings('.new-content');
-            $target[$(that).attr('data-attach-method')]($items);
+			var $target = $that.siblings('.new-content');
+            $target[$that.attr('data-attach-method')]($items);
 			$target.attr('data-source-href', $data.attr('data-source-href'));
 			
-			var paginator = $('<p/>').html(data).find('a.endless-paginator[rel='+that.rel+']');
+			var paginator = $('<p/>').html(data).find('a.endless-paginator[rel='+$that.attr('rel')+']');
 			if(!paginator.hasClass('no-form-effect')) {
 				$('#post-form').find('input[name=next_item]').val($data.attr('data-next-item'));
 			}
             
 			// Replace the current paginators.
-			$(that).replaceWith(paginator);
+			$that.replaceWith(paginator);
             a3d.toggleNonMatchingPosts(); //Update the filtered posts
         });
         return false;
@@ -613,7 +646,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
 	            $this.attr('title', 'edit').html('&equiv;').parent().addClass('on-request');
 	            return false;
 	        }).parent().removeClass('on-request');
-        $.get(this.href, function(data, req){
+        $.get($this.attr('href'), function(data, req){
             /*
              * This function sets up the form for the in-place editing.
              */
@@ -792,10 +825,16 @@ jQuery(document).ready(function($){ // Makes me feel safer
     });
     
     $('.toggle-star a').live('click', function(ev){
-        a3d.fave_link = $(this);
-        $.post(this.href, function(data){
+		var $that = $(this);
+        a3d.fave_link = $that;
+        $.post($that.attr('href'), function(data){
             var was_added = a3d.fave_link.hasClass('add-star');
-            a3d.fave_link.attr('href', data.new_href).toggleClass('on-request', !was_added).switchClass('add-star', 'remove-star').html(was_added ? '&diams;' : '&loz;').attr('title', was_added ? 'unstar' : 'star');
+            a3d.fave_link
+				.attr('href', data.new_href)
+				.toggleClass('on-request', !was_added)
+				.switchClass('add-star', 'remove-star')
+				.html(was_added ? '&diams;' : '&loz;')
+				.attr('title', was_added ? 'unstar' : 'star');
             updateFaveList();
         });
         return false;
@@ -837,7 +876,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
     });
     
     $('#fave-list ul li a.remove-star').live('click', function(ev){
-        $.get(this.href, function(data){
+        $.get($(this).attr('href'), function(data){
             updateFaveList();
         });
         return false;

@@ -16,7 +16,7 @@ TEMPLATE_CONTEXT_PROCESSORS += (
 )
 
 
-DEBUG = False
+DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
@@ -89,7 +89,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
 #    'denorm.middleware.DenormMiddleware',
     'board.middleware.CurrentUserPageMiddleware',
-    'board.middleware.StatsMiddleware',
+#    'board.middleware.StatsMiddleware',
 )
 
 if DEBUG:
@@ -124,7 +124,7 @@ INSTALLED_APPS = (
     'registration',
 #    'denorm',
     'a3d.faves',
-#    'debug_toolbar',
+    'debug_toolbar',
     'a3d.almparse',
     'a3d.board',
     'south',
@@ -149,7 +149,7 @@ DEBUG_TOOLBAR_PANELS = (
 #    'debug_profiling.ProfilingPanel',
 )
 DEBUG_TOOLBAR_CONFIG = {
-     'INTERCEPT_REDIRECTS': True,
+     'INTERCEPT_REDIRECTS': False,
      'SHOW_TOOLBAR_CALLBACK': lambda req: DEBUG and req.session.get('_auth_user_id', 0) == 77 #FIXME: Horrible hack!
 }
 

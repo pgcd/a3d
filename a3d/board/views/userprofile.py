@@ -18,6 +18,7 @@ from board.utils import EndlessPage
 from board import signals as board_signals
 import sys
 import urllib
+from django.template.loader import render_to_string
 
 def autocomplete(request, **kwargs): #TODO: Enforce minimum chars here?
     """
@@ -69,33 +70,32 @@ def list_replies(request,
         else:
             _d = {'post_list':[],
                   'more_up':'%s' % (request.GET.get('start', '').lstrip('-')),
-                  'next_item_direction':'up',
-                  'next_item': c['tip'] + 1 if c['tip'] else 0,
+                  'next_item': c.get('tip',0),
                   'parent_post':post,
                   'items_left': c['items_left']}
-            context_instance.update(_d)
             return render_to_response(template_name,
-                {},
+                _d,
                 context_instance = context_instance)
     
     
     _d = EndlessPage(qs, limit).page(context_instance, list_name = 'post_list')
     _d.update({
-            'next_item':_d['last_item'] + 1,
-            'next_item_direction':'down',
+            'next_item':_d['last_item'],
             'parent_post':post,
            })
-    context_instance.update(_d)
-    
     if request.GET.get('info_only', False):
         return render_to_response('board/post_list_brief.html',
-                {},
+                _d,
                 context_instance = context_instance)
     last_item = "%s;%s" % (_d['last_item'] or post.pk, post.replies_count - _d['items_left'])
     board_signals.post_read.send(sender = UserProfile, obj_id = post.pk, last_item = last_item, user = request.user)
-    if not discard_response:
+    if discard_response:
+        return render_to_string(template_name,
+                _d,
+                context_instance = context_instance)
+    else:
         return render_to_response(template_name,
-                {},
+                _d,
                 context_instance = context_instance)
 
 
@@ -121,21 +121,21 @@ def list_by_user(request, username, context_instance = None, discard_response = 
         if c['items_left'] == 0:
             return HttpResponseNotModified()
         else: #Since there are new posts, we return a paginator with a counter and some other info
-            _d = {'post_list':[],
-                  'more_down':'%s' % (request.GET.get('start', '').lstrip('-')),
-                  'next_item_direction':'up',
-                  'next_item': c['tip'] - 1 if c['tip'] else 0,
-                  'parent_post':user_obj,
-                  'items_left': c['items_left']}
-            context_instance.update(_d)
             return render_to_response(template_name,
-                {},
+                {'post_list':[],
+                  'more_down':'%s' % (request.GET.get('start', '').lstrip('-')),
+                  'next_item': c.get('tip',0),
+                  'parent_post':user_obj,
+                  'items_left': c['items_left'],
+                  },
                 context_instance = context_instance)
 
     _d = paginator.page(context_instance, list_name = 'post_list')
-    _d.update({'next_item':'-%s' % ((_d['first_item'] or 0xFFFFFFFF) - 1), 'next_item_direction':'up'}) 
-    board_signals.post_read.send(User, obj_id = user_obj.pk, last_item = "%s;%s" % (_d["last_item"], '0'), user = request.user)
-    context_instance.update(_d)
+    _d.update({'next_item': _d['first_item']}) 
+    board_signals.post_read.send(User, 
+                                obj_id = user_obj.pk, 
+                                last_item = "%s;%s" % (_d["last_item"], '0'), 
+                                user = request.user)
     return render_to_response(template_name,
-                                   {},
+                                   _d,
                                    context_instance = context_instance)

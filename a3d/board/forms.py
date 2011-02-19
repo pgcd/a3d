@@ -59,11 +59,11 @@ class PostDataForm(forms.ModelForm):
         title = re.sub(r'^(@?\[.+?\])+', '', cleaned_data.get("title").strip())
         body_markup = cleaned_data.get("body_markup", '').strip()
         if body_markup == '' and title == '':
-                msg = _(u"Devi inserire almeno uno tra titolo e testo.")
-                self._errors["title"] = self.error_class([msg])
-                self._errors["body_markup"] = self.error_class([msg])
-                del cleaned_data["title"]
-                del cleaned_data["body_markup"]
+            msg = _(u"Devi inserire almeno uno tra titolo e testo.")
+            self._errors["title"] = self.error_class([msg])
+            self._errors["body_markup"] = self.error_class([msg])
+            del cleaned_data["title"]
+            del cleaned_data["body_markup"]
         return cleaned_data
         
     class Meta:

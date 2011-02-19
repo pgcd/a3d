@@ -13,6 +13,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.template.defaultfilters import slugify
 from django.db.utils import IntegrityError
 import datetime, time
+from django.template.loader import render_to_string
 
 
 def list(request,
@@ -23,18 +24,21 @@ def list(request,
     """
     """
     context_instance = context_instance if context_instance else RequestContext(request)
-    tags_list = Tag.objects.filter(is_active = True, last_attach__gt = datetime.datetime.fromtimestamp(int(request.GET.get('after', 0)))).order_by('-attach_count')
+    tags_list = Tag.objects.filter(is_active = True,
+                                   last_attach__gt = datetime.datetime.fromtimestamp(int(request.GET.get('after', 0)))
+                                   ).order_by('-attach_count')
     if tags_list.count() == 0:
         return HttpResponseNotModified()
 
-    d = {'next_item': int(time.mktime(max(tags_list, key = lambda x:x.last_attach).last_attach.timetuple())),
+    d = {'next_item': int(time.mktime(max(tags_list,
+                                          key = lambda x:x.last_attach
+                                          ).last_attach.timetuple())),
          'tags_list': tags_list[0:int(limit)],
          }
 
     if discard_response:
-        return d
+        return render_to_string(template_name, d, context_instance)
     else:
-        context_instance.update(d)
         return render_to_response(template_name, d, context_instance)
      
     
@@ -61,14 +65,11 @@ def view(request, tag_id = None, tag_title = None, page = 1, limit = 30,
     """
 
 
-def autocomplete(request, **kwargs): #TODO: Enforce minimum chars here?
+def autocomplete(request, **kwargs):
     """
     """
     tag_title = request.GET.get('s', '')
     object_list = Tag.objects.filter(is_active = True, title__startswith = tag_title).values_list('title')
-    
-#    json_serializer = serializers.get_serializer("json")()
-#    json_serializer.serialize(queryset, ensure_ascii=False, stream=response,fields='title')
     return HttpResponse(object_list, mimetype = "text/plain")
 
 

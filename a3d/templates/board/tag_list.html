@@ -1,5 +1,4 @@
 {% load board_tags i18n %}
-{% do_tags_list 25 %}
 <ul data-source-href="{% url board_tags_list %}" data-next-item="{{next_item}}">
 {% for tag in tags_list  %}
 	<li id="tag-item-{{tag.title}}">

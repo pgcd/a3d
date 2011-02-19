@@ -42,7 +42,7 @@
 	<a href="?start={{more_high}}" class="endless-paginator" data-attach-method="append" rel="prev">older</a>
 	{% endif %}		
 
-{% if not request.is_ajax %}
-	{% post_form %}
-{% endif %}
+	{% if not request.is_ajax %}
+		{% post_form %}{{next_item}}
+	{% endif %}
 {% endblock %}

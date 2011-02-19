@@ -1,5 +1,6 @@
 {% load board_tags i18n faves humanize %}
 <ul class="post-info" title="{{post.reverse_timestamp}}">
+	<li>{{post.reverse_timestamp}}</li>
   <li>{% user_link post %}</li>
 		<li>[<time pubdate="true"  datetime="{{post.updated|date:'r'}}">{% blocktrans with post.updated|naturalday as p%}{{p}}{%endblocktrans%} {{ post.updated|time }}</time>]
 			{% if post.wiki %}

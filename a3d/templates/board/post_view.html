@@ -25,7 +25,6 @@
 	    {% endblock %}
 		{% with post as parent_post %}
 			{% get_replies for parent_post as post_list %}
-			{% include "board/post_list.html" %}
 		{% endwith %}
     </article>
 	{% if not request.is_ajax %}
