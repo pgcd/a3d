@@ -64,7 +64,7 @@ def list_replies(request,
     lastcount = request.GET.get('count', False)
     if lastcount:
         #this is only a count request - result should only be a number
-        c = EndlessPage(qs, 30).page(context_instance, count_only = True)
+        c = EndlessPage(qs, 30).page(request, stats_only = True)
         if c['items_left'] == 0:
             return HttpResponseNotModified()
         else:
@@ -78,7 +78,7 @@ def list_replies(request,
                 context_instance = context_instance)
     
     
-    _d = EndlessPage(qs, limit).page(context_instance, list_name = 'post_list')
+    _d = EndlessPage(qs, limit).page(request, list_name = 'post_list')
     _d.update({
             'next_item':_d['last_item'],
             'parent_post':post,
@@ -117,7 +117,7 @@ def list_by_user(request, username, context_instance = None, discard_response = 
     if bool(lastcount):
         #this is only a count request - result should only be a number
         
-        c = paginator.page(context_instance, count_only = True)
+        c = paginator.page(request, stats_only = True)
         if c['items_left'] == 0:
             return HttpResponseNotModified()
         else: #Since there are new posts, we return a paginator with a counter and some other info
@@ -130,7 +130,7 @@ def list_by_user(request, username, context_instance = None, discard_response = 
                   },
                 context_instance = context_instance)
 
-    _d = paginator.page(context_instance, list_name = 'post_list')
+    _d = paginator.page(request, list_name = 'post_list')
     _d.update({'next_item': _d['first_item']}) 
     board_signals.post_read.send(User, 
                                 obj_id = user_obj.pk, 

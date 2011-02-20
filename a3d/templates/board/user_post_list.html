@@ -4,8 +4,8 @@
 	{% prefetch tags for post_list %}
 	{% prefetch post_interactions for post_list %}
 	{% inject_faves_to post_list by request.user of type star as is_starred %}
-	{% if more_low %}
-	<a href="{% url board_profile_list_by_user profile_user %}?start=-{{more_low}}"
+	{% if has_prev %}
+	<a href="{% url board_profile_list_by_user profile_user %}?start=-{{has_prev}}"
 		class="endless-paginator no-form-effect" 
 		rel="next" data-attach-method="prepend" 
 		data-items-left="{{items_left}}">{{items_left}} fresher</a>
@@ -18,8 +18,8 @@
 				{% include "board/thread_body.html" %}
 		{% endfor %} 
 	</ol> 
-	{% if more_high %}
-	<a href="{% url board_profile_list_by_user profile_user %}?start={{more_high}}" 
+	{% if has_next %}
+	<a href="{% url board_profile_list_by_user profile_user %}?start={{has_next}}" 
 	class="endless-paginator no-form-effect" data-attach-method="append" rel="prev">older</a>
 	{% endif %}		
 {% endblock %}

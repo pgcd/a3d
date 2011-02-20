@@ -21,8 +21,8 @@
 	{% prefetch tags for object_list %}
 	{% prefetch post_interactions for object_list %}
 	{% inject_faves_to object_list by request.user of type star as is_starred %}
-	{% if more_low %}
-	<a href="?start=-{{more_low}}" 
+	{% if has_next %}
+	<a href="?start={{has_next}}" 
 		class="endless-paginator" 
 		rel="next" 
 		data-attach-method="prepend"
@@ -32,17 +32,17 @@
 	{% endif %}
 	<ol id="threads"
 		class="new-content threads-list"
-		data-source-href="?start=-{{next_item}}"
-		data-next-item="-{{next_item}}">
-		{% for post in object_list  %}
+		data-source-href="?start={{next_item}}"
+		data-next-item="{{next_item}}">
+		{% for post in object_list|dictsortreversed:"timestamp"  %}
 				{% include "board/thread_body.html" %}
 		{% endfor %} 
 	</ol> 
-	{% if more_high %}
-	<a href="?start={{more_high}}" class="endless-paginator" data-attach-method="append" rel="prev">older</a>
+	{% if has_prev %}
+	<a href="?start=-{{has_prev}}" class="endless-paginator" data-attach-method="append" rel="prev">older</a>
 	{% endif %}		
 
 	{% if not request.is_ajax %}
-		{% post_form %}{{next_item}}
+		{% post_form %}
 	{% endif %}
 {% endblock %}

@@ -15,7 +15,7 @@ from django.template.defaultfilters import slugify
 class TagAttach(models.Model):
     tag = models.ForeignKey("Tag")
     post = models.ForeignKey("Post")
-    reverse_timestamp = models.PositiveIntegerField(blank = True, default = 0)
+    # reverse_timestamp = models.PositiveIntegerField(blank = True, default = 0)
     timestamp = models.PositiveIntegerField(blank = True, default = 0, db_index=True)
     
     
@@ -41,7 +41,7 @@ class Tag(Auditable, ExtendedAttributesManager):
     """A tag on an item."""
     title = models.SlugField(unique = True)
     #I removed this, as it should be dealt with in CSS
-    reverse_timestamp = models.PositiveIntegerField(blank = True, default = 0)
+    # reverse_timestamp = models.PositiveIntegerField(blank = True, default = 0)
     last_attach = models.DateTimeField(default = datetime.datetime.now) #FIXME: WWAAAARRGH
     icon = models.FileField(upload_to = 'tag', blank = True, default = '')
     attach_count = models.PositiveIntegerField(default = 0)

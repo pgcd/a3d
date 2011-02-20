@@ -112,7 +112,7 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     limit = limit or context_instance['personal_settings']['post_per_page']
     if request.GET.get('count', None) is not None:
         c = EndlessPage(queryset, limit,
-                        filter_field = 'timestamp').page(context_instance, count_only = True)
+                        filter_field = 'timestamp').get_stats(request)
         if c['items_left'] == 0:
             return HttpResponseNotModified()
         else:
@@ -126,7 +126,7 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     if request.GET.get('info_only', False): 
         #We use this for the brief - might require some tweaking later on
         _d = EndlessPage(queryset, 10, #TODO: Remove hardcoding
-                         filter_field = 'timestamp').page(context_instance, list_name = 'post_list')
+                         filter_field = 'timestamp').page(request, list_name = 'post_list')
         return render_to_response('board/post_list_brief.html', #TODO: Remove hardcoding
                 _d,
                 context_instance = context_instance)
@@ -134,7 +134,9 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     #The actual processing takes place here.
     _d = EndlessPage(queryset.select_related('user', 'postdata'),
                      limit,
-                     filter_field = 'timestamp').page(context_instance)
+                     filter_field = 'timestamp').page(request)
+    _d['has_next'], _d['has_prev'] = _d['has_prev'], _d['has_next']
+                     
     _d.update({'next_item':_d['first_item'],
                'tag':tag,
                })
@@ -202,11 +204,11 @@ def list_replies(request,
     limit = context_instance['personal_settings']['post_per_page']
     post = get_object_or_404(Post, pk = post_id)
     #Only public and user-specific replies
-    qs = post.replies.public(user).tag_match(context_instance["request"])
+    qs = post.replies.public(user).tag_match(request)
     paginator = EndlessPage(qs, limit)
     if request.GET.get('count', None) is not None:
         #this is only a count request - result should only be a number
-        c = paginator.page(context_instance, count_only = True)
+        c = paginator.get_stats(request)
         if c['items_left'] == 0:
             return HttpResponseNotModified()
         else: #Since there are new posts, we return them, formatted with the current template
@@ -219,7 +221,7 @@ def list_replies(request,
                 context_instance = context_instance)
     
     #retrieve the actual list     
-    _d = paginator.page(context_instance, list_name = 'post_list')
+    _d = paginator.page(request, list_name = 'post_list')
     _d.update({
             'next_item':_d.get('tip',0),
             'parent_post':post,
@@ -281,11 +283,11 @@ def rate(request, post_id, action):
         if request.user.has_perm('board.rate_post'):
             signal_action = 'rate'
             post.rating = post.rating + {'down':-1, 'up':+1}[action]
-        timeshift = {'down':1000, 'up':-1000}[action] #TODO: Figure out some realistic value/algorithm
+        timeshift = {'down':-1000, 'up':1000}[action] #TODO: Figure out some realistic value/algorithm
         parent_timeshift = timeshift / max(5, post.replies_count / 5) #TODO: As above
         if post.object_id: #This post has a parent, so any timeshift should be applied to the parent as well. 
             parent = post.in_reply_to
-            parent.timestamp = parent.timestamp + datetime.timedelta(seconds=parent_timeshift)
+            parent.timestamp = parent.timestamp + parent_timeshift
             parent.timeshift = parent.timeshift + parent_timeshift 
             if board_signals.interaction_event.send(Post, 
                                                     request = request, 
@@ -294,7 +296,7 @@ def rate(request, post_id, action):
                                                     value = action, 
                                                     interaction_type = 'timeshift'):
                 parent.save(no_update = True) 
-        post.timestamp = post.timestamp + datetime.timedelta(seconds=timeshift)
+        post.timestamp = post.timestamp + timeshift
         post.timeshift = post.timeshift + timeshift 
         if board_signals.interaction_event.send(Post, 
                                                 request = request, 

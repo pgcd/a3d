@@ -66,10 +66,12 @@ class PostManager(models.Manager, PostMixin):
         
     def get_home_posts(self, min_rating, user = None):
         # Should we only check threads (ie with replies or without parent)?
-        list = self.public(user).filter(models.Q(rating__gte = min_rating) | \
-                                           models.Q(replies_count__gt = 0) | \
-                                           models.Q(object_id = 0)).order_by('-timestamp')
-        return list
+        return self.public(user
+                           ).filter(models.Q(rating__gte = min_rating) | \
+                                    models.Q(replies_count__gt = 0) | \
+                                    models.Q(object_id = 0)
+                                    ).order_by('-timestamp')
+        
     
 class Post(Auditable, ExtendedAttributesManager):
     user = models.ForeignKey(User, related_name = '_posts', blank = True, null = True)
@@ -86,7 +88,7 @@ class Post(Auditable, ExtendedAttributesManager):
     last_poster = models.ForeignKey(User, blank = True, null = True)
     last_poster_name = models.CharField(max_length = 30, blank = True, default = '') #denormalization
     timestamp = models.PositiveIntegerField(blank = True, default = 0,db_index=True)
-    reverse_timestamp = models.PositiveIntegerField(db_index = True)
+    # reverse_timestamp = models.PositiveIntegerField(db_index = True)
     timeshift = models.IntegerField(default = 0) #Mostly used for bookkeeping, but might be useful later
     _title = models.CharField(max_length = 255, blank = True)
     read_only = models.BooleanField()
@@ -187,21 +189,25 @@ class Post(Auditable, ExtendedAttributesManager):
 
     @property
     def parent_url(self):
-        try:
-            return self.in_reply_to.get_absolute_url()
-        except AttributeError:
-            #TODO: Should we return self's url?
-            return None
+        #The following approach is the correct one. Sadly, it hits the db with every single call.
+        
         #=======================================================================
-        # 
-        # model = ContentType.objects.get_for_id(self.content_type_id).name
-        # if model == 'post':
-        #    return urlresolvers.reverse('board_post_view', kwargs = {'post_id':self.object_id}) 
-        # elif model == 'userprofile':
-        #    return urlresolvers.reverse('profiles_profile_detail', kwargs = {'username':re.sub(r'/^\[\d+\]\s+/', '', self.title)})
-        # else:
+        # try:
         #    return self.in_reply_to.get_absolute_url()
+        # except AttributeError:
+        #    #TODO: Should we return self's url?
+        #    return None
         #=======================================================================
+
+        model = ContentType.objects.get_for_id(self.content_type_id).name
+        if model == 'post':
+            return urlresolvers.reverse('board_post_view', 
+                                        kwargs = {'post_id':self.object_id}) 
+        elif model == 'userprofile':
+            return urlresolvers.reverse('profiles_profile_detail', 
+                                        kwargs = {'username':re.sub(r'/^\[\d+\]\s+/', '', self.title)})
+        else:
+            return self.in_reply_to.get_absolute_url()
 
     def has_new_replies(self):
         read_last = getattr(self, 'read_last', False)
@@ -229,7 +235,7 @@ class Post(Auditable, ExtendedAttributesManager):
     def _can_be_read(self, request):
         if request.user.is_superuser:
             return True
-        if self.is_private():
+        if self.is_private:
             return request.user.is_authenticated() and request.user.username == self.title[2:].partition(']')[0] #hackish but yields
         return True
 

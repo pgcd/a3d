@@ -50,7 +50,7 @@ class UserProfile(models.Model, ExtendedAttributesManager):
     ignores = generic.GenericRelation(Ignore)
     _replies = generic.GenericRelation("Post")
     _last_reply_id = models.PositiveIntegerField(default = 0, blank = True)
-    reverse_timestamp = models.PositiveIntegerField(default = 0)
+    # reverse_timestamp = models.PositiveIntegerField(default = 0)
     timestamp = models.PositiveIntegerField(blank = True, default = 0, db_index=True)
     replies_count = models.IntegerField(default = 0) #This should be a denorm.
     last_page_url = models.CharField(max_length = 255, blank = True, default = '')

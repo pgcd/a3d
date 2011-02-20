@@ -274,14 +274,6 @@ def list_online_users(timespan = 5):
 #=============================================================================
 
 @register.filter
-def from_reverse_timestamp(ts):
-    try:
-        res = datetime.datetime.fromtimestamp(0xFFFFFFFF - ts)
-    except:
-        res = datetime.datetime.fromtimestamp(1) 
-    return res
-
-@register.filter
 def font_by_rating(r):
     if r > 4: #TODO: Remove hardcode
         return "%s high-rating" % r
