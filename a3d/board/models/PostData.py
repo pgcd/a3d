@@ -3,8 +3,8 @@ Created on 22/mag/2010
 
 @author: pgcd
 '''
-from board.models.base import Auditable, ExtendedAttributesManager, Interaction, \
-    Mention
+from board.models.base import Auditable, ExtendedAttributesManager
+from board.models.base import Interaction, Mention
 from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
@@ -25,21 +25,24 @@ class PostMixin(object):
     def public(self, user = None):
         q = models.Q(is_private = False)
         if user and user.is_authenticated():
-                q = q | models.Q(_title__istartswith = '@[%s]' % user.username)
-                q = q | models.Q(user = user)
+            q = q | models.Q(_title__istartswith = '@[%s]' % user.username)
+            q = q | models.Q(user = user)
         return self.filter(q)
     
     def tag_match(self, request):
-        follow = request.GET.get('tag_match') #TODO: Expand this to account for usernames as well
+        #TODO: Expand this to account for usernames as well
+        follow = request.GET.get('tag_match', False)
         if follow:
             return self.filter(postdata__body__contains = follow)
         else:
             return self
 
-class PostQuerySet(QuerySet, PostMixin):
+class PostQuerySet(QuerySet, PostMixin): #IGNORE:R0904
+    '''
+    Placeholder class for future expansion
+    '''
     pass
 
-#from board import signals as board_signals
 class PostManager(models.Manager, PostMixin):
     def get_query_set(self):
         return PostQuerySet(Post, using = self._db)
@@ -87,7 +90,7 @@ class Post(Auditable, ExtendedAttributesManager):
     username = models.CharField(max_length = 30, blank = True, db_index = True)
     last_poster = models.ForeignKey(User, blank = True, null = True)
     last_poster_name = models.CharField(max_length = 30, blank = True, default = '') #denormalization
-    timestamp = models.PositiveIntegerField(blank = True, default = 0,db_index=True)
+    timestamp = models.PositiveIntegerField(blank = True, default = 0, db_index=True)
     # reverse_timestamp = models.PositiveIntegerField(db_index = True)
     timeshift = models.IntegerField(default = 0) #Mostly used for bookkeeping, but might be useful later
     _title = models.CharField(max_length = 255, blank = True)
@@ -119,7 +122,6 @@ class Post(Auditable, ExtendedAttributesManager):
             pass
 
         if not bool(self.timestamp):
-            pass
             self.timestamp = int(time.mktime(datetime.datetime.now().timetuple()))
         if self.pk: #This is an update, should perhaps do something?
             pass
@@ -130,20 +132,21 @@ class Post(Auditable, ExtendedAttributesManager):
             
             #I'd rather hit the DB than end up with the wrong numbers
             parent.replies_count = parent.replies.public().count() + 1 
-            parent.last_poster_id = self.user_id
+            parent.last_poster_id = self.user_id #IGNORE:E1101
             parent.last_poster_name = self.username
             try:
                 parent.tags.all().update(last_attach = parent.timestamp)
-            except AttributeError: #If the parent is a UserProfile there are no tags.
+            except AttributeError:
+                #If the parent is a UserProfile there are no tags.
                 pass
 
-        _ = super(Post, self).save(*args, **kwargs) # Call the "real" save() method.
+        tmp = super(Post, self).save(*args, **kwargs) # Call the "real" save() method.
         if parent:
             parent._last_reply_id = self.pk
             parent.save()
         if pvt_recipient:
             Mention.objects.attachToPost(self, pvt_recipient)
-        return _
+        return tmp
 
     @models.permalink
     def get_absolute_url(self):
@@ -157,7 +160,8 @@ class Post(Auditable, ExtendedAttributesManager):
         if self.replies_count or self.object_id == 0: #Not a reply, or has replies
             return reverse('board_post_view', kwargs = { 'post_id': self.pk })
         else:
-            return self.parent_url + '?start=%s#post-id-%s' % (self.pk, self.pk) #TODO: Remove hardcoding?
+            #TODO: Remove hardcoding?
+            return self.parent_url + '?start=%s&inclusive#post-id-%s' % (self.pk, self.pk)
 
     @property
     def title(self):
@@ -180,7 +184,8 @@ class Post(Auditable, ExtendedAttributesManager):
 
     @property
     def replies(self):
-        return self._replies.filter(is_active = True).order_by('pk').select_related('postdata')
+        return self._replies.filter(is_active = True #IGNORE:E1101
+                                    ).order_by('pk').select_related('postdata')
 
     @property
     def unread_replies(self):

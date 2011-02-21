@@ -622,7 +622,7 @@ jQuery(document).ready(function($){ // Makes me feel safer
 					$floater = $(data).appendTo('body');
 					$floater.css({position:'absolute',left:ev.clientX, top:ev.clientY});
 				});
-			},250);
+			},300);
 			$this.data('timeout', timeout);
 		} else {
 			if($floater.length) {
