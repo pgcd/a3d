@@ -91,8 +91,8 @@ def home(request, **kwargs):
     with the current min_rating_for_home setting. 
     """
     context = RequestContext(request)
-    return _list(request, 
-                 Post.objects.get_home_posts(context['personal_settings']['min_rating_for_home']), 
+    return _list(request,
+                 Post.objects.get_home_posts(context['personal_settings']['min_rating_for_home']),
                  context_instance = context, **kwargs)
     
 
@@ -135,8 +135,7 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     _d = EndlessPage(queryset.select_related('user', 'postdata'),
                      limit,
                      filter_field = 'timestamp').page(request)
-    _d['has_next'], _d['has_prev'] = _d['has_prev'], _d['has_next']
-                     
+    
     _d.update({'next_item':_d['first_item'],
                'tag':tag,
                })
@@ -214,7 +213,7 @@ def list_replies(request,
         else: #Since there are new posts, we return them, formatted with the current template
             return render_to_response(template_name,
                 {'post_list':[],
-                  'next_item': c.get('tip',0),
+                  'next_item': c.get('tip', 0),
                   'parent_post':post,
                   'items_left': c['items_left'],
                  },
@@ -223,7 +222,7 @@ def list_replies(request,
     #retrieve the actual list     
     _d = paginator.page(request, list_name = 'post_list')
     _d.update({
-            'next_item':_d.get('tip',0),
+            'next_item':_d.get('tip', 0),
             'parent_post':post,
            })
     
@@ -289,20 +288,20 @@ def rate(request, post_id, action):
             parent = post.in_reply_to
             parent.timestamp = parent.timestamp + parent_timeshift
             parent.timeshift = parent.timeshift + parent_timeshift 
-            if board_signals.interaction_event.send(Post, 
-                                                    request = request, 
-                                                    user = request.user, 
-                                                    object_id = parent.pk, 
-                                                    value = action, 
+            if board_signals.interaction_event.send(Post,
+                                                    request = request,
+                                                    user = request.user,
+                                                    object_id = parent.pk,
+                                                    value = action,
                                                     interaction_type = 'timeshift'):
                 parent.save(no_update = True) 
         post.timestamp = post.timestamp + timeshift
         post.timeshift = post.timeshift + timeshift 
-        if board_signals.interaction_event.send(Post, 
-                                                request = request, 
-                                                user = request.user, 
-                                                object_id = post.pk, 
-                                                value = action, 
+        if board_signals.interaction_event.send(Post,
+                                                request = request,
+                                                user = request.user,
+                                                object_id = post.pk,
+                                                value = action,
                                                 interaction_type = signal_action):
             post.save(no_update = True)
         
@@ -327,8 +326,8 @@ def preview(request):
     p = PostData(body = transform(b))
     pre_save.send(sender = PostData, request = request, instance = p)
     context_instance = RequestContext(request)
-    return render_to_response('board/post_preview.html', 
-                              {'post':p}, 
+    return render_to_response('board/post_preview.html',
+                              {'post':p},
                               context_instance = context_instance)
 
 
@@ -428,7 +427,7 @@ def create(request):
             #cleanup title
             existing_tags = Tag.objects.filter(title__in = list(set(all_tags))) 
             p._title = re.sub('|'.join(['\[%s\]' % t.title for t in existing_tags]), '', p._title)
-            board_signals.postdata_pre_create.send(sender = p.__class__, 
+            board_signals.postdata_pre_create.send(sender = p.__class__,
                                               request = request, instance = p)
             #The post should be mostly ready, so we can save it.
             p.save()
@@ -459,7 +458,7 @@ def create(request):
             new_req.GET.update({'start': request.POST.get('next_item', ''),
                                 'is_reply':is_reply,
             #The following prevents both endlesspaginators from being rendered
-                                'discard_low': True, 
+                                'discard_low': True,
                                 'discard_high': True,
                                 })
             return expected_view(new_req, *args, **kwargs) #IGNORE:W0142
