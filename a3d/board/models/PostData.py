@@ -156,12 +156,16 @@ class Post(Auditable, ExtendedAttributesManager):
     def get_replies_url(self):
         return ('board_post_view_replies', (), { 'post_id': self.pk })
     
+    @property
+    def get_url_as_reply(self):
+        return '%s?start=%s&inclusive#post-id-%s' % (self.parent_url, self.pk, self.pk)
+    
+    
     def get_smart_url(self):
         if self.replies_count or self.object_id == 0: #Not a reply, or has replies
-            return reverse('board_post_view', kwargs = { 'post_id': self.pk })
+            return self.get_absolute_url()
         else:
-            #TODO: Remove hardcoding?
-            return self.parent_url + '?start=%s&inclusive#post-id-%s' % (self.pk, self.pk)
+            return self.get_url_as_reply()
 
     @property
     def title(self):
@@ -202,23 +206,21 @@ class Post(Auditable, ExtendedAttributesManager):
         #The following approach is the correct one. Sadly, it hits the db with every single call.
         #I would like to find a "correct" approach using a class method, 
         #as opposed to an instance one.
-        try:
-            return self.in_reply_to.get_absolute_url()
-        except AttributeError:
-            #Should we return self's url?
-            return None
+#        try:
+#            return self.in_reply_to.get_absolute_url()
+#        except AttributeError:
+#            #Should we return self's url?
+#            return None
 
-        #=======================================================================
-        # model = ContentType.objects.get_for_id(self.content_type_id).name
-        # if model == 'post':
-        #    return urlresolvers.reverse('board_post_view', 
-        #                                kwargs = {'post_id':self.object_id}) 
-        # elif model == 'userprofile':
-        #    return urlresolvers.reverse('profiles_profile_detail', 
-        #                                kwargs = {'username':re.sub(r'/^\[\d+\]\s+/', '', self.title)})
-        # else:
-        #    return self.in_reply_to.get_absolute_url()
-        #=======================================================================
+        model = ContentType.objects.get_for_id(self.content_type_id).name
+        if model == 'post':
+            return urlresolvers.reverse('board_post_view', 
+                                       kwargs = {'post_id':self.object_id}) 
+        elif model == 'userprofile':
+            return urlresolvers.reverse('profiles_profile_detail', 
+                                       kwargs = {'username':re.sub(r'/^\[\d+\]\s+/', '', self.title)})
+        else:
+            return self.in_reply_to.get_absolute_url()
 
     def has_new_replies(self):
         read_last = getattr(self, 'read_last', False)

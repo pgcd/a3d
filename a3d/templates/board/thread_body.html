@@ -9,7 +9,7 @@
 			{% endif %}
 		</h1></header>
 		{% include "board/post_info.html" %}
-		{% if post.rating >= personal_settings.min_rating_for_summary %}
+		{% if post.rating >= personal_settings.min_rating_for_summary or always_show_summary %}
 		<div class="post-text">
 			{% if post.postdata.summary %}
 				{{ post.postdata.summary|truncatewords_html:66|safe }}
