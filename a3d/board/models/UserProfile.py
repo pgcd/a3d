@@ -16,6 +16,7 @@ from django.db.models.query_utils import Q
 from faves.models import Fave
 import datetime
 import operator
+from django.utils.encoding import iri_to_uri
 
 class UserProfile(models.Model, ExtendedAttributesManager):
     user = models.ForeignKey(User, unique = True, related_name = 'profile')
@@ -50,7 +51,7 @@ class UserProfile(models.Model, ExtendedAttributesManager):
     ignores = generic.GenericRelation(Ignore)
     _replies = generic.GenericRelation("Post")
     _last_reply_id = models.PositiveIntegerField(default = 0, blank = True)
-    # reverse_timestamp = models.PositiveIntegerField(default = 0)
+#    reverse_timestamp = models.PositiveIntegerField(default = 0)
     timestamp = models.PositiveIntegerField(blank = True, default = 0, db_index=True)
     replies_count = models.IntegerField(default = 0) #This should be a denorm.
     last_page_url = models.CharField(max_length = 255, blank = True, default = '')
@@ -61,14 +62,12 @@ class UserProfile(models.Model, ExtendedAttributesManager):
     
     @models.permalink
     def get_absolute_url(self):
-        name = self.__unicode__()
 #        name=name+'\x01' if name.endswith('.') else name
-        return ('profiles_profile_detail', (), { 'username':  name})
+        return ('profiles_profile_detail', (), { 'username':  iri_to_uri(self.user.username)})
 
     @models.permalink
     def get_replies_url(self):
-        name = self.__unicode__()
-        return ('board_profile_view_replies', (), { 'username':  name})
+        return ('board_profile_view_replies', (), { 'username':  iri_to_uri(self.user.username)})
 
     
     @property
@@ -96,17 +95,17 @@ class UserProfile(models.Model, ExtendedAttributesManager):
 #        userprofile_ct = ContentType.objects.get_for_model(UserProfile).pk
         userpost_ct = ContentType.objects.get_for_model(User).pk
     
-        fl = {
+        favorites_list = {
             post_ct:[],
            tag_ct:[],
 #           userprofile_ct:[],
            userpost_ct:[],
            }
-        itypes = InteractionType.objects.filter(name = 'read', content_type__in = fl).values('content_type_id', 'pk')
+        itypes = InteractionType.objects.filter(name = 'read', content_type__in = favorites_list).values('content_type_id', 'pk')
         ctypes = dict((i["pk"], i["content_type_id"]) for i in itypes)
         for f in faves:
-            fl[f.content_type_id].append(f.object_id)
-        fave_list = dict((i["pk"], fl[i["content_type_id"]]) for i in itypes)
+            favorites_list[f.content_type_id].append(f.object_id)
+        fave_list = dict((i["pk"], favorites_list[i["content_type_id"]]) for i in itypes)
         q = Q()
         for itype, f in fave_list.iteritems():
             q = q | (Q(interaction_type = itype) & Q(object_id__in = f))
@@ -122,10 +121,20 @@ class UserProfile(models.Model, ExtendedAttributesManager):
                 pass
             
         faved_objects = {}
-        faved_objects[post_ct] = dict((o.pk, {'last':o.last_reply, 'obj':o, 'type':'post'}) for o in Post.objects.filter(pk__in = fl[post_ct]))
-        faved_objects[tag_ct] = dict((o.pk, {'last': o.last_attach, 'obj':o, 'type':'tag'}) for o in Tag.objects.filter(pk__in = fl[tag_ct]))
-#        faved_objects[userprofile_ct] = dict((o.pk, {'last':o.last_reply, 'obj':o, 'type':'userprofile'}) for o in UserProfile.objects.filter(pk__in = fl[userprofile_ct]))
-        faved_objects[userpost_ct] = dict((o.pk, {'last':o.get_profile().last_post_id, 'obj':o, 'type':'user'}) for o in User.objects.filter(pk__in = fl[userpost_ct]))
+        faved_objects[post_ct] = dict((o.pk, {
+                                              'last':o.last_reply, 
+                                              'obj':o, 
+                                              'type':'post'
+                                              }) for o in Post.objects.filter(pk__in = favorites_list[post_ct]))
+        faved_objects[tag_ct] = dict((o.pk, {'last': o.timestamp, 
+                                             'obj':o, 
+                                             'type':'tag'
+                                             }) for o in Tag.objects.filter(pk__in = favorites_list[tag_ct]))
+#        faved_objects[userprofile_ct] = dict((o.pk, {'last':o.last_reply, 'obj':o, 'type':'userprofile'}) for o in UserProfile.objects.filter(pk__in = favorites_list[userprofile_ct]))
+        faved_objects[userpost_ct] = dict((o.pk, {'last':o.get_profile().last_post_id, 
+                                                  'obj':o.get_profile(), 
+                                                  'type':'user'
+                                                  }) for o in User.objects.filter(pk__in = favorites_list[userpost_ct]))
 
         link_prefix = {
            post_ct:'&para;',
@@ -144,15 +153,14 @@ class UserProfile(models.Model, ExtendedAttributesManager):
                 f.link_start = int(last_interactions[ct][oid].value.split(';')[0])
             except KeyError: #This shouldn't actually ever happen, because there _should_ be an interaction of sorts.
                 f.link_start = 0
-                
-            if fo['type'] == 'user':
-                f.link_href = reverse('profiles_profile_detail', kwargs = {'username':obj.username})
-            else:
-                f.link_href = obj.get_absolute_url()
+
+            f.link_href = obj.get_absolute_url()
             f.link_title = link_prefix[ct] + getattr(obj, 'title', obj.__unicode__()) 
             f.current = fo['last']
             f.fresh = fo.get('op', operator.lt)(f.link_start, f.current)
-            f.remove = reverse('unfave_object', kwargs = {'fave_type_slug':'star', 'content_type_id': ct, 'object_id': oid})
+            f.remove = reverse('unfave_object', kwargs = {'fave_type_slug':'star', 
+                                                          'content_type_id': ct, 
+                                                          'object_id': oid})
         return faves
     
     

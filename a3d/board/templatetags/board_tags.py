@@ -317,9 +317,17 @@ def replies_for_path(path):
 
 @register.filter
 def sensibletime(value, arg = None):
-    """
+    '''
     If it's today, show the time, otherwise show the date. Might be improved later on.
-    """
+    @param value: either a datetime or a timestamp
+    @param arg: the format to be passed to humanize.naturalday in case it's needed
+    '''
+    try:
+        value = datetime.datetime.fromtimestamp(value)
+    except ValueError: #it's an integer, but it's out of range: return it as is
+        return value
+    except TypeError:
+        pass #It's already a datetime, no need to do anything
     try: 
         p_value = datetime.date(value.year, value.month, value.day)
     except AttributeError:

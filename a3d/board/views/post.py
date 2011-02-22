@@ -377,6 +377,7 @@ def create(request):
     """
     Create a new post.
     """
+    #TODO: Wrap everything in a transaction somehow?
     #TODO: Some serious validation is required here!
     next_page = request.POST.get('next_page', '')
     #We should never have "is_reply=false" in the req

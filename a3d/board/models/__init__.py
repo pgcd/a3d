@@ -54,8 +54,8 @@ def tag_read_handler(sender, user = None, tag_id = None, last_item = None, **kwa
     i = Interaction.objects.prepare(sender, user, 'read', object_id = tag_id)
     if not bool(i):
         return False
-    if not i.value.isdigit() or int(i.value) > -last_item:
-        i.value = -last_item
+    if not i.value.isdigit() or int(i.value) < last_item:
+        i.value = last_item
         i.save()
         return True
     return False

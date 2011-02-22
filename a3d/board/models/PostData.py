@@ -91,7 +91,7 @@ class Post(Auditable, ExtendedAttributesManager):
     last_poster = models.ForeignKey(User, blank = True, null = True)
     last_poster_name = models.CharField(max_length = 30, blank = True, default = '') #denormalization
     timestamp = models.PositiveIntegerField(blank = True, default = 0, db_index=True)
-    # reverse_timestamp = models.PositiveIntegerField(db_index = True)
+#    reverse_timestamp = models.PositiveIntegerField(db_index = True)
     timeshift = models.IntegerField(default = 0) #Mostly used for bookkeeping, but might be useful later
     _title = models.CharField(max_length = 255, blank = True)
     read_only = models.BooleanField()
@@ -135,7 +135,7 @@ class Post(Auditable, ExtendedAttributesManager):
             parent.last_poster_id = self.user_id #IGNORE:E1101
             parent.last_poster_name = self.username
             try:
-                parent.tags.all().update(last_attach = parent.timestamp)
+                parent.tags.all().update(timestamp = parent.timestamp)
             except AttributeError:
                 #If the parent is a UserProfile there are no tags.
                 pass
@@ -194,25 +194,31 @@ class Post(Auditable, ExtendedAttributesManager):
 
     @property
     def parent_url(self):
+        '''
+        Get the url for the parent's "view":
+        board_post_view for posts
+        profiles_profile_detail for user profiles
+        '''
         #The following approach is the correct one. Sadly, it hits the db with every single call.
-        
-        #=======================================================================
-        # try:
-        #    return self.in_reply_to.get_absolute_url()
-        # except AttributeError:
-        #    #TODO: Should we return self's url?
-        #    return None
-        #=======================================================================
-
-        model = ContentType.objects.get_for_id(self.content_type_id).name
-        if model == 'post':
-            return urlresolvers.reverse('board_post_view', 
-                                        kwargs = {'post_id':self.object_id}) 
-        elif model == 'userprofile':
-            return urlresolvers.reverse('profiles_profile_detail', 
-                                        kwargs = {'username':re.sub(r'/^\[\d+\]\s+/', '', self.title)})
-        else:
+        #I would like to find a "correct" approach using a class method, 
+        #as opposed to an instance one.
+        try:
             return self.in_reply_to.get_absolute_url()
+        except AttributeError:
+            #Should we return self's url?
+            return None
+
+        #=======================================================================
+        # model = ContentType.objects.get_for_id(self.content_type_id).name
+        # if model == 'post':
+        #    return urlresolvers.reverse('board_post_view', 
+        #                                kwargs = {'post_id':self.object_id}) 
+        # elif model == 'userprofile':
+        #    return urlresolvers.reverse('profiles_profile_detail', 
+        #                                kwargs = {'username':re.sub(r'/^\[\d+\]\s+/', '', self.title)})
+        # else:
+        #    return self.in_reply_to.get_absolute_url()
+        #=======================================================================
 
     def has_new_replies(self):
         read_last = getattr(self, 'read_last', False)

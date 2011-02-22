@@ -19,18 +19,19 @@
 		{% endwith %}
 	{% endblock %}
 </section>
+{% endif %}
+	{% block replies %}
+{% if not request.is_ajax %}
 <section id="comments-on-user">
 	<h2>Commenti al profilo</h2>
 {% endif %}
-	{% block replies %}
 		{% with profile as parent_post %}
 			{% get_replies for profile %}
 			{% include "board/post_list.html" %}
 		{% endwith %}	
-	{% endblock %}
 </section>
-			{% if not request.is_ajax %}
-				{% post_form profile %}
-			{% endif %}
-
+		{% if not request.is_ajax %}
+			{% post_form profile %}
+		{% endif %}
+	{% endblock %}
 {% endblock %}

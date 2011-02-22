@@ -64,7 +64,7 @@ def list_replies(request,
     lastcount = request.GET.get('count', False)
     if lastcount:
         #this is only a count request - result should only be a number
-        c = EndlessPage(qs, 30).page(request, stats_only = True)
+        c = EndlessPage(qs, 30).get_stats(request)
         if c['items_left'] == 0:
             return HttpResponseNotModified()
         else:
@@ -90,6 +90,7 @@ def list_replies(request,
     last_item = "%s;%s" % (_d['last_item'] or post.pk, post.replies_count - _d['items_left'])
     board_signals.post_read.send(sender = UserProfile, obj_id = post.pk, last_item = last_item, user = request.user)
     if discard_response:
+        context_instance.update({'next_item':_d['next_item']})
         return render_to_string(template_name,
                 _d,
                 context_instance = context_instance)
@@ -112,18 +113,15 @@ def list_by_user(request, username, context_instance = None, discard_response = 
     template_name = 'board/user_post_list.html'
     ppp = context_instance['personal_settings']['post_per_page']
     qs = user_obj.posts.public(request.user)
-    paginator = EndlessPage(qs, ppp, filter_field = '-timestamp')
+    paginator = EndlessPage(qs, ppp, filter_field = 'timestamp')
     lastcount = request.GET.get('count', '')
     if bool(lastcount):
-        #this is only a count request - result should only be a number
-        
-        c = paginator.page(request, stats_only = True)
+        c = paginator.get_stats(request)
         if c['items_left'] == 0:
             return HttpResponseNotModified()
         else: #Since there are new posts, we return a paginator with a counter and some other info
             return render_to_response(template_name,
                 {'post_list':[],
-                  'more_down':'%s' % (request.GET.get('start', '').lstrip('-')),
                   'next_item': c.get('tip',0),
                   'parent_post':user_obj,
                   'items_left': c['items_left'],

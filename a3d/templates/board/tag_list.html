@@ -7,7 +7,7 @@
 	class="brief-available popularity-{% if forloop.counter <= 7 %}high{% else %}{% if forloop.counter <= 14 %}medium{% else %}{% if forloop.counter <= 21 %}low{% else %}very-low{% endif %}{% endif %}{% endif %}">
 		.{{ tag.title }}
 		</a>
-		<time datetime="{{tag.last_attach|date:"r"}}">{{tag.last_attach|sensibletime:"d/m/y"}}</time>
+		<time datetime="{{tag.timestamp|date:"r"}}">{{tag.timestamp|sensibletime:"d/m"}}</time>
 	</li>
 {% endfor %}	
 </ul>

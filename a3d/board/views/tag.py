@@ -25,14 +25,12 @@ def list(request,
     """
     context_instance = context_instance if context_instance else RequestContext(request)
     tags_list = Tag.objects.filter(is_active = True,
-                                   last_attach__gt = datetime.datetime.fromtimestamp(int(request.GET.get('after', 0)))
+                                   timestamp__gt = int(request.GET.get('after', 0))
                                    ).order_by('-attach_count')
     if tags_list.count() == 0:
         return HttpResponseNotModified()
 
-    d = {'next_item': int(time.mktime(max(tags_list,
-                                          key = lambda x:x.last_attach
-                                          ).last_attach.timetuple())),
+    d = {'next_item': max(tags_list, key = lambda x:x.timestamp).timestamp,
          'tags_list': tags_list[0:int(limit)],
          }
 
