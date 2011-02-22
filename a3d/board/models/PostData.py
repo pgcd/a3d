@@ -203,7 +203,8 @@ class Post(Auditable, ExtendedAttributesManager):
         board_post_view for posts
         profiles_profile_detail for user profiles
         '''
-        #The following approach is the correct one. Sadly, it hits the db with every single call.
+        #The following approach is the "correct" one. 
+        #Sadly, it hits the db with every single call.
         #I would like to find a "correct" approach using a class method, 
         #as opposed to an instance one.
 #        try:
