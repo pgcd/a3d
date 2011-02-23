@@ -19,6 +19,9 @@ from django.utils import simplejson
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
 from django.contrib.humanize.templatetags import humanize
+from board.utils import EndlessPage
+import sys
+from django.utils.encoding import smart_str
 
 register = template.import_library("board.decorators")
 
@@ -29,7 +32,7 @@ class TagsList(template.Node):
         self.limit = limit
     def render(self, context):
         from board.views.tag import list as tag_list
-        return tag_list(context['request'], limit = self.limit, context_instance=context, discard_response = True) 
+        return tag_list(context['request'], limit = self.limit, context_instance = context, discard_response = True) 
 parsingTag(TagsList, "do_tags_list")
 
 
@@ -61,10 +64,10 @@ class PostInteractionsNode(template.Node):
         if not user.is_authenticated():
             return ''
         object_pks = [x.pk for x in posts]
-        interactions = Interaction.objects.filter(object_id__in = object_pks, 
-                                                  user = user).values('value', 
-                                                                      'object_id', 
-                                                                      'interaction_type__name', 
+        interactions = Interaction.objects.filter(object_id__in = object_pks,
+                                                  user = user).values('value',
+                                                                      'object_id',
+                                                                      'interaction_type__name',
                                                                       'interaction_type__content_type_id')
         pdict = dict((d.pk, d) for d in posts)
         for i in interactions:
@@ -138,7 +141,7 @@ def object_tags(context, obj):
     @param context:
     @param obj:
     '''
-    return {"tags":getattr(obj, "tag_set", []), 
+    return {"tags":getattr(obj, "tag_set", []),
             'obj':obj,
             'request':context['request']
             }
@@ -181,12 +184,12 @@ def post_form(context, obj = None):
     
     '''
     request = context['request']
-    return {'form':board_forms.PostDataForm(obj, request = request), 
+    return {'form':board_forms.PostDataForm(obj, request = request),
             'hide_auth': request.user.is_authenticated() and request.GET.get('auth') != 'show',
             'request': request,
             'next_item': context['next_item'],
             'csrf_token': context['csrf_token'],
-            'tag': context.get('tag',False),
+            'tag': context.get('tag', False),
             }
 
 
@@ -211,7 +214,7 @@ def list_mentions_for(context, user):
 class RepliesToken(template.Node):
     """
     """
-    def __init__(self, obj, list_name='object_list'):
+    def __init__(self, obj, list_name = 'object_list'):
         self.obj = template.Variable(obj)
         
     def render(self, context):
@@ -248,6 +251,28 @@ class UserPostsToken(template.Node):
         return ''
 parsingTag(UserPostsToken, "get_posts_by", required = 1)
 
+class EndlessPageToken(template.Node):
+    '''
+    DO NOT USE - EndlessPage is currently unable to deal with lists.
+    '''
+    def __init__(self, object_list, *args):
+        self.var_name = object_list
+        self.object_list = template.Variable(object_list)
+        
+        if len(args) > 0 and args[0] == 'using':
+            self.filter_field = smart_str(args[1])
+    def render(self, context):
+        try:
+            obj_list = self.object_list.resolve(context)
+        except template.VariableDoesNotExist:
+            return "Object list %s does not exist" % self.object_list
+        _page = EndlessPage(obj_list,
+                            filter_field = self.filter_field
+                            ).page(context['request'],
+                                   list_name = self.var_name)
+        context.update(_page)
+        return ''
+parsingTag(EndlessPageToken, 'make_endless_page', required = 1)
 #============================================================================
 # Simple Tags
 #============================================================================

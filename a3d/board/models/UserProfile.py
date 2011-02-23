@@ -36,7 +36,7 @@ class UserProfile(models.Model, ExtendedAttributesManager):
     link_source_post = models.BooleanField(blank = True)
     always_preview = models.BooleanField(blank = True)
     can_modify_profile_own = models.BooleanField(blank = True)
-    can_set_nick_color = models.BooleanField(blank = True)
+    can_change_custom_nick_display = models.BooleanField(blank = True)
     can_change_short_desc = models.BooleanField(blank = True)
     show_ruler = models.BooleanField(blank = True)
     save_password = models.BooleanField(blank = True)
@@ -52,7 +52,7 @@ class UserProfile(models.Model, ExtendedAttributesManager):
     _replies = generic.GenericRelation("Post")
     _last_reply_id = models.PositiveIntegerField(default = 0, blank = True)
 #    reverse_timestamp = models.PositiveIntegerField(default = 0)
-    timestamp = models.PositiveIntegerField(blank = True, default = 0, db_index=True)
+    timestamp = models.PositiveIntegerField(blank = True, default = 0, db_index = True)
     replies_count = models.IntegerField(default = 0) #This should be a denorm.
     last_page_url = models.CharField(max_length = 255, blank = True, default = '')
     last_page_time = models.DateTimeField(default = datetime.datetime.now(), db_index = True)
@@ -122,17 +122,17 @@ class UserProfile(models.Model, ExtendedAttributesManager):
             
         faved_objects = {}
         faved_objects[post_ct] = dict((o.pk, {
-                                              'last':o.last_reply, 
-                                              'obj':o, 
+                                              'last':o.last_reply,
+                                              'obj':o,
                                               'type':'post'
                                               }) for o in Post.objects.filter(pk__in = favorites_list[post_ct]))
-        faved_objects[tag_ct] = dict((o.pk, {'last': o.timestamp, 
-                                             'obj':o, 
+        faved_objects[tag_ct] = dict((o.pk, {'last': o.timestamp,
+                                             'obj':o,
                                              'type':'tag'
                                              }) for o in Tag.objects.filter(pk__in = favorites_list[tag_ct]))
 #        faved_objects[userprofile_ct] = dict((o.pk, {'last':o.last_reply, 'obj':o, 'type':'userprofile'}) for o in UserProfile.objects.filter(pk__in = favorites_list[userprofile_ct]))
-        faved_objects[userpost_ct] = dict((o.pk, {'last':o.get_profile().last_post_id, 
-                                                  'obj':o.get_profile(), 
+        faved_objects[userpost_ct] = dict((o.pk, {'last':o.get_profile().last_post_id,
+                                                  'obj':o.get_profile(),
                                                   'type':'user'
                                                   }) for o in User.objects.filter(pk__in = favorites_list[userpost_ct]))
 
@@ -158,8 +158,8 @@ class UserProfile(models.Model, ExtendedAttributesManager):
             f.link_title = link_prefix[ct] + getattr(obj, 'title', obj.__unicode__()) 
             f.current = fo['last']
             f.fresh = fo.get('op', operator.lt)(f.link_start, f.current)
-            f.remove = reverse('unfave_object', kwargs = {'fave_type_slug':'star', 
-                                                          'content_type_id': ct, 
+            f.remove = reverse('unfave_object', kwargs = {'fave_type_slug':'star',
+                                                          'content_type_id': ct,
                                                           'object_id': oid})
         return faves
     

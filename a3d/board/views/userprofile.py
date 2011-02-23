@@ -70,7 +70,7 @@ def list_replies(request,
         else:
             _d = {'post_list':[],
                   'more_up':'%s' % (request.GET.get('start', '').lstrip('-')),
-                  'next_item': c.get('tip',0),
+                  'next_item': c.get('tip', 0),
                   'parent_post':post,
                   'items_left': c['items_left']}
             return render_to_response(template_name,
@@ -122,7 +122,7 @@ def list_by_user(request, username, context_instance = None, discard_response = 
         else: #Since there are new posts, we return a paginator with a counter and some other info
             return render_to_response(template_name,
                 {'post_list':[],
-                  'next_item': c.get('tip',0),
+                  'next_item': c.get('tip', 0),
                   'parent_post':user_obj,
                   'items_left': c['items_left'],
                   },
@@ -130,10 +130,31 @@ def list_by_user(request, username, context_instance = None, discard_response = 
 
     _d = paginator.page(request, list_name = 'post_list')
     _d.update({'next_item': _d['first_item']}) 
-    board_signals.post_read.send(User, 
-                                obj_id = user_obj.pk, 
-                                last_item = "%s;%s" % (_d["last_item"], '0'), 
+    board_signals.post_read.send(User,
+                                obj_id = user_obj.pk,
+                                last_item = "%s;%s" % (_d["last_item"], '0'),
                                 user = request.user)
     return render_to_response(template_name,
                                    _d,
                                    context_instance = context_instance)
+    
+def list(request, public_profile_field = None, template_name = "profiles/profile_list.html"):
+    '''
+    
+    @param request:
+    @type request:
+    @param public_profile_field:
+    @type public_profile_field:
+    @param template_name:
+    @type template_name:
+    '''
+    profiles = EndlessPage(UserProfile.objects.
+                     order_by('-timestamp').
+                     select_related('user'),
+                 filter_field = 'timestamp').page(request)
+
+    profiles.update({'next_item':profiles['first_item'],
+               })
+    return render_to_response(template_name,
+            profiles,
+            context_instance = RequestContext(request))

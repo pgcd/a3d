@@ -1,8 +1,32 @@
-{% extends "base.html" %}
+{% extends base_template %}
 {% load board_tags %}
 {% block content %}
-{% make_endless_page for object_list using filter_field=-user__date_joined %} 
-{% for p in object_list  %}
-<a href="{% url profiles_profile_detail p %}">{{ p }}</a> <br />
-{% endfor %}
+	{% if has_next %}
+	<a href="?start={{has_next}}" 
+		class="endless-paginator" 
+		rel="next" 
+		data-attach-method="prepend"
+		data-items-left="{{items_left}}">
+		<span class="items-left">{{items_left}}</span> fresher
+	</a>
+	{% endif %}
+	<ol id="profiles" class="new-content profiles-list"
+		data-source-href="?start={{next_item}}"
+		data-next-item="{{next_item}}">
+		{% for post in object_list %}
+		<li id="post-id-{{post.pk}}-container" class="author-id-{{post.user_id}}">
+			<article id="post-id-{{post.pk}}" class="post{%if request.user.is_authenticated and post.has_new_replies%} has-new-replies{%endif%}">
+				<header><h1 class="post-title">
+						<a href="{% url profiles_profile_detail post %}" class="post-link">{{ post }}</a>
+				</h1></header>
+			</article>
+		</li>		
+		{% endfor %}
+
+	</ol>
+
+	{% if has_prev %}
+	<a href="?start=-{{has_prev}}" class="endless-paginator" data-attach-method="append" rel="prev">older</a>
+	{% endif %}		
+
 {% endblock %}
