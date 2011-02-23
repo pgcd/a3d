@@ -1,0 +1,38 @@
+Basic tests:
+This __sentence__ will _have_ several *tags*.
+
+This_one_won't__have__any. This|^one^|will|_have_|two.
+
+**** This is the _H1_ heading ****
+
+*** This is the __H2__ heading ***
+
+** This is the H3 heading **
+
+->This sentence is centered with some {{{(lang:python)code thrown in}}}<-
+        
+==This is <'"> *escaped*==
+
+http://www.google.com
+
+http://www.asphalto.org/pixies/alogo.jpg
+
+[[http://www.google.com Google]]
+
+[[http://www.asphalto.org {{http://www.asphalto.org/pixies/alogo.jpg alogo.jpg}}]]
+
+{{http://www.asphalto.org/pixies/alogo.jpg "sangue e anime"}}
+
+> @[username] #123
+> first quoted line
+>> Nested quote
+> end quote
+
+* This should be the first line.
+* # Second Line _indented_
+* # Third line http://a.link.to
+* fourth line back
+# A different list
+# With four lines
+# * And an indented ul
+# * With two lines

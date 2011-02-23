@@ -1,0 +1,82 @@
+/* -------------------------------------------------------------------
+// markItUp!
+// By Jay Salvat - http://markitup.jaysalvat.com/
+// ------------------------------------------------------------------*/
+.markItUp .buttonBold a {
+	background-image:url(images/bold.png);
+}
+.markItUp .buttonItalic a {
+	background-image:url(images/italic.png);
+}
+.markItUp .buttonStroke a {
+	background-image:url(images/stroke.png);
+}
+
+.markItUp .buttonUnderline a {
+	background-image:url(images/underline.png);
+}
+.markItUp .buttonSpoiler a {
+	background-image:url(images/layers.png); /*TODO: fUgly.*/
+}
+
+.markItUp .buttonImage a {
+	background-image:url(images/picture.png); 
+}
+.markItUp .buttonLink a {
+	background-image:url(images/link.png);
+}
+
+.markItUp .buttonBlockquote a {
+	background-image:url(images/quote.png);
+}
+.markItUp .buttonCode a {
+	background-image:url(images/code.png);
+}
+
+.markItUp .buttonEscapedHTML a {
+	background-image:url(images/html_go.png);
+}
+
+.markItUp .buttonMacro a {
+	background-image:url(images/macro.png); /*TODO: fUgly.*/
+}
+
+.markItUp .buttonMacro ul li a {
+	color: #000;
+	font-weight: bold;
+}
+.markItUp .buttonMacro ul li a:hover {
+	color: #ffcc00;
+}
+
+
+
+.markItUp .buttonCenter a {
+	background-image:url(images/align_center.png);
+}
+
+
+.markItUp .buttonHeading1 a {
+	background-image:url(images/heading_1.png);
+}
+.markItUp .buttonHeading2 a {
+	background-image:url(images/heading_2.png);
+}
+.markItUp .buttonHeading3 a {
+	background-image:url(images/heading_3.png);
+}
+
+.markItUp .buttonBulletedList a {
+	background-image:url(images/list_bullets.png);
+}
+.markItUp .buttonNumericList a {
+	background-image:url(images/list_numbers.png);
+}
+
+.markItUp .preview a {
+	background-image:url(images/preview.png);
+}
+
+.alm {
+	clear: both;
+}

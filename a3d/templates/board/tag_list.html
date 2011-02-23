@@ -1,0 +1,14 @@
+{% load board_tags i18n %}
+<ul data-source-href="{% url board_tags_list %}" data-next-item="{{next_item}}">
+{% for tag in tags_list  %}
+	<li id="tag-item-{{tag.title}}">
+		<a href="{% url board_post_list_by_tag_title tag.title %}"
+		data-brief-href="{% url board_post_list_by_tag_title tag.title %}?info_only=True"  
+	class="brief-available popularity-{% if forloop.counter <= 7 %}high{% else %}{% if forloop.counter <= 14 %}medium{% else %}{% if forloop.counter <= 21 %}low{% else %}very-low{% endif %}{% endif %}{% endif %}">
+		.{{ tag.title }}
+		</a>
+		<time datetime="{{tag.timestamp|date:"r"}}">{{tag.timestamp|sensibletime:"d/m"}}</time>
+	</li>
+{% endfor %}	
+</ul>
+<input type="search" placeholder="{% trans 'search tags' %}" id="tags-lookup" />

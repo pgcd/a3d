@@ -1,0 +1,9 @@
+{% load board_tags %}{% spaceless %}
+<ol id="replies-brief-{{post.pk}}" class="replies-list brief">{% for post in post_list  %}
+	<li class="{%if post.replies_count%}has_replies{%endif%}">
+		<header>{{post.username}} <time>{{post.updated|sensibletime:"SHORT_DATE_FORMAT"}}</time></header>
+		{% if post.title_as_reply%}
+		{{ post.title_as_reply|truncatewords:"4" }}
+		{% endif %}
+	</li>{% endfor %}
+</ol>{% endspaceless %}

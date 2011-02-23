@@ -1,0 +1,33 @@
+{% extends base_template %}
+{% load board_tags faves %}
+{% block title %}{{ post.title }}::asphalto.org{% endblock %}
+{% block extracss %}
+	{% with post.user.get_profile as p %}
+		{% if p.custom_nick_display %}
+			a.user-id-{{p.id}} {
+				{{p.custom_nick_display|safe|escapecss }}
+			}
+		{% endif %}
+	{% endwith %}
+	{{ block.super }}
+{% endblock extracss %}
+
+	
+{% block content %}
+    <article class="post parent-post" id="post-id-{{post.pk}}">
+	    {% block post_body %}
+	        <header><h1 class="post-title">{{ post.title }}</h1></header>
+	        {% include "board/post_info.html" %}
+			{% if post.postdata %}
+	        <div class="post-text">{{ post.postdata.body|safe }}</div>
+	        {% if post.postdata.signature %}<div class="signature">{{ post.postdata.signature|safe }}</div>{%endif%}
+			{% endif %}
+	    {% endblock %}
+		{% with post as parent_post %}
+			{% get_replies for parent_post as post_list %}
+		{% endwith %}
+    </article>
+	{% if not request.is_ajax %}
+		{% post_form parent_post %}
+	{% endif %}
+{% endblock content %}

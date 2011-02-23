@@ -1,0 +1,22 @@
+{% load board_tags %}
+<li id="post-id-{{post.pk}}-container" class="author-id-{{post.user_id}}">
+	<article id="post-id-{{post.pk}}" class="post skip-signature skip-tags {% class_tags post %} rating{{post.rating|font_by_rating}}{%if request.user.is_authenticated and post.has_new_replies%} has-new-replies{%endif%}">
+		<header><h1 class="post-title">
+			{% if post.username or post.user_id %}
+				<a href="{% url board_post_view post.pk %}" class="post-link">{{ post.title }}</a>
+			{% else %}
+				<a href="{% url profiles_profile_detail post.title %}" class="post-link">{{ post.title }}</a>
+			{% endif %}
+		</h1></header>
+		{% include "board/post_info.html" %}
+		{% if post.rating >= personal_settings.min_rating_for_summary %}
+		<div class="post-text">
+			{% if post.postdata.summary %}
+				{{ post.postdata.summary|truncatewords_html:66|safe }}
+			{% else %}
+				{{ post.postdata.body|truncatewords_html:66|safe }}
+			{% endif %}
+		</div>
+		{% endif %}
+	</article>
+</li>

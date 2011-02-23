@@ -1,0 +1,12 @@
+{% load i18n%}<ul>
+ {% for f in faves %}
+ <li><a title="{{f.link_title|safe}}" href="{{f.link_href}}" class="star-link {% if f.fresh %}fresh-content{%endif%}">
+ 	{{f.link_title|safe}}
+	</a>
+	{%if f.link_start%}
+	<a href="{{f.link_href}}?start={{f.link_start}}" title="{% trans 'Last read post' %}" class="on-request navigation last-read">&Dagger;</a>
+	{%endif%}
+	<a href="{{f.remove}}" class="on-request remove-star navigation" title="{% trans "Remove" %}">&otimes;</a>
+ </li>
+ {% endfor %}
+ </ul>

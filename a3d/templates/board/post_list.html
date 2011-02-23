@@ -1,0 +1,37 @@
+{% load board_tags faves %}
+{% prefetch tags for post_list %}
+{% prefetch post_interactions for post_list %}
+{% inject_faves_to post_list by request.user of type star as is_starred %}
+
+{% if has_prev %}
+	<a href="{{parent_post.get_replies_url}}?start=-{{has_prev}}"
+		class="endless-paginator"
+		rel="prev" data-attach-method="prepend">previous</a>
+{% endif %}
+	<ol id="replies-{{parent_post.pk}}"
+		class="replies-list new-content"
+		data-next-item="{{next_item}}"
+		data-source-href="{{parent_post.get_replies_url}}?start={{next_item}}"
+		data-content-update-interval="20">
+	<style type="text/css" scoped="scoped">
+		{% prefetch profiles for post_list as user_profiles %}
+		{% for pp in user_profiles %}
+			{% if pp.custom_nick_display %}
+			a.user-id-{{pp.user_id}} {
+				{{pp.custom_nick_display|safe|escapecss }}
+			}
+			{% endif %}
+		{% endfor %}
+	</style>
+	{% for post in post_list|dictsort:"pk"  %}
+	{% block reply_body %}
+		{% include "board/post_body.html" %}
+	{% endblock %}
+	{% endfor %}
+</ol>
+{% if has_next %}
+	<a href="{{parent_post.get_replies_url}}?start={{has_next}}" 
+	class="endless-paginator" rel="next" 
+	data-attach-method="append"
+	data-items-left="{{items_left}}"><span class="items-left">{{items_left}}</span> more</a>
+{% endif %}

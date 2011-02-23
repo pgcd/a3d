@@ -1,0 +1,48 @@
+{% extends base_template %}
+{% load board_tags faves %}
+{% block title %}
+	{% if basetag %}{{ basetag.title }}{% endif %} {{block.super }}
+{% endblock %} 
+
+{% block extracss %}
+{{block.super}}
+{% prefetch profiles for object_list as user_profiles %}
+	{% for p in user_profiles %}
+		{% if p.custom_nick_display %}
+		a.user-id-{{p.user_id}} {
+			{{p.custom_nick_display|safe|escapecss }}
+		}
+		{% endif %}
+	{% endfor %}
+{% endblock %}
+
+
+{% block content %}
+	{% prefetch tags for object_list %}
+	{% prefetch post_interactions for object_list %}
+	{% inject_faves_to object_list by request.user of type star as is_starred %}
+	{% if has_next %}
+	<a href="?start={{has_next}}" 
+		class="endless-paginator" 
+		rel="next" 
+		data-attach-method="prepend"
+		data-items-left="{{items_left}}">
+		<span class="items-left">{{items_left}}</span> fresher
+	</a>
+	{% endif %}
+	<ol id="threads"
+		class="new-content threads-list"
+		data-source-href="?start={{next_item}}"
+		data-next-item="{{next_item}}">
+		{% for post in object_list|dictsortreversed:"timestamp"  %}
+				{% include "board/thread_body.html" %}
+		{% endfor %} 
+	</ol> 
+	{% if has_prev %}
+	<a href="?start=-{{has_prev}}" class="endless-paginator" data-attach-method="append" rel="prev">older</a>
+	{% endif %}		
+
+	{% if not request.is_ajax %}
+		{% post_form %}
+	{% endif %}
+{% endblock %}
