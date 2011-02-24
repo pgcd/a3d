@@ -3,54 +3,11 @@
 {% block content %}
 
 <form action="{% url profiles_edit_profile %}" method="POST">
-<h1>Editables</h1>
-<ul>
-{% if form.can_change_short_desc %}
-<li>{{form.short_desc.label_tag}}{{form.short_desc}}</li>
-{% endif %}
-<li>{{form.long_desc.label_tag}}{{form.long_desc}}</li>
-<li>{{form.signature.label_tag}}{{form.signature}}</li>
-
-{% if form.can_change_custom_nick_display %}
-<li>{{form.custom_nick_display.label_tag}}{{form.custom_nick_display}}</li>
-{% endif %}
-
-<li>{{form.secret_question.label_tag}}{{form.secret_question}}</li>
-<li>{{form.secret_answer.label_tag}}{{form.secret_answer}}</li>
-<li>{{form.hidden_email.label_tag}}{{form.hidden_email}}</li>
-<li>{{form.hidden_status.label_tag}}{{form.hidden_status}}</li>
-
-
-<li>{{form.always_preview.label_tag}}{{form.always_preview}}</li>
-<li>{{form.auto_login.label_tag}}{{form.auto_login}}</li>
-<li>{{form.auto_quote.label_tag}}{{form.auto_quote}}</li>
-<li>{{form.back_to_topic.label_tag}}{{form.back_to_topic}}</li>
-<li>{{form.is_alias.label_tag}}{{form.is_alias}}</li>
-<li>{{form.link_source_post.label_tag}}{{form.link_source_post}}</li>
-<li>{{form.min_rating.label_tag}}{{form.min_rating}}</li>
-<li>{{form.post_per_page.label_tag}}{{form.post_per_page}}</li>
-<li>{{form.save_password.label_tag}}{{form.save_password}}</li>
-<li>{{form.show_ruler.label_tag}}{{form.show_ruler}}</li>
-</ul>
-<h1>Non Editables</h1>
-
-<li>{{form.can_change_short_desc.label_tag}}{{form.can_change_short_desc}}</li>
-<li>{{form.can_modify_profile_own.label_tag}}{{form.can_modify_profile_own}}</li>
-<li>{{form.can_set_nick_color.label_tag}}{{form.can_set_nick_color}}</li>
-<li>{{form.contributor.label_tag}}{{form.contributor}}</li>
-
-'last_page_time': datetime.datetime(2011, 2, 23, 11, 40, 41, 629000),
-'last_page_url': u'/profile',
-'last_post': 1470L,
-'id': 77L,
-'mana': 15751L,
-'mod_denied': False,
-'posts_count': 6408L,
-'rating_total': 0L,
-'replies_count': 3L,
-
-
-{{csrf_token}}
+{% for key, value in form.info_fields.items %}
+{{key}}: {{value }}
+{% endfor %}
+{{form.as_ul}}
+{%csrf_token%}
 <input type="submit" value="Submit" />
 </form>
 {% endblock %}

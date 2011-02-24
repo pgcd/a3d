@@ -29,15 +29,15 @@ class UserProfile(models.Model, ExtendedAttributesManager):
     short_desc = models.CharField(max_length = 255, blank = True)
     long_desc = models.TextField(blank = True)
     custom_nick_display = models.TextField(blank = True)
-    mod_denied = models.BooleanField(blank = True)
     auto_login = models.BooleanField(blank = True)
     back_to_topic = models.BooleanField(blank = True)
     auto_quote = models.BooleanField(blank = True)
     link_source_post = models.BooleanField(blank = True)
     always_preview = models.BooleanField(blank = True)
-    can_modify_profile_own = models.BooleanField(blank = True)
-    can_change_custom_nick_display = models.BooleanField(blank = True)
-    can_change_short_desc = models.BooleanField(blank = True)
+#    mod_denied = models.BooleanField(blank = True)
+#    can_modify_profile_own = models.BooleanField(blank = True)
+#    can_change_custom_nick_display = models.BooleanField(blank = True)
+#    can_change_short_desc = models.BooleanField(blank = True)
     show_ruler = models.BooleanField(blank = True)
     save_password = models.BooleanField(blank = True)
     contributor = models.BooleanField(blank = True)
@@ -45,17 +45,17 @@ class UserProfile(models.Model, ExtendedAttributesManager):
     post_per_page = models.SmallIntegerField(blank = True, default = 30)
     min_rating = models.SmallIntegerField(blank = True, default = 2)
     mana = models.IntegerField(default = 0)
-    last_post = models.ForeignKey("Post", blank = True, null = True, related_name = "posted_by")
-    posts_count = models.IntegerField(blank = True, default = 0)
+    last_post = models.ForeignKey("Post", blank = True, null = True, related_name = "posted_by", editable = False)
+    posts_count = models.IntegerField(blank = True, default = 0, editable = False)
     _extended_attributes = generic.GenericRelation("ExtendedAttributeValue")
     ignores = generic.GenericRelation(Ignore)
-    _replies = generic.GenericRelation("Post")
-    _last_reply_id = models.PositiveIntegerField(default = 0, blank = True)
+    _replies = generic.GenericRelation("Post", editable = False)
+    _last_reply_id = models.PositiveIntegerField(default = 0, blank = True, editable = False)
 #    reverse_timestamp = models.PositiveIntegerField(default = 0)
-    timestamp = models.PositiveIntegerField(blank = True, default = 0, db_index = True)
-    replies_count = models.IntegerField(default = 0) #This should be a denorm.
-    last_page_url = models.CharField(max_length = 255, blank = True, default = '')
-    last_page_time = models.DateTimeField(default = datetime.datetime.now(), db_index = True)
+    timestamp = models.PositiveIntegerField(blank = True, default = 0, db_index = True, editable = False)
+    replies_count = models.IntegerField(default = 0, editable = False) #This should be a denorm.
+    last_page_url = models.CharField(max_length = 255, blank = True, default = '', editable = False)
+    last_page_time = models.DateTimeField(default = datetime.datetime.now(), db_index = True, editable = False)
 
     def __unicode__(self):
         return self.user.username
@@ -69,7 +69,6 @@ class UserProfile(models.Model, ExtendedAttributesManager):
     def get_replies_url(self):
         return ('board_profile_view_replies', (), { 'username':  iri_to_uri(self.user.username)})
 
-    
     @property
     def replies(self):
         return self._replies.filter(is_active = True).select_related('postdata')
@@ -81,7 +80,6 @@ class UserProfile(models.Model, ExtendedAttributesManager):
     @property
     def posts(self):
         return self.user._posts.select_related('user', 'postdata').order_by('-pk')#IGNORE:W0212
-
 
     @property
     def interactions(self):
@@ -171,3 +169,11 @@ class UserProfile(models.Model, ExtendedAttributesManager):
 
     class Meta:#IGNORE:W0232
         app_label = 'board'
+        permissions = (
+                       ("set_nick_display", "Can change nick display"),
+                       ("change_short_desc", "Can change short desc"),
+                       ("edit_profile_own", "Can edit own profile"),
+                       ("become_mod", "Can become mod"),
+                       )
+                       
+                       

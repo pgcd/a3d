@@ -2,6 +2,7 @@ from django.conf.urls.defaults import url, patterns, include
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
 import profiles.views as profile_views #@UnresolvedImport
+from board.forms import UserProfileForm
 admin.autodiscover()
 
 urlpatterns = patterns('',
@@ -46,7 +47,7 @@ urlpatterns = patterns('',
     (r'^admin/', admin.site.urls),
     url(r'^u/autocomplete$', 'board.views.userprofile.autocomplete', name = "board_userprofile_autocomplete"),
 #    url(r'^register$', profile_views.create_profile, name = 'profiles_create_profile'),
-    url(r'^profile$', profile_views.edit_profile, name = 'profiles_edit_profile'),
+    url(r'^profile$', profile_views.edit_profile, {'form_class': UserProfileForm}, name = 'profiles_edit_profile'),
     url(r'^u/mentions/(?P<limit>\d+)?/?$', 'board.views.mention.mentions_list', name = 'board_own_mentions_list'),
     url(r'^u/(?P<username>.+)$', profile_views.profile_detail, name = 'profiles_profile_detail'),
     url(r'^on/(?P<username>.+)$', 'board.views.userprofile.list_replies', name = 'board_profile_view_replies'),

@@ -3,19 +3,17 @@ import datetime
 from south.db import db
 from south.v2 import DataMigration
 from django.db import models
-import time
-from django.core.exceptions import ObjectDoesNotExist
 
 class Migration(DataMigration):
 
     def forwards(self, orm):
+        csd = orm['auth.permission'].objects.get(codename = 'change_short_desc')
+        snc = orm['auth.permission'].objects.get(codename = 'set_nick_display')
         for item in orm.UserProfile.objects.all():
-            try:
-                item.timestamp = int(time.mktime(item.user.date_joined.timetuple()))
-            except ObjectDoesNotExist: 
-                item.timestamp = 1
-            item.save()
-
+            if item.can_change_short_desc:
+                item.user.user_permissions.add(csd)
+            if item.custom_nick_display or item.can_change_custom_nick_display:
+                item.user.user_permissions.add(snc)
 
     def backwards(self, orm):
         "Write your backwards methods here."
@@ -196,7 +194,7 @@ class Migration(DataMigration):
             'hidden_status': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_alias': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
-            'last_page_time': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2011, 2, 23, 14, 41, 53, 421000)', 'db_index': 'True'}),
+            'last_page_time': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2011, 2, 24, 13, 19, 52, 426000)', 'db_index': 'True'}),
             'last_page_url': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '255', 'blank': 'True'}),
             'last_post': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'posted_by'", 'null': 'True', 'to': "orm['board.Post']"}),
             'link_source_post': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
