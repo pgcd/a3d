@@ -1,25 +1,39 @@
 # encoding: utf-8
 import datetime
 from south.db import db
-from south.v2 import DataMigration
+from south.v2 import SchemaMigration
 from django.db import models
-import time
-from django.core.exceptions import ObjectDoesNotExist
 
-class Migration(DataMigration):
+class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        for item in orm.UserProfile.objects.all():
-            try:
-                item.timestamp = int(time.mktime(item.user.date_joined.timetuple()))
-            except ObjectDoesNotExist: 
-                item.timestamp = 1
-            item.save()
+        
+        # Deleting field 'UserProfile.can_modify_profile_own'
+        db.delete_column('board_userprofile', 'can_modify_profile_own')
+
+        # Deleting field 'UserProfile.mod_denied'
+        db.delete_column('board_userprofile', 'mod_denied')
+
+        # Deleting field 'UserProfile.can_change_short_desc'
+        db.delete_column('board_userprofile', 'can_change_short_desc')
+
+        # Deleting field 'UserProfile.can_change_custom_nick_display'
+        db.delete_column('board_userprofile', 'can_change_custom_nick_display')
 
 
     def backwards(self, orm):
-        "Write your backwards methods here."
-        raise RuntimeError("Cannot reverse this migration.")
+        
+        # Adding field 'UserProfile.can_modify_profile_own'
+        db.add_column('board_userprofile', 'can_modify_profile_own', self.gf('django.db.models.fields.BooleanField')(default=False, blank=True), keep_default=False)
+
+        # Adding field 'UserProfile.mod_denied'
+        db.add_column('board_userprofile', 'mod_denied', self.gf('django.db.models.fields.BooleanField')(default=False, blank=True), keep_default=False)
+
+        # Adding field 'UserProfile.can_change_short_desc'
+        db.add_column('board_userprofile', 'can_change_short_desc', self.gf('django.db.models.fields.BooleanField')(default=False, blank=True), keep_default=False)
+
+        # Adding field 'UserProfile.can_change_custom_nick_display'
+        db.add_column('board_userprofile', 'can_change_custom_nick_display', self.gf('django.db.models.fields.BooleanField')(default=False, blank=True), keep_default=False)
 
 
     models = {
@@ -187,23 +201,19 @@ class Migration(DataMigration):
             'auto_login': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'auto_quote': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'back_to_topic': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
-            'can_change_custom_nick_display': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
-            'can_change_short_desc': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
-            'can_modify_profile_own': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'contributor': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'custom_nick_display': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'hidden_email': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'hidden_status': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_alias': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
-            'last_page_time': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2011, 2, 23, 14, 41, 53, 421000)', 'db_index': 'True'}),
+            'last_page_time': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime(2011, 2, 24, 13, 35, 11, 879000)', 'db_index': 'True'}),
             'last_page_url': ('django.db.models.fields.CharField', [], {'default': "''", 'max_length': '255', 'blank': 'True'}),
             'last_post': ('django.db.models.fields.related.ForeignKey', [], {'blank': 'True', 'related_name': "'posted_by'", 'null': 'True', 'to': "orm['board.Post']"}),
             'link_source_post': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'long_desc': ('django.db.models.fields.TextField', [], {'blank': 'True'}),
             'mana': ('django.db.models.fields.IntegerField', [], {'default': '0'}),
             'min_rating': ('django.db.models.fields.SmallIntegerField', [], {'default': '2', 'blank': 'True'}),
-            'mod_denied': ('django.db.models.fields.BooleanField', [], {'default': 'False', 'blank': 'True'}),
             'post_per_page': ('django.db.models.fields.SmallIntegerField', [], {'default': '30', 'blank': 'True'}),
             'posts_count': ('django.db.models.fields.IntegerField', [], {'default': '0', 'blank': 'True'}),
             'rating_total': ('django.db.models.fields.IntegerField', [], {'default': '0'}),

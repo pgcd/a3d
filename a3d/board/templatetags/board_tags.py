@@ -258,7 +258,6 @@ class EndlessPageToken(template.Node):
     def __init__(self, object_list, *args):
         self.var_name = object_list
         self.object_list = template.Variable(object_list)
-        
         if len(args) > 0 and args[0] == 'using':
             self.filter_field = smart_str(args[1])
     def render(self, context):

@@ -9,6 +9,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import ugettext_lazy as _
 import time
 import re
+from board.models.UserProfile import UserProfile
+import board.widgets
 #import datetime
 
 class PostDataForm(forms.ModelForm):
@@ -23,7 +25,6 @@ class PostDataForm(forms.ModelForm):
         else: 
             self.is_reply = True
             self.next_page = self.target_object.get_replies_url()
-
         if initial is None:
             initial = {}
         initial.update(self.generate_initial_data())
@@ -75,7 +76,25 @@ class PostDataForm(forms.ModelForm):
             'object_id': forms.widgets.HiddenInput(),
         }
 
-
 class PostDataEditForm(PostDataForm):
     class Meta(PostDataForm.Meta):
         fields = ['title', 'body_markup', 'content_type', 'object_id', ]
+        
+        
+class UserProfileForm(forms.ModelForm):
+    def __init__(self, data = None, request = None, initial = None, **kwargs):
+        self.request = request
+        if initial is None:
+            initial = {}
+        super(UserProfileForm, self).__init__(data = data, initial = initial, **kwargs)
+        instance = kwargs.get('instance', None)
+        if instance is not None:
+            self.info_fields = {
+                                'Mana' : instance.mana,
+                                'Posts count': instance.posts_count,
+                                }
+            self.fields['custom_nick_display'].widget = board.widgets.CssPreviewWidget(sampletext = instance.user.username)
+
+    class Meta:
+        model = UserProfile
+        exclude = ('contributor', 'user', 'rating_total', 'mana')

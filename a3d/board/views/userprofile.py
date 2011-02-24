@@ -19,6 +19,8 @@ from board import signals as board_signals
 import sys
 import urllib
 from django.template.loader import render_to_string
+from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
 
 def autocomplete(request, **kwargs): #TODO: Enforce minimum chars here?
     """
