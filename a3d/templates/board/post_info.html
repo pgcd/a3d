@@ -61,10 +61,10 @@
 		<li class="navigation up-down">
 			{% if not is_reply %}
 				{% if post.object_id > 0 %}
-					<a href="{{ post.parent_url }}?start={{post.pk}}#post-id-{{post.pk}}" class="parent-link post-link" rel="up">[&uArr;]</a>
+					<a href="{{ post.get_url_as_reply }}" class="parent-link post-link" rel="up">[&uArr;]</a>
 				{% endif %}
 			{% else %}
-				<a href="?start={{post.pk}}#post-id-{{post.pk}}" title="{% trans 'Start from here' %}" rel="bookmark" class="permalink post-link on-request">[&dArr;]</a>
+				<a href="?start={{post.pk}}&inclusive#post-id-{{post.pk}}" title="{% trans 'Start from here' %}" rel="bookmark" class="permalink post-link on-request">[&dArr;]</a>
 			{% endif %}
 		</li>
 		<li class="navigation follow"><a class="follow-post interaction on-request" href="?tag_match=%23{{post.pk}}" rel="subsection" data-followed-post="{{post.pk}}">segui</a></li>		

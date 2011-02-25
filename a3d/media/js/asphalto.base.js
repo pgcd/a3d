@@ -642,6 +642,8 @@ jQuery(document).ready(function($){ // Makes me feel safer
 			.attr('title', 'cancel')
 			.html('&ne;') //TODO: Cleaner solution required
 			.click(function(ev){
+				//Let's remove the preview anyway.
+				$('.previewtext').remove();
 	            $this.closest('form').replaceWith($this.data('revert'));
 	            $this.attr('title', 'edit').html('&equiv;').parent().addClass('on-request');
 	            return false;
@@ -684,7 +686,8 @@ jQuery(document).ready(function($){ // Makes me feel safer
 				} else {
 					$this.replaceWith(data); //Main posts
 				}
-				
+				//Let's remove the preview anyway.
+				$('.previewtext').remove();
             },
             context: $this,
             type: 'POST'
