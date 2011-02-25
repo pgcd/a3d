@@ -45,6 +45,9 @@ class ExtendedAttribute(models.Model):
     Vertical-table like structure to store fully normalized attributes types
     """
     name = models.CharField(max_length = 32)
+    #The following are relevant only when in frontend editing, of course.
+    applies_to = models.ForeignKey(ContentType, blank = True, null = True)
+    editable = models.BooleanField()
     def __unicode__(self):
         return self.name
     class Meta:#IGNORE:W0232
@@ -67,19 +70,35 @@ class ExtendedAttributeValue(models.Model):
 
 
 class ExtendedAttributesManager(object):
-    @property
-    def extended_attributes(self):
+    def get_attributes(self, editable_only = False):
         """ This is the getter
         """
         extended_attrs = self._extended_attributes.values("key", "value")
-        extended_keys = dict([(i.get("id"), i.get("name")) for i in ExtendedAttribute.objects.filter(pk__in = [k.get("key") for k in extended_attrs]).values()])
+        if editable_only:
+            keys = ExtendedAttribute.objects.filter(editable = True).filter(pk__in = [k.get("key") for k in extended_attrs]).values()
+        else:
+            keys = ExtendedAttribute.objects.filter(pk__in = [k.get("key") for k in extended_attrs]).values()
+        extended_keys = dict([(i.get("id"), i.get("name")) 
+                              for i in keys])
         extend = {}
         for k in extended_attrs: 
-            keyname = extended_keys[k.get("key")]
-            if extend.get(keyname) is None:
-                extend[keyname] = []
-            extend[keyname].append(k.get("value"))
-        return extend    
+            try:
+                keyname = extended_keys[k.get("key")]
+                if extend.get(keyname, None) is None:
+                    extend[keyname] = []
+                extend[keyname].append(k.get("value"))
+            except KeyError:
+                #keyname missing, let's ignore the value (for "editable_only" purposes)
+                pass
+        return extend
+
+    @property
+    def editable_attributes(self):
+        return self.get_attributes(True)
+    
+    @property
+    def extended_attributes(self):
+        return self.get_attributes(False)
 
 
 class Ignore(models.Model):

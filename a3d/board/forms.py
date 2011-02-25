@@ -94,6 +94,7 @@ class UserProfileForm(forms.ModelForm):
                                 'Posts count': instance.posts_count,
                                 }
             self.fields['custom_nick_display'].widget = board.widgets.CssPreviewWidget(sampletext = instance.user.username)
+            self.user_extended = instance.editable_attributes
 
     class Meta:
         model = UserProfile
