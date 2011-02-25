@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% load board_tags %}
+{% block title %} {{ basetag.title }} {% endblock %}
+
+{% block content %}
+{% for p in object_list.all  %}
+{% if p.user %}
+	{% user_link p %} |
+{% endif %}
+<a class="post_title" href="{% url board_post_view p.pk %}">{{ p }}</a> {% object_tags p %} <br />
+{% endfor %}
+{% endblock %}

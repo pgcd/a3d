@@ -1,0 +1,17 @@
+{% load board_tags dumper%}
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+		<link rel="stylesheet" href="{{ media_url }}asphalto.css" />
+		<link rel="stylesheet" type="text/css" href="{{ media_url }}custom-theme/jquery-ui-1.8.1.custom.css" />
+		<link rel="stylesheet" type="text/css" href="{{ media_url }}js/jquery-autocomplete/jquery.ui.autocomplete.css" />
+	</head>
+	<body>
+	<article id="post-preview" class="post reply">
+			<div class="post-text">
+				{{ post.body|safe}}
+			</div>
+	</article>
+</body>
+</html>

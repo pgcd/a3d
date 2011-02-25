@@ -1,0 +1,37 @@
+{% extends base_template %}
+{% block content %}
+{% load board_tags faves %}
+{% if not request.is_ajax %}
+<h1 class="post-title">{{ profile.user }}
+{% if request.user.is_authenticated %}
+	{% if request.user|has_faved:profile.user %}
+	<span class="navigation toggle-star"><a href="{%  get_unfave_url profile.user "star" %}" class="permalink remove-star" rel="bookmark">&diams;</a></span>
+	{% else %}
+	<span class="navigation toggle-star"><a href="{%  get_fave_url profile.user "star" %}" class="permalink add-star" rel="bookmark">&loz;</a></span>
+	{% endif %}
+{% endif %}</h1>
+<section id="user-posts" class="skip-signature">
+	<h2>Ultimi post</h2>
+	{% block user_posts %}
+		{% with profile.user as profile_user %}
+			{% get_posts_by profile as post_list %}
+			{% include "board/user_post_list.html" %}
+		{% endwith %}
+	{% endblock %}
+</section>
+{% endif %}
+	{% block replies %}
+{% if not request.is_ajax %}
+<section id="comments-on-user">
+	<h2>Commenti al profilo</h2>
+{% endif %}
+		{% with profile as parent_post %}
+			{% get_replies for profile %}
+			{% include "board/post_list.html" %}
+		{% endwith %}	
+</section>
+		{% if not request.is_ajax %}
+			{% post_form profile %}
+		{% endif %}
+	{% endblock %}
+{% endblock %}

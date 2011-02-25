@@ -1,0 +1,20 @@
+{% extends base_template %}
+{% load board_tags dumper %}
+{% block content %}
+
+<form action="{% url profiles_edit_profile %}" method="POST">
+{% for key, value in form.info_fields.items %}
+{{key}}: {{value }}<br />
+{% endfor %}
+<br />
+{% for key, value in form.user_extended.items %}
+{{key}}: 
+{{value }}
+<br />
+{% endfor %}
+
+{{form.as_ul}}
+{%csrf_token%}
+<input type="submit" value="Submit" />
+</form>
+{% endblock %}

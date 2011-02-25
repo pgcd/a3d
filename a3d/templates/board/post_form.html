@@ -1,0 +1,46 @@
+{% load board_tags i18n dumper %}
+<div id="post-form" class="post-form-container">
+<form action="{% url board_post_create %}" method="POST"
+	{% if form.is_reply %}
+	data-attach-element=".replies-list.new-content"
+	data-attach-method="append"
+	{% else %}
+	data-attach-method="prepend"
+	data-attach-element=".threads-list.new-content"
+	{% endif %}
+	class="append-to-target quick-submit markitup">	
+
+	{{ form.object_id }}
+	{{ form.content_type }}
+	
+	<input type="hidden" name="next_page" value="{{ form.next_page|default:request.path }}" />
+	<input type="hidden" name="next_item" value="{{ next_item }}" />
+{% if tag %}
+	<input type="hidden" name="list_tag" value="{{ tag }}" />
+{% endif %}
+
+	
+	{% csrf_token %}
+	{% if hide_auth %}
+	 <a title="{% trans "click to post with a different username" %}"
+	    href="{{request.path|updateurl:"auth=show"}}" 
+		class="auth-hidden">{% trans "logged in as " %}<b>{{request.user.username}}</b></a>
+	{% endif %}
+	<ul style="margin: 0 auto;" {% if hide_auth %}class="auth-hidden"{% endif %}>
+		<li>{{ form.username.label_tag }}{{ form.username }}</li>
+		<li>{{ form.password.label_tag }}{{ form.password }}</li>
+	</ul>
+	
+	<ul style="margin: 0 auto;">
+		<li>{{ form.title.label_tag }}{{ form.title }}</li>
+		<li>{{ form.body_markup.label_tag }}{{ form.body_markup }}</li>
+	</ul>
+	<ul class="advanced-options">
+		<li>{{ form.wiki.label_tag }}{{ form.wiki }}</li>
+	</ul>
+	<input type="submit" value="Submit" />
+	<div id="preview-anchor-right"></div>
+	<div id="preview-anchor-bottom"></div>
+</form>
+</div>
+<div class="clear"></div>

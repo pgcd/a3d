@@ -1,0 +1,1 @@
+[{"pk": 1, "model": "board.extendedattribute", "fields": {"editable": false, "name": "base_rating", "applies_to": 11}}, {"pk": 2, "model": "board.extendedattribute", "fields": {"editable": true, "name": "all_read_before", "applies_to": 11}}]
