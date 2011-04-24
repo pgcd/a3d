@@ -32,7 +32,7 @@ class TagsList(template.Node):
         self.limit = limit
     def render(self, context):
         from board.views.tag import list as tag_list
-        return tag_list(context['request'], limit = self.limit, context_instance = context, discard_response = True) 
+        return tag_list(context['request'], limit = self.limit, context_instance = context, discard_response = True)
 parsingTag(TagsList, "do_tags_list")
 
 
@@ -51,7 +51,7 @@ class ProfilesNode(template.Node):
                 p.userprofile = {}
         context[self.lst] = posts
         if self.varname:
-            context[self.varname] = userprofiles 
+            context[self.varname] = userprofiles
         return ''
 
 class PostInteractionsNode(template.Node):
@@ -82,22 +82,22 @@ class PostInteractionsNode(template.Node):
                     setattr(pdict[p_id], "%s_last" % i["interaction_type__name"], int(i_val))
                 else: #Trying to cater to the "post count" crowd - shouldn't harm anything else. Hopefully.
                     setattr(pdict[p_id], "%s_last" % i["interaction_type__name"], i_val)
-                
+
                 if i_count.isdigit():
                     setattr(pdict[p_id], "%s_last_count" % i["interaction_type__name"], int(i_count))
                 elif i_count: #Trying to cater to the "post count" crowd - shouldn't harm anything else. Hopefully.
                     setattr(pdict[p_id], "%s_last_count" % i["interaction_type__name"], i_count)
-                
+
                 #The next line has been removed to allow the *_count attrs
                 #setattr(pdict[p_id], "%s_last" % i["interaction_type__name"], int(i["value"]) if i["value"].isdigit() else i['value'])
         #Adding this bit to check for rateability
         for p in posts:
             setattr(p, 'can_be_rated', p._can_be_rated(context["request"]))
             setattr(p, 'can_be_edited', p._can_be_edited(context["request"]))
-            
+
         context[self.lst] = posts
         if self.varname:
-            context[self.varname] = interactions 
+            context[self.varname] = interactions
         return ''
 
 class TagsNode(template.Node):
@@ -113,9 +113,9 @@ class TagsNode(template.Node):
             setattr(pdict[p_id], "tag_set", getattr(pdict[p_id], 'tag_set', []) + [i["title"]])
         context[self.lst] = posts
         if self.varname:
-            context[self.varname] = tags 
+            context[self.varname] = tags
         return ''
-    
+
 
 @register.tag
 def prefetch(parser, token):
@@ -145,7 +145,7 @@ def object_tags(context, obj):
             'obj':obj,
             'request':context['request']
             }
-    
+
 
 
 @register.inclusion_tag("board/user_link.html")
@@ -153,7 +153,7 @@ def user_link(obj):
     '''
     
     '''
-    
+
     if obj.user_id is not None:
         if obj.user_id <> 0:
             return {"user":{"id":obj.user_id,
@@ -187,7 +187,7 @@ def post_form(context, obj = None):
     return {'form':board_forms.PostDataForm(obj, request = request),
             'hide_auth': request.user.is_authenticated() and request.GET.get('auth') != 'show',
             'request': request,
-            'next_item': context['next_item'],
+            'next_item': context.get('next_item', None),
             'csrf_token': context['csrf_token'],
             'tag': context.get('tag', False),
             }
@@ -216,13 +216,13 @@ class RepliesToken(template.Node):
     """
     def __init__(self, obj, list_name = 'object_list'):
         self.obj = template.Variable(obj)
-        
+
     def render(self, context):
         try:
             obj = self.obj.resolve(context)
         except template.VariableDoesNotExist:
             return "Object %s does not exist" % self.obj
-        
+
         ct = ContentType.objects.get_for_model(obj).name
         if ct == 'post':
             from board.views.post import list_replies as post_replies
@@ -240,7 +240,7 @@ class UserPostsToken(template.Node):
     def __init__(self, user_object, var_name = "object_list"):
         self.user_object = template.Variable(user_object)
         self.var_name = var_name
-    
+
     def render(self, context):
         try:
             obj = self.user_object.resolve(context)
@@ -352,7 +352,7 @@ def sensibletime(value, arg = None):
         return value
     except TypeError:
         pass #It's already a datetime, no need to do anything
-    try: 
+    try:
         p_value = datetime.date(value.year, value.month, value.day)
     except AttributeError:
         # Passed value wasn't a date object
@@ -360,7 +360,7 @@ def sensibletime(value, arg = None):
     except ValueError:
         # Date arguments out of range
         return value
-    
+
     delta = p_value - datetime.date.today()
     if delta.days == 0:
         return value.strftime('%H:%M:%S') #TODO: Remove hardcoding
