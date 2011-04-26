@@ -15,7 +15,7 @@
 	{% block user_posts %}
 		{% with profile.user as profile_user %}
 			{% get_posts_by profile as post_list %}
-			{% include "board/user_post_list.html" %}
+			{% include "board/user_post_list.html" with post_list=post_list %}
 		{% endwith %}
 	{% endblock %}
 </section>
@@ -27,7 +27,8 @@
 {% endif %}
 		{% with profile as parent_post %}
 			{% get_replies for profile %}
-			{% include "board/post_list.html" %}
+			{{post_list}}
+			{% include "board/post_list.html" with post_list=post_list%}
 		{% endwith %}	
 </section>
 		{% if not request.is_ajax %}
