@@ -27,7 +27,7 @@ def autocomplete(request, **kwargs): #TODO: Enforce minimum chars here?
     """
     username = request.GET.get('s', '')
     object_list = User.objects.filter(username__startswith = username).values_list('username')
-    
+
 #    json_serializer = serializers.get_serializer("json")()
 #    json_serializer.serialize(queryset, ensure_ascii=False, stream=response,fields='title')
     return HttpResponse(object_list, mimetype = "text/plain")
@@ -78,8 +78,8 @@ def list_replies(request,
             return render_to_response(template_name,
                 _d,
                 context_instance = context_instance)
-    
-    
+
+
     _d = EndlessPage(qs, limit).page(request, list_name = 'post_list')
     _d.update({
             'next_item':_d['last_item'],
@@ -131,7 +131,7 @@ def list_by_user(request, username, context_instance = None, discard_response = 
                 context_instance = context_instance)
 
     _d = paginator.page(request, list_name = 'post_list')
-    _d.update({'next_item': _d['first_item']}) 
+    _d.update({'next_item': _d['first_item']})
     board_signals.post_read.send(User,
                                 obj_id = user_obj.pk,
                                 last_item = "%s;%s" % (_d["last_item"], '0'),
@@ -139,7 +139,7 @@ def list_by_user(request, username, context_instance = None, discard_response = 
     return render_to_response(template_name,
                                    _d,
                                    context_instance = context_instance)
-    
+
 def list(request, public_profile_field = None, template_name = "profiles/profile_list.html"):
     '''
     
