@@ -8,7 +8,7 @@
 				<a href="{% url profiles_profile_detail post.title %}" class="post-link">{{ post.title }}</a>
 			{% endif %}
 		</h1></header>
-		{% include "board/post_info.html" %}
+		{% post_info %}
 		{% if post.rating >= personal_settings.min_rating_for_summary or always_show_summary %}
 		<div class="post-text">
 			{% if post.postdata.summary %}

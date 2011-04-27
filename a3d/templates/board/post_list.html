@@ -25,7 +25,7 @@
 	</style>
 	{% for post in post_list|dictsort:"pk"  %}
 	{% block reply_body %}
-		{% include "board/post_body.html" %}
+		{% render_post_body %}
 	{% endblock %}
 	{% endfor %}
 </ol>

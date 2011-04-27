@@ -1,7 +1,6 @@
 {% load board_tags faves %}
 
 {% block content %}
-{{post_list}}
 	{% prefetch tags for post_list %}
 	{% prefetch post_interactions for post_list %}
 	{% inject_faves_to post_list by request.user of type star as is_starred %}
@@ -16,7 +15,9 @@
 	data-source-href="{% url board_profile_list_by_user profile_user %}?start={{next_item}}"
 	data-next-item="{{next_item}}">
 		{% for p in post_list|dictsortreversed:"pk" %}
-			{% include "board/thread_body.html" with always_show_summary="True" post=p %}
+			{% with always_show_summary="True" post=p %}
+			{% render_thread_body %}
+			{% endwith %}
 		{% endfor %} 
 	</ol> 
 	{% if has_prev %}

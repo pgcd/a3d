@@ -92,7 +92,7 @@ def list_replies(request,
     last_item = "%s;%s" % (_d['last_item'] or post.pk, post.replies_count - _d['items_left'])
     board_signals.post_read.send(sender = UserProfile, obj_id = post.pk, last_item = last_item, user = request.user)
     if discard_response:
-        context_instance.update({'next_item':_d['next_item']})
+        context_instance.update(_d)
         return render_to_string(template_name,
                 _d,
                 context_instance = context_instance)
@@ -136,6 +136,7 @@ def list_by_user(request, username, context_instance = None, discard_response = 
                                 obj_id = user_obj.pk,
                                 last_item = "%s;%s" % (_d["last_item"], '0'),
                                 user = request.user)
+    context_instance.update(_d)
     return render_to_response(template_name,
                                    _d,
                                    context_instance = context_instance)
