@@ -184,24 +184,19 @@ def post_form(context, obj = None):
     
     '''
     request = context['request']
-    return {'form':board_forms.PostDataForm(obj, request = request),
+    _d = {'form':board_forms.PostDataForm(obj, request = request),
             'hide_auth': request.user.is_authenticated() and request.GET.get('auth') != 'show',
-            'request': request,
-            'next_item': context.get('next_item', None),
-            'csrf_token': context['csrf_token'],
-            'tag': context.get('tag', False),
             }
+    context.update(_d)
+    return context
 
 
 @register.inclusion_tag("board/post_info.html", takes_context = True)
-def post_info(context, post):
+def post_info(context):
     '''
     
     '''
-    return {'post':post,
-            'request':context['request'],
-            'personal_settings':context['personal_settings'],
-            }
+    return context
 
 @register.inclusion_tag('board/mention_list.html', takes_context = True)
 def list_mentions_for(context, user):
@@ -209,6 +204,22 @@ def list_mentions_for(context, user):
     # TODO: Check if ordering by mention_id makes any sense 
     mentions = user.mentions.public(user).order_by('-mention__id')[:10]
     return {'mentions':mentions, 'request':context['request']}
+
+@register.inclusion_tag('board/post_body.html', takes_context = True)
+def render_post_body(context):
+    '''
+    
+    @param context:
+    '''
+    return context
+
+@register.inclusion_tag('board/thread_body.html', takes_context = True)
+def render_thread_body(context):
+    '''
+    
+    @param context:
+    '''
+    return context
 
 
 class RepliesToken(template.Node):

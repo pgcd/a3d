@@ -35,7 +35,7 @@
 		data-source-href="?start={{next_item}}"
 		data-next-item="{{next_item}}">
 		{% for post in object_list|dictsortreversed:"timestamp"  %}
-				{% include "board/thread_body.html" %}
+				{% render_thread_body %}
 		{% endfor %} 
 	</ol> 
 	{% if has_prev %}

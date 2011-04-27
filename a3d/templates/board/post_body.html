@@ -5,7 +5,7 @@
 			<a class="post-link" href="{% url board_post_view post.pk %}">{{ post.title_as_reply }}</a>
 		</h1></header>
 		{% with 1 as is_reply %}
-			{% include "board/post_info.html" %}
+			{% post_info %}
 		{% endwith %}
 	{% if post.postdata.body %}
 		<div class="post-text">

@@ -45,7 +45,7 @@ def mark_as(request, post_id, action, **kwargs):  #IGNORE:W0613
             i[0].save()
         elif action == 'unread':
             request.user.interactions.filter(pk = i[0].pk).delete()
-        
+
         #if request.is_ajax(): #TODO: Some kind of response+template for non-ajax requests
         return view(request, post_id, info_only = True) #FIXME:I really don't like using "board.views.post.view" like this, I'd rather use a more specific addressing
     except DoesNotExist: #@UndefinedVariable #IGNORE:E0602
@@ -94,7 +94,7 @@ def home(request, **kwargs):
     return _list(request,
                  Post.objects.get_home_posts(context['personal_settings']['min_rating_for_home']),
                  context_instance = context, **kwargs)
-    
+
 
 def _list(request, queryset, limit = None, template_name = 'board/thread_list.html', context_instance = None,
           extra_context = None, template_body = None, **kwargs): #IGNORE:W0613
@@ -123,7 +123,7 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
             return render_to_response(template_name,
                 _d,
                 context_instance = context_instance)
-    if request.GET.get('info_only', False): 
+    if request.GET.get('info_only', False):
         #We use this for the brief - might require some tweaking later on
         _d = EndlessPage(queryset, 10, #TODO: Remove hardcoding
                          filter_field = 'timestamp').page(request, list_name = 'post_list')
@@ -135,7 +135,7 @@ def _list(request, queryset, limit = None, template_name = 'board/thread_list.ht
     _d = EndlessPage(queryset.select_related('user', 'postdata'),
                      limit,
                      filter_field = 'timestamp').page(request)
-    
+
     _d.update({'next_item':_d['first_item'],
                'tag':tag,
                })
@@ -174,7 +174,7 @@ def view(request, post_id, template_name = 'board/post_view.html',
     user = request.user
     post_obj = get_object_or_404(Post.objects.public(user).select_related('postdata'), pk = post_id).with_interactions(request)
 
-    post_obj = _set_extra_attributes(request, post_obj)    
+    post_obj = _set_extra_attributes(request, post_obj)
     setattr(post_obj, 'is_main_post', not info_only) #TODO: a more elaborate logic to ascertain if it actually is the main post or not
     if extra_context is None:
         extra_context = {}
@@ -218,28 +218,28 @@ def list_replies(request,
                   'items_left': c['items_left'],
                  },
                 context_instance = context_instance)
-    
+
     #retrieve the actual list     
     _d = paginator.page(request, list_name = 'post_list')
     _d.update({
             'next_item':_d.get('tip', 0),
             'parent_post':post,
            })
-    
+
     #Check if we only want the list of the last posts, without the actual data.
     #TODO: Check if it's possibile to remove select_related - perhaps we can make the check in the caller funcs?
     if request.GET.get('info_only', False):
         return render_to_response('board/post_list_brief.html',
                 _d,
                 context_instance = context_instance)
-        
+
     last_item = "%s;%s" % (_d['last_item'] or post_id,
                            post.replies_count - _d['items_left'])
     board_signals.post_read.send(sender = Post,
                                  obj_id = post_id,
                                  last_item = last_item,
                                  user = request.user)
-    
+
     #deal with mentions in replies 
     #(and possibly other situations as well, since it actually makes sense).
     try:
@@ -251,9 +251,9 @@ def list_replies(request,
     except ValueError:
         pass
     #discard_response is used when calling the view from a template_tag
+    context_instance.update(_d)
     if discard_response:
         #Next_item needs to be set here
-        context_instance.update({'next_item':_d['next_item']})
         return render_to_string(template_name,
                 _d,
                 context_instance = context_instance)
@@ -261,7 +261,7 @@ def list_replies(request,
         return render_to_response(template_name,
                 _d,
                 context_instance = context_instance)
-    
+
 
 
 @login_required(redirect_field_name = 'next_page')
@@ -275,7 +275,7 @@ def rate(request, post_id, action):
     #first we require some kind of check
     next_page = request.GET.get('next_page')
     post = get_object_or_404(Post.objects.select_related(), pk = post_id).with_interactions(request)
-   
+
     if post._can_be_rated(request) and request.user.has_perm('board.timeshift_post'):
         signal_action = 'timeshift'
         setattr(post, 'can_be_rated', True)
@@ -287,16 +287,16 @@ def rate(request, post_id, action):
         if post.object_id: #This post has a parent, so any timeshift should be applied to the parent as well. 
             parent = post.in_reply_to
             parent.timestamp = parent.timestamp + parent_timeshift
-            parent.timeshift = parent.timeshift + parent_timeshift 
+            parent.timeshift = parent.timeshift + parent_timeshift
             if board_signals.interaction_event.send(Post,
                                                     request = request,
                                                     user = request.user,
                                                     object_id = parent.pk,
                                                     value = action,
                                                     interaction_type = 'timeshift'):
-                parent.save(no_update = True) 
+                parent.save(no_update = True)
         post.timestamp = post.timestamp + timeshift
-        post.timeshift = post.timeshift + timeshift 
+        post.timeshift = post.timeshift + timeshift
         if board_signals.interaction_event.send(Post,
                                                 request = request,
                                                 user = request.user,
@@ -304,7 +304,7 @@ def rate(request, post_id, action):
                                                 value = action,
                                                 interaction_type = signal_action):
             post.save(no_update = True)
-        
+
         setattr(post, 'tag_set', post.tags.all())
         if request.is_ajax():
             return view(request, post_id, info_only = True) #This calls this modules' view() function
@@ -381,7 +381,7 @@ def create(request):
     #TODO: Some serious validation is required here!
     next_page = request.POST.get('next_page', '')
     #We should never have "is_reply=false" in the req
-    is_reply = request.POST.get('content_type', False) and request.POST.get('object_id', False)  
+    is_reply = request.POST.get('content_type', False) and request.POST.get('object_id', False)
     form = PostDataForm(data = request.POST)
     context_instance = RequestContext(request)
     if form.is_valid():
@@ -401,9 +401,9 @@ def create(request):
             p.username = request.user.username
             p.user_id = request.user.id
         #Fully anonymous with tripcode 
-        else: 
+        else:
             p.username = tripcode(form.cleaned_data['password'])
-            p.user_id = -1 
+            p.user_id = -1
 
 
         if p.user_id > 0 and len(p.body_markup) > 0:
@@ -426,7 +426,7 @@ def create(request):
             if request.POST.get('list_tag'):
                 all_tags.append(request.POST.get('list_tag'))
             #cleanup title
-            existing_tags = Tag.objects.filter(title__in = list(set(all_tags))) 
+            existing_tags = Tag.objects.filter(title__in = list(set(all_tags)))
             p._title = re.sub('|'.join(['\[%s\]' % t.title for t in existing_tags]), '', p._title)
             board_signals.postdata_pre_create.send(sender = p.__class__,
                                               request = request, instance = p)
@@ -444,7 +444,7 @@ def create(request):
         else:
             p = control #There is a previous, identical post - we're simply returning it. 
                         #TODO: Perhaps a different response would be better?
-            
+
         if request.is_ajax():
             #===================================================================
             # We need to be able to return: 
